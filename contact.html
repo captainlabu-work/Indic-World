@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact Us | Indic</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    body {
+      background-color: #f8f5f2;
+      color: #333;
+      line-height: 1.6;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 30px;
+    }
+    
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    
+    h1 {
+      font-size: 2.5rem;
+      color: #232946;
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
+    
+    .subtitle {
+      font-size: 1.2rem;
+      color: #5f6c7b;
+      margin-bottom: 20px;
+    }
+    
+    .contact-form {
+      background-color: white;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    }
+    
+    .form-group {
+      margin-bottom: 25px;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: #232946;
+    }
+    
+    input, textarea {
+      width: 100%;
+      padding: 12px 15px;
+      border: 2px solid #ddd;
+      border-radius: 6px;
+      font-size: 16px;
+      transition: all 0.3s;
+    }
+    
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: #4a6cf7;
+      box-shadow: 0 0 0 3px rgba(74, 108, 247, 0.2);
+    }
+    
+    textarea {
+      min-height: 150px;
+      resize: vertical;
+    }
+    
+    .submit-btn {
+      background-color: #4a6cf7;
+      color: white;
+      border: none;
+      padding: 14px 28px;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: block;
+      width: 100%;
+    }
+    
+    .submit-btn:hover {
+      background-color: #3a5ce0;
+      transform: translateY(-2px);
+    }
+    
+    .indie-decoration {
+      height: 8px;
+      background: linear-gradient(90deg, #4a6cf7, #f48fb1, #ffcb77);
+      border-radius: 4px 4px 0 0;
+      margin-bottom: 20px;
+    }
+    
+    .indie-pattern {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: radial-gradient(#4a6cf7 1px, transparent 1px), radial-gradient(#f48fb1 1px, transparent 1px);
+      background-size: 20px 20px;
+      background-position: 0 0, 10px 10px;
+      opacity: 0.05;
+      z-index: -1;
+    }
+    
+    @media (max-width: 768px) {
+      .container {
+        padding: 20px;
+        margin: 20px auto;
+      }
+      
+      .contact-form {
+        padding: 25px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="indie-pattern"></div>
+  <div class="container">
+    <header>
+      <h1>Get in Touch</h1>
+      <p class="subtitle">We'd love to hear from you about creative collaborations or work opportunities</p>
+    </header>
+    
+    <div class="contact-form">
+      <div class="indie-decoration"></div>
+      
+      <form id="contactForm" action="/submit-contact" method="POST">
+        <div class="form-group">
+          <label for="name">Name</label>
+          <input type="text" id="name" name="name" placeholder="Your name" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" placeholder="Your email address" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="message">Message</label>
+          <textarea id="message" name="message" placeholder="Tell us about your query or project idea..." required></textarea>
+        </div>
+        
+        <button type="submit" class="submit-btn">Send Message</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('contactForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+      
+      // Get form values
+      const name = document.getElementById('name').value;
+      const email = document.getElementById('email').value;
+      const message = document.getElementById('message').value;
+      
+      // Here you would normally send this data to your server
+      console.log("Form submitted:", { name, email, message });
+      
+      // For demo purposes, show success message
+      alert("Thank you for your message! We'll get back to you soon.");
+      this.reset();
+    });
+  </script>
+</body>
+</html>
