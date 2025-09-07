@@ -1,9 +1,339 @@
-<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 3rem; background-color: #f9f9f9; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; max-width: 600px; margin: 40vh auto 0; transform: translateY(-50%);">
-  <h2 style="color: #333; margin-bottom: 1rem; font-size: 2rem;">Indic is under construction</h2>
-  <p style="color: #666; font-size: 1.2rem; margin-bottom: 2rem;">We're crafting something special—stay tuned!</p>
-  <p style="color: #666; font-size: 1rem; margin-bottom: 1rem;">For any creative or work related queries</p>
-  <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-    <a href="about.html" style="display: inline-block; background-color: #4a6cf7; color: white; padding: 0.75rem 1.5rem; border-radius: 4px; text-decoration: none; font-weight: bold; transition: background-color 0.3s;">About Us</a>
-    <a href="/contact" style="display: inline-block; background-color: #4a6cf7; color: white; padding: 0.75rem 1.5rem; border-radius: 4px; text-decoration: none; font-weight: bold; transition: background-color 0.3s;">Contact Us</a>
-  </div>
-</div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Indic - Storytellers of What Matters</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400;1,600&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Crimson Text', serif;
+            background: #fafafa;
+            color: #262626;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        
+        /* Navigation Bar */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(250, 250, 250, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid #e0e0e0;
+            padding: 1rem 2rem;
+            z-index: 1000;
+        }
+        
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            text-decoration: none;
+            color: #262626;
+        }
+        
+        .nav-logo-text {
+            font-size: 1.8rem;
+            font-weight: 600;
+            font-family: 'Crimson Text', serif;
+            letter-spacing: -0.01em;
+        }
+        
+        .nav-divider {
+            width: 2px;
+            height: 1.8rem;
+            background: linear-gradient(to bottom, #262626, #8e8e8e);
+            border-radius: 1px;
+        }
+        
+        .nav-logo-img {
+            height: 2.5rem;
+            width: auto;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+        
+        .nav-links a {
+            text-decoration: none;
+            color: #262626;
+            font-family: 'Crimson Text', serif;
+            font-size: 1.1rem;
+            font-weight: 400;
+            transition: color 0.3s ease;
+        }
+        
+        .nav-links a:hover {
+            color: #1a1a1a;
+        }
+        
+        /* Main Content */
+        .container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            max-width: 900px;
+            margin: 0 auto;
+            padding-top: 6rem;
+        }
+        
+        .hero-section {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .main-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1.2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .main-logo-text {
+            font-size: clamp(3rem, 6vw, 5rem);
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            color: #262626;
+            font-family: 'Crimson Text', serif;
+        }
+        
+        .main-divider {
+            width: 3px;
+            height: clamp(3rem, 6vw, 5rem);
+            background: linear-gradient(to bottom, #262626, #8e8e8e);
+            border-radius: 1px;
+        }
+        
+        .main-logo-img {
+            height: clamp(3rem, 6vw, 5rem);
+            width: auto;
+            filter: contrast(1.1);
+        }
+        
+        .tagline {
+            font-size: clamp(1.2rem, 2.5vw, 1.6rem);
+            font-weight: 400;
+            color: #3c3c3c;
+            margin-bottom: 2rem;
+            font-family: 'Crimson Text', serif;
+        }
+        
+        .construction-message {
+            max-width: 600px;
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .construction-text {
+            font-size: clamp(1.1rem, 2vw, 1.3rem);
+            font-weight: 400;
+            line-height: 1.7;
+            color: #262626;
+            margin-bottom: 1.5rem;
+            font-family: 'Crimson Text', serif;
+        }
+        
+        .construction-text.main {
+            font-size: clamp(1.3rem, 2.2vw, 1.5rem);
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+        
+        .cta-buttons {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background-color: #262626;
+            color: #fafafa;
+            padding: 0.8rem 2rem;
+            border-radius: 4px;
+            text-decoration: none;
+            font-family: 'Crimson Text', serif;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            border: 2px solid #262626;
+        }
+        
+        .cta-button:hover {
+            background-color: transparent;
+            color: #262626;
+        }
+        
+        .cta-button.secondary {
+            background-color: transparent;
+            color: #262626;
+            border: 2px solid #262626;
+        }
+        
+        .cta-button.secondary:hover {
+            background-color: #262626;
+            color: #fafafa;
+        }
+        
+        /* Animations */
+        .hero-section {
+            animation: fadeInUp 0.8s ease-out;
+        }
+        
+        .construction-message {
+            animation: fadeInUp 0.8s ease-out 0.2s both;
+        }
+        
+        .cta-buttons {
+            animation: fadeInUp 0.8s ease-out 0.4s both;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 0.8rem 1rem;
+            }
+            
+            .nav-links {
+                gap: 1.5rem;
+            }
+            
+            .container {
+                padding: 1.5rem;
+                padding-top: 5rem;
+            }
+            
+            .main-logo {
+                gap: 1rem;
+                margin-bottom: 1.5rem;
+            }
+            
+            .hero-section {
+                margin-bottom: 2rem;
+            }
+            
+            .construction-message {
+                margin-bottom: 2rem;
+            }
+            
+            .cta-buttons {
+                gap: 1rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .navbar {
+                padding: 0.6rem 0.8rem;
+            }
+            
+            .nav-links {
+                gap: 1rem;
+            }
+            
+            .nav-links a {
+                font-size: 1rem;
+            }
+            
+            .container {
+                padding: 1rem;
+                padding-top: 4.5rem;
+            }
+            
+            .main-logo {
+                gap: 0.8rem;
+            }
+            
+            .cta-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .cta-button {
+                width: 100%;
+                max-width: 200px;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="Index.html" class="nav-logo">
+                <span class="nav-logo-text">Indic</span>
+                <div class="nav-divider"></div>
+                <img src="Indic 2.png" alt="Indic Logo" class="nav-logo-img">
+            </a>
+            <ul class="nav-links">
+                <li><a href="Index.html">Home</a></li>
+                <li><a href="about.html">About</a></li>
+                <li><a href="contact.html">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+        <section class="hero-section">
+            <div class="main-logo">
+                <h1 class="main-logo-text">Indic</h1>
+                <div class="main-divider"></div>
+                <img src="Indic 2.png" alt="Indic Logo" class="main-logo-img">
+            </div>
+            <p class="tagline">Storytellers of what matters: poetic, raw, thoughtful, and bold</p>
+        </section>
+        
+        <section class="construction-message">
+            <p class="construction-text main">We're crafting something extraordinary</p>
+            <p class="construction-text">
+                At Indic, we chase passion over perfection, the messy over the polished. We're building a platform where authenticity thrives and stories that matter find their voice.
+            </p>
+            <p class="construction-text">Stay tuned as we prepare to launch our space for genuine storytelling.</p>
+        </section>
+        
+        <div class="cta-buttons">
+            <a href="about.html" class="cta-button">Learn About Us</a>
+            <a href="contact.html" class="cta-button secondary">Get In Touch</a>
+        </div>
+    </div>
+</body>
+</html>

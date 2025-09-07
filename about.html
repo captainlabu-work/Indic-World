@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>About Us - Indic</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700;800;900&display=swap');
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400;1,600&display=swap');
         
         * {
             margin: 0;
@@ -15,128 +15,303 @@
         }
         
         body {
-            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #fff;
-            color: #000;
+            font-family: 'Crimson Text', serif;
+            background: #fafafa;
+            color: #262626;
             line-height: 1.6;
+            overflow-x: hidden;
         }
         
-        .hero-section {
-            padding: 8rem 0 6rem 0;
-            text-align: center;
-            background: #fff;
+        /* Navigation Bar */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(250, 250, 250, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid #e0e0e0;
+            padding: 1rem 2rem;
+            z-index: 1000;
         }
         
-        .logo {
-            font-size: clamp(3rem, 6vw, 5rem);
-            font-weight: 800;
-            letter-spacing: -0.02em;
-            margin-bottom: 1rem;
-            color: #000;
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         
-        .tagline {
-            font-size: clamp(1rem, 2.5vw, 1.4rem);
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            text-decoration: none;
+            color: #262626;
+        }
+        
+        .nav-logo-text {
+            font-size: 1.8rem;
+            font-weight: 600;
+            font-family: 'Crimson Text', serif;
+            letter-spacing: -0.01em;
+        }
+        
+        .nav-divider {
+            width: 2px;
+            height: 1.8rem;
+            background: linear-gradient(to bottom, #262626, #8e8e8e);
+            border-radius: 1px;
+        }
+        
+        .nav-logo-img {
+            height: 2.5rem;
+            width: auto;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+        
+        .nav-links a {
+            text-decoration: none;
+            color: #262626;
+            font-family: 'Crimson Text', serif;
+            font-size: 1.1rem;
             font-weight: 400;
-            color: #666;
+            transition: color 0.3s ease;
+        }
+        
+        .nav-links a:hover {
+            color: #1a1a1a;
+        }
+        
+        .nav-links a.active {
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+        
+        .container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 1.5rem;
+            max-width: 800px;
+            margin: 0 auto;
+            padding-top: 6rem;
+        }
+        
+        .header {
+            text-align: center;
             margin-bottom: 2rem;
         }
         
-        .content-section {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 0 20px 6rem 20px;
+        .logo-section {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .logo-text {
+            font-size: clamp(2.2rem, 4.5vw, 3.5rem);
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            color: #262626;
+            font-family: 'Crimson Text', serif;
+        }
+        
+        .divider {
+            width: 2px;
+            height: clamp(2.2rem, 4.5vw, 3.5rem);
+            background: linear-gradient(to bottom, #262626, #8e8e8e);
+            border-radius: 1px;
+        }
+        
+        .logo-img {
+            height: clamp(2.2rem, 4.5vw, 3.5rem);
+            width: auto;
+            filter: contrast(1.1);
+        }
+        
+        .content {
+            max-width: 650px;
+            text-align: center;
         }
         
         .story-text {
-            font-size: clamp(1.4rem, 3vw, 2.2rem);
-            font-weight: 300;
-            line-height: 1.5;
-            letter-spacing: -0.01em;
-            margin-bottom: 3rem;
-            color: #000;
-        }
-        
-        .story-text .bold {
-            font-weight: 700;
-            color: #000;
-        }
-        
-        .story-text .italic {
-            font-style: italic;
+            font-size: clamp(1.1rem, 2vw, 1.3rem);
             font-weight: 400;
+            line-height: 1.7;
+            letter-spacing: 0.01em;
+            color: #262626;
+            margin-bottom: 2rem;
+            font-family: 'Crimson Text', serif;
+            text-align: justify;
         }
         
         .final-statement {
-            text-align: center;
-            padding: 4rem 0 6rem 0;
-            background: #fff;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e0e0e0;
         }
         
         .final-text {
-            font-size: clamp(2rem, 4vw, 3.5rem);
-            font-weight: 800;
-            letter-spacing: -0.02em;
-            color: #000;
+            font-size: clamp(1.6rem, 3vw, 2.2rem);
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            color: #1a1a1a;
+            font-family: 'Crimson Text', serif;
         }
         
-        /* Clean spacing */
-        .story-block {
-            margin-bottom: 2rem;
+        /* Indie aesthetic touches */
+        .content::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.03) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 177, 153, 0.03) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        /* Subtle animations */
+        .logo-section {
+            animation: fadeInUp 0.8s ease-out;
+        }
+        
+        .content {
+            animation: fadeInUp 0.8s ease-out 0.2s both;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
         
         /* Responsive Design */
         @media (max-width: 768px) {
-            .hero-section {
-                padding: 4rem 0 3rem 0;
+            .navbar {
+                padding: 0.8rem 1rem;
             }
             
-            .content-section {
-                padding: 0 20px 4rem 20px;
+            .nav-links {
+                gap: 1.5rem;
+            }
+            
+            .container {
+                padding: 1.2rem;
+                padding-top: 5rem;
+            }
+            
+            .logo-section {
+                gap: 0.8rem;
+                margin-bottom: 1.2rem;
+            }
+            
+            .header {
+                margin-bottom: 1.5rem;
             }
             
             .final-statement {
-                padding: 3rem 0 4rem 0;
+                margin-top: 1.5rem;
+                padding-top: 1.2rem;
+            }
+            
+            .story-text {
+                margin-bottom: 1.2rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .navbar {
+                padding: 0.6rem 0.8rem;
+            }
+            
+            .nav-links {
+                gap: 1rem;
+            }
+            
+            .nav-links a {
+                font-size: 1rem;
+            }
+            
+            .container {
+                padding: 1rem;
+                padding-top: 4.5rem;
+            }
+            
+            .logo-section {
+                gap: 0.6rem;
+                margin-bottom: 1rem;
+            }
+            
+            .header {
+                margin-bottom: 1.2rem;
+            }
+            
+            .story-text {
+                margin-bottom: 1rem;
+            }
+            
+            .final-statement {
+                margin-top: 1.2rem;
+                padding-top: 1rem;
             }
         }
     </style>
 </head>
 <body>
-    <section class="hero-section">
-        <h1 class="logo">Indic</h1>
-        <p class="tagline">Where Stories Find Their Voice</p>
-    </section>
-    
-    <section class="content-section">
-        <h2 class="about-heading">About Indic</h2>
-        
-        <div class="story-block">
-            <p class="story-text">
-                We are not just a platform for voices. We are one of the voices. Storytellers of what matters: poetic, raw, thoughtful, and bold.
-            </p>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="Index.html" class="nav-logo">
+                <span class="nav-logo-text">Indic</span>
+                <div class="nav-divider"></div>
+                <img src="Indic 2.png" alt="Indic Logo" class="nav-logo-img">
+            </a>
+            <ul class="nav-links">
+                <li><a href="Index.html">Home</a></li>
+                <li><a href="about.html" class="active">About</a></li>
+                <li><a href="contact.html">Contact</a></li>
+            </ul>
         </div>
+    </nav>
+
+    <div class="container">
+        <header class="header">
+            <div class="logo-section">
+                <h1 class="logo-text">Indic</h1>
+                <div class="divider"></div>
+                <img src="Indic 2.png" alt="Indic Logo" class="logo-img">
+            </div>
+        </header>
         
-        <div class="story-block">
+        <main class="content">
             <p class="story-text">
-                At Indic, we chase passion over perfection, the messy over the polished. We write, craft, nurture, narrate, and capture stories. In a world of facades, we are a place for authenticity.
+                We are not just a platform for voices. We are one of the voices. Storytellers of what matters: poetic, raw, thoughtful, and bold. At Indic, we chase passion over perfection, the messy over the polished. We write, craft, nurture, narrate, and capture stories. In a world of facades, we are a place for authenticity. We believe in the indomitable human spirit. One that has survived eras of brutality, suppression, pain, and suffering, yet never stopped astonishing nature with its ingenuity to create art, songs, literature, cinema, and beyond. We are here for that ingenuity. We believe in that ingenuity. We strive for that enduring spirit, a spirit that transcends cultures and never stops creating meaning.
             </p>
-        </div>
-        
-        <div class="story-block">
-            <p class="story-text">
-                We believe in the indomitable human spirit. One that has survived eras of brutality, suppression, pain, and suffering, yet never stopped astonishing nature with its ingenuity to create art, songs, literature, cinema, and beyond.
-            </p>
-        </div>
-        
-        <div class="story-block">
-            <p class="story-text">
-                We are here for that ingenuity. We believe in that ingenuity. We strive for that enduring spirit, a spirit that transcends cultures and never stops creating meaning.
-            </p>
-        </div>
-    </section>
-    
-    <section class="final-statement">
-        <h2 class="final-text">We are Indic.</h2>
-    </section>
+            
+            <div class="final-statement">
+                <h2 class="final-text">We are Indic.</h2>
+            </div>
+        </main>
+    </div>
 </body>
 </html>
