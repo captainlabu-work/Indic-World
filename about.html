@@ -3,57 +3,140 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About Us - Indic.World</title>
+    <title>About Us - Indic</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
+        @import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700;800;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        
+        * {
             margin: 0;
-            padding: 40px;
-            background-color: white;
-            color: black;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #fff;
+            color: #000;
             line-height: 1.6;
+        }
+        
+        .hero-section {
+            padding: 8rem 0 6rem 0;
+            text-align: center;
+            background: #fff;
+        }
+        
+        .logo {
+            font-size: clamp(3rem, 6vw, 5rem);
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin-bottom: 1rem;
+            color: #000;
+        }
+        
+        .tagline {
+            font-size: clamp(1rem, 2.5vw, 1.4rem);
+            font-weight: 400;
+            color: #666;
+            margin-bottom: 2rem;
+        }
+        
+        .content-section {
             max-width: 800px;
             margin: 0 auto;
-            padding: 40px 20px;
+            padding: 0 20px 6rem 20px;
         }
         
-        h1 {
-            font-size: 36px;
-            margin-bottom: 30px;
+        .story-text {
+            font-size: clamp(1.4rem, 3vw, 2.2rem);
+            font-weight: 300;
+            line-height: 1.5;
+            letter-spacing: -0.01em;
+            margin-bottom: 3rem;
+            color: #000;
         }
         
-        p {
-            font-size: 18px;
-            margin-bottom: 20px;
+        .story-text .bold {
+            font-weight: 700;
+            color: #000;
         }
         
-        .back-link {
-            margin-top: 40px;
+        .story-text .italic {
+            font-style: italic;
+            font-weight: 400;
         }
         
-        .back-link a {
-            color: black;
-            text-decoration: none;
-            border: 2px solid black;
-            padding: 10px 20px;
-            display: inline-block;
+        .final-statement {
+            text-align: center;
+            padding: 4rem 0 6rem 0;
+            background: #fff;
         }
         
-        .back-link a:hover {
-            background-color: black;
-            color: white;
+        .final-text {
+            font-size: clamp(2rem, 4vw, 3.5rem);
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: #000;
+        }
+        
+        /* Clean spacing */
+        .story-block {
+            margin-bottom: 2rem;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .hero-section {
+                padding: 4rem 0 3rem 0;
+            }
+            
+            .content-section {
+                padding: 0 20px 4rem 20px;
+            }
+            
+            .final-statement {
+                padding: 3rem 0 4rem 0;
+            }
         }
     </style>
 </head>
 <body>
-    <h1>About Us</h1>
+    <section class="hero-section">
+        <h1 class="logo">Indic</h1>
+        <p class="tagline">Where Stories Find Their Voice</p>
+    </section>
     
-    <p>At Indic, we're building a space where thoughts feel at home. A digital library for voices that matter — poetic, raw, thoughtful, or bold.</p>
+    <section class="content-section">
+        <h2 class="about-heading">About Indic</h2>
+        
+        <div class="story-block">
+            <p class="story-text">
+                We are not just a platform for voices. We are one of the voices. Storytellers of what matters: poetic, raw, thoughtful, and bold.
+            </p>
+        </div>
+        
+        <div class="story-block">
+            <p class="story-text">
+                At Indic, we chase passion over perfection, the messy over the polished. We write, craft, nurture, narrate, and capture stories. In a world of facades, we are a place for authenticity.
+            </p>
+        </div>
+        
+        <div class="story-block">
+            <p class="story-text">
+                We believe in the indomitable human spirit. One that has survived eras of brutality, suppression, pain, and suffering, yet never stopped astonishing nature with its ingenuity to create art, songs, literature, cinema, and beyond.
+            </p>
+        </div>
+        
+        <div class="story-block">
+            <p class="story-text">
+                We are here for that ingenuity. We believe in that ingenuity. We strive for that enduring spirit, a spirit that transcends cultures and never stops creating meaning.
+            </p>
+        </div>
+    </section>
     
-    <p>Our vision is simple: <strong>Make writing fun again.</strong> We're creating a platform where stories breathe, ideas bloom, and your words don't just scroll past — they stay.</p>
-    
-    <p>Indic isn't just a product. It's a philosophy. Rooted in the past, reaching toward the future — one word at a time.</p>
-    
-    <div class="back-link">
-        <a href="index.html">← Back to Home</a>
-    </div>
+    <section class="final-statement">
+        <h2 class="final-text">We are Indic.</h2>
+    </section>
+</body>
+</html>
