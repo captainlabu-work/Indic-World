@@ -1,0 +1,261 @@
+.rich-text-editor {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background: white;
+  overflow: hidden;
+  transition: border-color 0.3s;
+}
+
+.rich-text-editor:focus-within {
+  border-color: #262626;
+}
+
+.formatting-toolbar {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background: #f5f5f5;
+  border-bottom: 1px solid #e0e0e0;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.toolbar-group {
+  display: flex;
+  gap: 4px;
+}
+
+.toolbar-divider {
+  width: 1px;
+  height: 24px;
+  background: #d0d0d0;
+  margin: 0 8px;
+}
+
+.toolbar-spacer {
+  flex: 1;
+}
+
+.toolbar-btn {
+  padding: 6px 10px;
+  background: white;
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #333;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+  font-family: 'Crimson Text', serif;
+}
+
+.toolbar-btn:hover {
+  background: #262626;
+  color: white;
+  border-color: #262626;
+}
+
+.toolbar-btn:active {
+  transform: scale(0.95);
+}
+
+.toolbar-btn strong {
+  font-weight: 700;
+}
+
+.toolbar-btn em {
+  font-style: italic;
+}
+
+.preview-toggle {
+  padding: 6px 12px;
+  min-width: auto;
+}
+
+.preview-toggle.active {
+  background: #262626;
+  color: white;
+  border-color: #262626;
+}
+
+.editor-container {
+  position: relative;
+  min-height: 300px;
+}
+
+.editor-textarea {
+  width: 100%;
+  min-height: 400px;
+  padding: 16px;
+  border: none;
+  font-size: 16px;
+  line-height: 1.6;
+  font-family: 'Crimson Text', serif;
+  resize: vertical;
+  outline: none;
+}
+
+.editor-preview {
+  padding: 16px;
+  min-height: 400px;
+  font-family: 'Crimson Text', serif;
+  line-height: 1.6;
+}
+
+.preview-content {
+  color: #262626;
+}
+
+.preview-content h1 {
+  font-size: 2em;
+  margin: 0.67em 0;
+  font-weight: 600;
+  border-bottom: 2px solid #e0e0e0;
+  padding-bottom: 0.3em;
+}
+
+.preview-content h2 {
+  font-size: 1.5em;
+  margin: 0.75em 0;
+  font-weight: 600;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 0.3em;
+}
+
+.preview-content h3 {
+  font-size: 1.25em;
+  margin: 0.5em 0;
+  font-weight: 600;
+}
+
+.preview-content p {
+  margin: 1em 0;
+}
+
+.preview-content strong {
+  font-weight: 700;
+  color: #000;
+}
+
+.preview-content em {
+  font-style: italic;
+}
+
+.preview-content code {
+  background: #f5f5f5;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9em;
+  color: #d14;
+}
+
+.preview-content pre {
+  background: #f5f5f5;
+  padding: 12px;
+  border-radius: 6px;
+  overflow-x: auto;
+  margin: 1em 0;
+}
+
+.preview-content pre code {
+  background: none;
+  padding: 0;
+  color: inherit;
+}
+
+.preview-content blockquote {
+  border-left: 4px solid #262626;
+  padding-left: 16px;
+  margin: 1em 0;
+  font-style: italic;
+  color: #666;
+}
+
+.preview-content ul,
+.preview-content ol {
+  margin: 1em 0;
+  padding-left: 2em;
+}
+
+.preview-content li {
+  margin: 0.5em 0;
+}
+
+.preview-content a {
+  color: #262626;
+  text-decoration: underline;
+}
+
+.preview-content a:hover {
+  color: #000;
+}
+
+.preview-empty {
+  color: #999;
+  font-style: italic;
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.editor-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 16px;
+  background: #f9f9f9;
+  border-top: 1px solid #e0e0e0;
+  font-size: 13px;
+  color: #666;
+}
+
+.editor-hints {
+  display: flex;
+  gap: 8px;
+}
+
+.editor-hints kbd {
+  background: white;
+  border: 1px solid #d0d0d0;
+  border-radius: 3px;
+  padding: 2px 4px;
+  font-size: 11px;
+  font-family: monospace;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.1);
+}
+
+.char-count {
+  font-weight: 500;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .formatting-toolbar {
+    padding: 6px;
+  }
+
+  .toolbar-btn {
+    padding: 4px 8px;
+    font-size: 12px;
+    min-width: 28px;
+    height: 28px;
+  }
+
+  .toolbar-divider {
+    margin: 0 4px;
+  }
+
+  .editor-hints {
+    display: none;
+  }
+
+  .editor-textarea,
+  .editor-preview {
+    padding: 12px;
+    min-height: 300px;
+  }
+}

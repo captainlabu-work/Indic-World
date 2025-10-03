@@ -1,0 +1,171 @@
+.home-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  max-width: 900px;
+  margin: 0 auto;
+  padding-top: 6rem;
+}
+
+.hero-section {
+  text-align: center;
+  margin-bottom: 3rem;
+  animation: fadeInUp 0.8s ease-out;
+}
+
+.main-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.2rem;
+  margin-bottom: 2rem;
+}
+
+.main-logo-text {
+  font-size: clamp(3rem, 6vw, 5rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: #262626;
+  font-family: 'Crimson Text', serif;
+}
+
+.main-divider {
+  width: 3px;
+  height: clamp(3rem, 6vw, 5rem);
+  background: linear-gradient(to bottom, #262626, #8e8e8e);
+  border-radius: 1px;
+}
+
+.main-logo-img {
+  height: clamp(3rem, 6vw, 5rem);
+  width: auto;
+  filter: contrast(1.1);
+}
+
+.tagline {
+  font-size: clamp(1.2rem, 2.5vw, 1.6rem);
+  font-weight: 400;
+  color: #3c3c3c;
+  margin-bottom: 2rem;
+  font-family: 'Crimson Text', serif;
+}
+
+.construction-message {
+  max-width: 600px;
+  text-align: center;
+  margin-bottom: 3rem;
+  animation: fadeInUp 0.8s ease-out 0.2s both;
+}
+
+.construction-text {
+  font-size: clamp(1.1rem, 2vw, 1.3rem);
+  font-weight: 400;
+  line-height: 1.7;
+  color: #262626;
+  margin-bottom: 1.5rem;
+  font-family: 'Crimson Text', serif;
+}
+
+.construction-text.main {
+  font-size: clamp(1.3rem, 2.2vw, 1.5rem);
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.cta-buttons {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  animation: fadeInUp 0.8s ease-out 0.4s both;
+}
+
+.cta-button {
+  display: inline-block;
+  background-color: #262626;
+  color: #fafafa;
+  padding: 0.8rem 2rem;
+  border-radius: 4px;
+  text-decoration: none;
+  font-family: 'Crimson Text', serif;
+  font-weight: 600;
+  font-size: 1.1rem;
+  transition: all 0.3s ease;
+  border: 2px solid #262626;
+}
+
+.cta-button:hover {
+  background-color: transparent;
+  color: #262626;
+}
+
+.cta-button.secondary {
+  background-color: transparent;
+  color: #262626;
+  border: 2px solid #262626;
+}
+
+.cta-button.secondary:hover {
+  background-color: #262626;
+  color: #fafafa;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .home-container {
+    padding: 1.5rem;
+    padding-top: 5rem;
+  }
+
+  .main-logo {
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .hero-section {
+    margin-bottom: 2rem;
+  }
+
+  .construction-message {
+    margin-bottom: 2rem;
+  }
+
+  .cta-buttons {
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .home-container {
+    padding: 1rem;
+    padding-top: 4.5rem;
+  }
+
+  .main-logo {
+    gap: 0.8rem;
+  }
+
+  .cta-buttons {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .cta-button {
+    width: 100%;
+    max-width: 200px;
+    text-align: center;
+  }
+}

@@ -1,0 +1,150 @@
+.about-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding-top: 6rem;
+  position: relative;
+}
+
+.about-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background:
+    radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(255, 177, 153, 0.03) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.about-header {
+  margin-bottom: 3rem;
+  animation: fadeInUp 0.8s ease-out;
+}
+
+.logo-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.logo-text {
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: #262626;
+  font-family: 'Crimson Text', serif;
+}
+
+.divider {
+  width: 2px;
+  height: clamp(2.5rem, 5vw, 4rem);
+  background: linear-gradient(to bottom, #262626, #8e8e8e);
+  border-radius: 1px;
+}
+
+.logo-img {
+  height: clamp(2.5rem, 5vw, 4rem);
+  width: auto;
+  filter: contrast(1.1);
+}
+
+.about-content {
+  max-width: 800px;
+  text-align: center;
+  animation: fadeInUp 0.8s ease-out 0.2s both;
+}
+
+.story-text {
+  font-size: clamp(1.2rem, 2.2vw, 1.5rem);
+  font-weight: 400;
+  line-height: 1.7;
+  letter-spacing: 0.01em;
+  color: #262626;
+  margin-bottom: 2rem;
+  font-family: 'Crimson Text', serif;
+  text-align: justify;
+}
+
+.final-statement {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e0e0e0;
+}
+
+.final-text {
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: #1a1a1a;
+  font-family: 'Crimson Text', serif;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .about-container {
+    padding: 1.5rem;
+    padding-top: 5rem;
+  }
+
+  .about-header {
+    margin-bottom: 2rem;
+  }
+
+  .logo-section {
+    gap: 0.8rem;
+  }
+
+  .final-statement {
+    margin-top: 1.5rem;
+    padding-top: 1.2rem;
+  }
+
+  .story-text {
+    margin-bottom: 1.2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .about-container {
+    padding: 1rem;
+    padding-top: 4.5rem;
+  }
+
+  .logo-section {
+    gap: 0.6rem;
+    margin-bottom: 1rem;
+  }
+
+  .about-header {
+    margin-bottom: 1.2rem;
+  }
+
+  .story-text {
+    margin-bottom: 1rem;
+  }
+
+  .final-statement {
+    margin-top: 1.2rem;
+    padding-top: 1rem;
+  }
+}

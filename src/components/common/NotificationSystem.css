@@ -1,0 +1,245 @@
+/* Notification Container */
+.notifications-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 400px;
+  pointer-events: none;
+}
+
+/* Individual Notification */
+.notification {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 16px;
+  display: flex;
+  align-items: flex-start;
+  animation: slideIn 0.3s ease-out;
+  pointer-events: all;
+  transition: all 0.3s ease;
+  border-left: 4px solid;
+}
+
+.notification:hover {
+  transform: translateX(-5px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* Notification Types */
+.notification-success {
+  border-left-color: #4caf50;
+  background: linear-gradient(to right, #f0f9ff 0%, #ffffff 100%);
+}
+
+.notification-error {
+  border-left-color: #f44336;
+  background: linear-gradient(to right, #ffebee 0%, #ffffff 100%);
+}
+
+.notification-warning {
+  border-left-color: #ff9800;
+  background: linear-gradient(to right, #fff3e0 0%, #ffffff 100%);
+}
+
+.notification-info {
+  border-left-color: #2196f3;
+  background: linear-gradient(to right, #e3f2fd 0%, #ffffff 100%);
+}
+
+/* Notification Content */
+.notification-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+}
+
+.notification-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.notification-message {
+  flex: 1;
+}
+
+.notification-title {
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: #1a1a1a;
+  font-size: 14px;
+}
+
+.notification-text {
+  color: #4a4a4a;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.notification-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #999;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 12px;
+  line-height: 1;
+  transition: color 0.2s;
+}
+
+.notification-close:hover {
+  color: #333;
+}
+
+/* Confirmation Dialog */
+.confirmation-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.confirmation-dialog {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  max-width: 450px;
+  width: 90%;
+  animation: scaleIn 0.3s ease-out;
+}
+
+.confirmation-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.confirmation-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.confirmation-body {
+  padding: 24px;
+}
+
+.confirmation-body p {
+  margin: 0;
+  color: #4a4a4a;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.confirmation-actions {
+  padding: 16px 24px;
+  border-top: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.confirmation-cancel,
+.confirmation-confirm {
+  padding: 8px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.confirmation-cancel {
+  background: #f5f5f5;
+  color: #333;
+}
+
+.confirmation-cancel:hover {
+  background: #e0e0e0;
+}
+
+.confirmation-confirm {
+  background: #2196f3;
+  color: white;
+}
+
+.confirmation-confirm:hover {
+  background: #1976d2;
+}
+
+.confirmation-confirm-danger {
+  background: #f44336;
+}
+
+.confirmation-confirm-danger:hover {
+  background: #d32f2f;
+}
+
+.confirmation-confirm-warning {
+  background: #ff9800;
+}
+
+.confirmation-confirm-warning:hover {
+  background: #f57c00;
+}
+
+/* Animations */
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Mobile Responsive */
+@media (max-width: 480px) {
+  .notifications-container {
+    left: 10px;
+    right: 10px;
+    top: 10px;
+    max-width: none;
+  }
+
+  .confirmation-dialog {
+    width: 95%;
+    margin: 10px;
+  }
+}

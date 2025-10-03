@@ -1,0 +1,45 @@
+@import url('https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400;1,600&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Crimson Text', serif;
+  background: #fafafa;
+  color: #262626;
+  line-height: 1.6;
+  overflow-x: hidden;
+  margin: 0;
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Crimson Text', serif;
+  font-weight: 600;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+button {
+  font-family: 'Crimson Text', serif;
+  cursor: pointer;
+}
+
+input, textarea, select {
+  font-family: 'Crimson Text', serif;
+}
+
+/* Utility classes */
+.hidden {
+  display: none;
+}
