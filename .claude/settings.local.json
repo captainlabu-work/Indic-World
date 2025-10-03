@@ -13,7 +13,10 @@
       "Bash(xcopy:*)",
       "Bash(git add:*)",
       "Bash(git ls-tree:*)",
-      "Bash(git mv:*)"
+      "Bash(git mv:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git fetch:*)"
     ],
     "deny": [],
     "ask": []
