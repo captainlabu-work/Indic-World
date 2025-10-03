@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '../firebase/config';
 import './Contact.css';
 
 const Contact = () => {
@@ -9,6 +11,7 @@ const Contact = () => {
   });
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -19,25 +22,24 @@ const Contact = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setError(false);
 
     try {
-      const response = await fetch('/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({
-          'form-name': 'indic-contact',
-          ...formData
-        }).toString()
+      // Save to Firebase instead of Netlify
+      await addDoc(collection(db, 'contact_submissions'), {
+        ...formData,
+        timestamp: serverTimestamp(),
+        status: 'unread'
       });
 
-      if (response.ok) {
-        setSubmitted(true);
-        setFormData({ name: '', email: '', message: '' });
-      } else {
-        setError(true);
-      }
+      setSubmitted(true);
+      setFormData({ name: '', email: '', message: '' });
     } catch (err) {
+      console.error('Error submitting form:', err);
       setError(true);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -52,12 +54,7 @@ const Contact = () => {
         <div className="indie-decoration"></div>
 
         {!submitted && !error && (
-          <form name="indic-contact" method="POST" data-netlify="true" netlify-honeypot="bot-field" onSubmit={handleSubmit}>
-            <p className="hidden" style={{ display: 'none' }}>
-              <label>Don't fill this out if you're human: <input name="bot-field" /></label>
-            </p>
-
-            <input type="hidden" name="form-name" value="indic-contact" />
+          <form onSubmit={handleSubmit}>
 
             <div className="form-group">
               <label htmlFor="name">Name</label>
@@ -97,7 +94,9 @@ const Contact = () => {
               />
             </div>
 
-            <button type="submit" className="submit-btn">Send Message</button>
+            <button type="submit" className="submit-btn" disabled={loading}>
+              {loading ? 'Sending...' : 'Send Message'}
+            </button>
           </form>
         )}
 
