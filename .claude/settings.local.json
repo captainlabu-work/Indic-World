@@ -11,7 +11,9 @@
       "Bash(firebase deploy:*)",
       "Bash(npm run build:*)",
       "Bash(xcopy:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git ls-tree:*)",
+      "Bash(git mv:*)"
     ],
     "deny": [],
     "ask": []
