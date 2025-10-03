@@ -42,15 +42,20 @@ const Dashboard = () => {
           ...doc.data()
         }));
 
-        setArticles(userArticles);
+        // Filter out deleted and archived articles
+        const activeArticles = userArticles.filter(a =>
+          a.status !== 'deleted' && a.status !== 'archived'
+        );
 
-        // Calculate stats in real-time
+        setArticles(activeArticles);
+
+        // Calculate stats in real-time (only for active articles)
         const statsData = {
-          total: userArticles.length,
-          published: userArticles.filter(a => a.status === 'published').length,
-          pending: userArticles.filter(a => a.status === 'pending').length,
-          draft: userArticles.filter(a => a.status === 'draft').length,
-          rejected: userArticles.filter(a => a.status === 'rejected').length
+          total: activeArticles.length,
+          published: activeArticles.filter(a => a.status === 'published').length,
+          pending: activeArticles.filter(a => a.status === 'pending').length,
+          draft: activeArticles.filter(a => a.status === 'draft').length,
+          rejected: activeArticles.filter(a => a.status === 'rejected').length
         };
         setStats(statsData);
         setLoading(false);

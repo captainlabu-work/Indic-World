@@ -13,6 +13,7 @@ import Admin from './pages/Admin';
 import Profile from './pages/Profile';
 import CreateStory from './pages/CreateStory';
 import EditArticle from './pages/EditArticle';
+import Article from './pages/Article';
 import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
 import './App.css';
@@ -74,6 +75,9 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
+
+                {/* Article View */}
+                <Route path="/article/:id" element={<Article />} />
 
                 {/* Legal Pages */}
                 <Route path="/privacy-policy" element={<Privacy />} />

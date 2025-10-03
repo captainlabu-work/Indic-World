@@ -43,16 +43,6 @@ const Navbar = () => {
               Home
             </Link>
           </li>
-          <li>
-            <Link to="/about" className={location.pathname === '/about' ? 'active' : ''}>
-              About
-            </Link>
-          </li>
-          <li>
-            <Link to="/contact" className={location.pathname === '/contact' ? 'active' : ''}>
-              Contact
-            </Link>
-          </li>
 
           {currentUser ? (
             <>
