@@ -3,7 +3,9 @@
     "allow": [
       "Bash(firebase deploy:*)",
       "Bash(npx firebase deploy:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(git commit:*)",
+      "Bash(npm run build:*)"
     ],
     "deny": [],
     "ask": []
