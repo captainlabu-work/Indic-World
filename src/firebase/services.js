@@ -339,10 +339,17 @@ export const articleService = {
 export const storageService = {
   // Upload image
   async uploadImage(file, path) {
-    const storageRef = ref(storage, `${path}/${Date.now()}_${file.name}`);
-    const snapshot = await uploadBytes(storageRef, file);
-    const downloadURL = await getDownloadURL(snapshot.ref);
-    return downloadURL;
+    try {
+      // Clean the path - remove any duplicate timestamp/filename
+      const cleanPath = path.includes('/') ? path : `articles/${path}`;
+      const storageRef = ref(storage, cleanPath);
+      const snapshot = await uploadBytes(storageRef, file);
+      const downloadURL = await getDownloadURL(snapshot.ref);
+      return downloadURL;
+    } catch (error) {
+      console.error('Storage upload error:', error);
+      throw new Error(`Failed to upload image: ${error.message}`);
+    }
   },
 
   // Delete image

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase Storage Fix Instructions</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+            color: #333;
+        }
+        h1 {
+            color: #f57c00;
+            border-bottom: 3px solid #f57c00;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #1976d2;
+            margin-top: 30px;
+        }
+        .step {
+            background: #f5f5f5;
+            padding: 15px;
+            border-left: 4px solid #4caf50;
+            margin: 20px 0;
+        }
+        .code-block {
+            background: #263238;
+            color: #aed581;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+        .warning {
+            background: #fff3e0;
+            border-left: 4px solid #ff9800;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .success {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        a {
+            color: #1976d2;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #4caf50;
+            color: white;
+            border-radius: 5px;
+            text-decoration: none;
+            margin-top: 10px;
+        }
+        .button:hover {
+            background: #45a049;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔥 Firebase Storage Fix Instructions</h1>
+
+    <div class="warning">
+        <strong>⚠️ Important:</strong> You need to manually update the Firebase Storage rules to fix the story submission error.
+    </div>
+
+    <h2>✅ What I've Already Fixed</h2>
+    <div class="success">
+        <ul>
+            <li>Updated local storage rules file (storage.rules)</li>
+            <li>Improved error handling in CreateStory component</li>
+            <li>Fixed storage service upload path issues</li>
+            <li>Added better error messages for debugging</li>
+        </ul>
+    </div>
+
+    <h2>🚀 Steps to Deploy the Fix</h2>
+
+    <div class="step">
+        <h3>Step 1: Open Firebase Console</h3>
+        <p>Go to the Firebase Console and select your project:</p>
+        <a href="https://console.firebase.google.com/project/indicteam1/storage" target="_blank" class="button">
+            Open Firebase Storage Console →
+        </a>
+    </div>
+
+    <div class="step">
+        <h3>Step 2: Navigate to Storage Rules</h3>
+        <p>In the Firebase Console:</p>
+        <ol>
+            <li>Click on "Storage" in the left sidebar</li>
+            <li>Click on the "Rules" tab at the top</li>
+        </ol>
+    </div>
+
+    <div class="step">
+        <h3>Step 3: Replace the Rules</h3>
+        <p>Copy this entire code block and paste it in the rules editor:</p>
+        <div class="code-block">rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Profile photos - users can only read/write their own photo
+    match /profile-photos/{userId} {
+      allow read: if true; // Anyone can view profile photos
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Article images - authenticated users can upload
+    match /article-images/{allPaths=**} {
+      allow read: if true; // Anyone can view article images
+      allow write: if request.auth != null;
+    }
+
+    // Articles path - authenticated users can upload
+    match /articles/{allPaths=**} {
+      allow read: if true; // Anyone can view article images
+      allow write: if request.auth != null;
+    }
+
+    // Avatars path - users can upload their own avatar
+    match /avatars/{userId}/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Default deny for everything else
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}</div>
+    </div>
+
+    <div class="step">
+        <h3>Step 4: Publish the Rules</h3>
+        <p>Click the <strong>"Publish"</strong> button to save and deploy the new rules.</p>
+        <p>Wait for the confirmation message that says "Rules published successfully".</p>
+    </div>
+
+    <div class="step">
+        <h3>Step 5: Test the Fix</h3>
+        <ol>
+            <li>Clear your browser cache (Ctrl+Shift+Delete)</li>
+            <li>Go back to your Indic website</li>
+            <li>Log in if you're not already logged in</li>
+            <li>Try creating and submitting a story again</li>
+        </ol>
+    </div>
+
+    <h2>🔍 What These Changes Do</h2>
+    <ul>
+        <li><strong>/articles/ path:</strong> Allows authenticated users to upload article images</li>
+        <li><strong>/avatars/ path:</strong> Allows users to upload their own profile photos</li>
+        <li><strong>Authentication check:</strong> Ensures only logged-in users can upload files</li>
+        <li><strong>Public read access:</strong> Allows anyone to view uploaded images</li>
+    </ul>
+
+    <h2>❓ Still Having Issues?</h2>
+    <div class="warning">
+        <p>If you're still experiencing errors after updating the rules:</p>
+        <ol>
+            <li>Check that you're logged in when trying to submit a story</li>
+            <li>Make sure your Firebase project ID is correct: <strong>indicteam1</strong></li>
+            <li>Check the browser console for any new error messages</li>
+            <li>Try using a different browser or incognito mode</li>
+        </ol>
+    </div>
+
+    <h2>✨ Additional Improvements Made</h2>
+    <ul>
+        <li>Story submission continues even if image upload fails</li>
+        <li>Better error messages showing specific issues</li>
+        <li>Authentication check before submission</li>
+        <li>Proper error handling for network issues</li>
+    </ul>
+
+    <div class="success">
+        <h3>🎉 Success!</h3>
+        <p>Once you've published the new storage rules, your story submission should work properly!</p>
+    </div>
+</body>
+</html>

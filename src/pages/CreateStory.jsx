@@ -14,7 +14,8 @@ const CreateStory = () => {
     title: '',
     excerpt: '',
     content: '',
-    tags: ''
+    tags: '',
+    category: 'word' // Default to Indic Word
   });
   const [featuredImage, setFeaturedImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
@@ -66,6 +67,14 @@ const CreateStory = () => {
 
   const handleSubmit = async (e, status = 'draft') => {
     e.preventDefault();
+
+    // Check if user is authenticated
+    if (!currentUser) {
+      showError('You must be logged in to create a story');
+      navigate('/auth');
+      return;
+    }
+
     setLoading(true);
     setError('');
 
@@ -74,7 +83,14 @@ const CreateStory = () => {
 
       // Upload image if present
       if (featuredImage) {
-        imageUrl = await storageService.uploadImage(featuredImage, `articles/${Date.now()}_${featuredImage.name}`);
+        try {
+          imageUrl = await storageService.uploadImage(featuredImage, `articles/${Date.now()}_${featuredImage.name}`);
+        } catch (uploadError) {
+          console.error('Image upload error:', uploadError);
+          setError('Failed to upload image. Please try again or continue without an image.');
+          // Continue without image instead of failing completely
+          imageUrl = '';
+        }
       }
 
       // Prepare article data
@@ -82,6 +98,7 @@ const CreateStory = () => {
         title: formData.title,
         excerpt: formData.excerpt,
         content: formData.content,
+        category: formData.category,
         featuredImage: imageUrl,
         tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
         authorId: currentUser.uid,
@@ -102,7 +119,15 @@ const CreateStory = () => {
       navigate('/dashboard');
     } catch (err) {
       console.error('Error creating article:', err);
-      showError('Failed to create story. Please try again.');
+
+      // Provide more specific error messages
+      if (err.message?.includes('permission')) {
+        showError('Permission denied. Please make sure you are logged in and try again.');
+      } else if (err.message?.includes('network')) {
+        showError('Network error. Please check your connection and try again.');
+      } else {
+        showError(`Failed to create story: ${err.message || 'Unknown error'}`);
+      }
     } finally {
       setLoading(false);
     }
@@ -116,6 +141,54 @@ const CreateStory = () => {
       </div>
 
       <form className="create-story-form">
+        <div className="form-group">
+          <label htmlFor="category">Category *</label>
+          <div className="category-selector">
+            <label className={`category-option ${formData.category === 'word' ? 'active' : ''}`}>
+              <input
+                type="radio"
+                name="category"
+                value="word"
+                checked={formData.category === 'word'}
+                onChange={handleInputChange}
+              />
+              <span className="category-icon">✍️</span>
+              <div className="category-info">
+                <span className="category-name">Indic Word</span>
+                <span className="category-desc">Written narratives, op-eds, reportage</span>
+              </div>
+            </label>
+            <label className={`category-option ${formData.category === 'lens' ? 'active' : ''}`}>
+              <input
+                type="radio"
+                name="category"
+                value="lens"
+                checked={formData.category === 'lens'}
+                onChange={handleInputChange}
+              />
+              <span className="category-icon">📸</span>
+              <div className="category-info">
+                <span className="category-name">Indic Lens</span>
+                <span className="category-desc">Photo essays, visual journalism</span>
+              </div>
+            </label>
+            <label className={`category-option ${formData.category === 'motion' ? 'active' : ''}`}>
+              <input
+                type="radio"
+                name="category"
+                value="motion"
+                checked={formData.category === 'motion'}
+                onChange={handleInputChange}
+              />
+              <span className="category-icon">🎬</span>
+              <div className="category-info">
+                <span className="category-name">Indic Motion</span>
+                <span className="category-desc">Documentaries, films, video stories</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
         <div className="form-group">
           <label htmlFor="title">Story Title *</label>
           <input
