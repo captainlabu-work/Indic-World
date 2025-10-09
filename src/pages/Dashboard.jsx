@@ -200,27 +200,23 @@ const Dashboard = () => {
 
       {/* Stories Grid */}
       <div className="stories-container">
-        {articles.length === 0 ? (
-          <div className="empty-stories">
-            <div className="empty-icon">
-              <svg width="80" height="80" viewBox="0 0 24 24" fill="none">
-                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="#ccc" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M2 17L12 22L22 17" stroke="#ccc" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M2 12L12 17L22 12" stroke="#ccc" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+        <div className="stories-grid">
+          {/* Permanent Create Story Card */}
+          <div className="story-card create-story-card" onClick={() => navigate('/create-story')}>
+            <div className="story-placeholder">
+              <div className="create-story-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 5v14M5 12h14" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+              </div>
+              <div className="create-story-content">
+                <h3 className="story-title">DRAFT STORY</h3>
+              </div>
             </div>
-            <h3>No stories yet</h3>
-            <p>Start creating your first story</p>
-            <button
-              onClick={() => navigate('/create-story')}
-              className="empty-cta"
-            >
-              CREATE YOUR FIRST STORY
-            </button>
           </div>
-        ) : (
-          <div className="stories-grid">
-            {articles.map((article) => (
+
+          {/* User Stories */}
+          {articles.slice(0, 2).map((article) => (
               <div key={article.id} className="story-card">
                 {article.featuredImage ? (
                   <div
@@ -299,8 +295,7 @@ const Dashboard = () => {
                 </div>
               </div>
             ))}
-          </div>
-        )}
+        </div>
       </div>
     </div>
   );
