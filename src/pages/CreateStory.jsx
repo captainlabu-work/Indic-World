@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { articleService, storageService } from '../firebase/services';
 import { useNotification } from '../components/common/NotificationSystem';
 import RichTextEditor from '../components/RichTextEditor';
+import VisualStoryEditor from '../components/VisualStoryEditor';
 import './CreateStory.css';
 
 const CreateStory = () => {
@@ -132,6 +133,54 @@ const CreateStory = () => {
       setLoading(false);
     }
   };
+
+  const handleVisualStorySave = async (storyData) => {
+    if (!currentUser) {
+      showError('You must be logged in to create a story');
+      navigate('/auth');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // Prepare visual story data
+      const articleData = {
+        title: storyData.title || 'Untitled Story',
+        excerpt: storyData.subtitle || '',
+        content: JSON.stringify(storyData), // Store the visual story structure as JSON
+        category: 'lens',
+        featuredImage: storyData.coverImage || '',
+        tags: [],
+        authorId: currentUser.uid,
+        authorName: userData?.displayName || currentUser.email,
+        status: 'draft',
+        views: 0,
+        isVisualStory: true // Flag to identify visual stories
+      };
+
+      await articleService.createArticle(articleData);
+      success('Visual story saved!');
+      navigate('/dashboard');
+    } catch (err) {
+      console.error('Error creating visual story:', err);
+      showError('Failed to save visual story. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Show visual editor for Indic Lens category
+  if (formData.category === 'lens') {
+    return (
+      <div className="create-story-container">
+        <VisualStoryEditor
+          onSave={handleVisualStorySave}
+          initialData={null}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="create-story-container">

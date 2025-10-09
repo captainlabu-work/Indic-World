@@ -1,0 +1,776 @@
+/* Visual Story Editor - Exposure.co + Magnum Photos Style */
+
+* {
+  box-sizing: border-box;
+}
+
+.visual-story-editor {
+  width: 100%;
+  min-height: 100vh;
+  background: #fafafa;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+}
+
+/* ===== Top Bar (Exposure.co Style) ===== */
+.editor-top-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: #2b2b2b;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.back-btn {
+  background: transparent;
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  transition: opacity 0.2s;
+}
+
+.back-btn:hover {
+  opacity: 0.7;
+}
+
+.top-bar-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.action-btn {
+  background: transparent;
+  border: none;
+  color: #ccc;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: color 0.2s;
+  white-space: nowrap;
+}
+
+.action-btn:hover {
+  color: white;
+}
+
+.action-btn.save-draft {
+  color: white;
+}
+
+.action-btn.publish-btn {
+  background: #0066ff;
+  color: white;
+  border-radius: 4px;
+  padding: 10px 16px;
+}
+
+.action-btn.publish-btn:hover {
+  background: #0052cc;
+}
+
+/* ===== Story Header Section ===== */
+.story-header-section {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 120px 40px 60px;
+  text-align: center;
+}
+
+.story-title {
+  width: 100%;
+  font-size: 3rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  border: none;
+  background: transparent;
+  text-align: center;
+  outline: none;
+  font-family: 'Crimson Text', serif;
+  letter-spacing: -1px;
+  margin-bottom: 20px;
+  padding: 10px;
+  transition: background 0.2s;
+}
+
+.story-title:focus {
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 4px;
+}
+
+.story-title::placeholder {
+  color: #ccc;
+}
+
+.story-subtitle {
+  width: 100%;
+  font-size: 1.3rem;
+  font-style: italic;
+  font-weight: 400;
+  color: #666;
+  border: none;
+  background: transparent;
+  text-align: center;
+  outline: none;
+  font-family: 'Crimson Text', serif;
+  margin-bottom: 30px;
+  padding: 8px;
+  transition: background 0.2s;
+}
+
+.story-subtitle:focus {
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 4px;
+}
+
+.story-subtitle::placeholder {
+  color: #ccc;
+}
+
+.story-byline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.story-author {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #1a1a1a;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 4px 8px;
+  transition: background 0.2s;
+}
+
+.story-author:focus {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 3px;
+}
+
+.story-author::placeholder {
+  color: #999;
+}
+
+.story-date {
+  color: #999;
+}
+
+/* ===== Layout Controls (Exposure.co Style) ===== */
+.layout-controls {
+  max-width: 900px;
+  margin: 0 auto 60px;
+  padding: 0 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+
+.layout-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: #666;
+  text-transform: uppercase;
+}
+
+.layout-options {
+  display: flex;
+  gap: 8px;
+  background: white;
+  padding: 4px;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.layout-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.layout-btn svg {
+  opacity: 0.5;
+}
+
+.layout-btn:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: #1a1a1a;
+}
+
+.layout-btn.active {
+  background: #2b2b2b;
+  color: white;
+}
+
+.layout-btn.active svg {
+  opacity: 1;
+}
+
+/* ===== Content Wrapper ===== */
+.editor-content-wrapper {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  padding-bottom: 100px;
+}
+
+/* ===== Add Block Sidebar ===== */
+.add-block-sidebar {
+  position: fixed;
+  left: -300px;
+  top: 60px;
+  width: 280px;
+  height: calc(100vh - 60px);
+  background: white;
+  border-right: 1px solid #e0e0e0;
+  padding: 30px 20px;
+  transition: left 0.3s ease;
+  z-index: 900;
+  overflow-y: auto;
+}
+
+.add-block-sidebar.visible {
+  left: 0;
+  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.1);
+}
+
+.close-sidebar {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  font-size: 28px;
+  color: #999;
+  cursor: pointer;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.close-sidebar:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: #333;
+}
+
+.add-block-sidebar h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 20px;
+}
+
+.sidebar-blocks {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sidebar-block-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: #fafafa;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #333;
+  width: 100%;
+  text-align: left;
+}
+
+.sidebar-block-btn svg {
+  color: #666;
+  flex-shrink: 0;
+}
+
+.sidebar-block-btn:hover {
+  border-color: #2b2b2b;
+  background: white;
+}
+
+/* ===== Story Canvas (Magnum Photos Style) ===== */
+.story-canvas {
+  max-width: 1000px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.story-blocks-container {
+  display: flex;
+  flex-direction: column;
+  gap: 60px;
+}
+
+.story-block {
+  position: relative;
+  background: white;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.story-block.dragging {
+  opacity: 0.5;
+  transform: scale(0.98);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.block-controls {
+  position: absolute;
+  top: -40px;
+  right: 0;
+  display: flex;
+  gap: 8px;
+  opacity: 0;
+  transition: opacity 0.2s;
+  z-index: 10;
+}
+
+.story-block:hover .block-controls {
+  opacity: 1;
+}
+
+.drag-handle {
+  padding: 8px;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  cursor: grab;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+  transition: all 0.2s;
+}
+
+.drag-handle:hover {
+  border-color: #2b2b2b;
+  color: #2b2b2b;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.delete-block-btn {
+  padding: 8px;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  transition: all 0.2s;
+}
+
+.delete-block-btn:hover {
+  border-color: #ff4444;
+  background: #ff4444;
+  color: white;
+}
+
+/* ===== Image Block (Uniform Width - Magnum Style) ===== */
+.block-image {
+  width: 100%;
+}
+
+.image-container {
+  width: 100%;
+  background: #f5f5f5;
+  overflow: hidden;
+  border-radius: 2px;
+}
+
+.image-container img {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
+}
+
+.image-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.image-caption,
+.image-credit {
+  width: 100%;
+  padding: 8px 0;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid transparent;
+  font-size: 0.9rem;
+  color: #666;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.image-caption {
+  font-style: italic;
+  color: #1a1a1a;
+}
+
+.image-credit {
+  font-size: 0.85rem;
+  color: #999;
+}
+
+.image-caption:focus,
+.image-credit:focus {
+  border-bottom-color: #e0e0e0;
+}
+
+.image-caption::placeholder,
+.image-credit::placeholder {
+  color: #ccc;
+}
+
+.image-upload-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  background: #fafafa;
+  border: 2px dashed #e0e0e0;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.image-upload-zone:hover {
+  border-color: #2b2b2b;
+  background: #f5f5f5;
+}
+
+.upload-prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: #999;
+}
+
+.upload-prompt svg {
+  color: #ccc;
+}
+
+.upload-prompt span {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* ===== Text Block (Magnum Style) ===== */
+.block-text {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 20px 40px;
+}
+
+.text-content {
+  font-size: 1.15rem;
+  line-height: 1.8;
+  color: #333;
+  font-family: 'Crimson Text', Georgia, serif;
+  outline: none;
+  min-height: 100px;
+  padding: 12px;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.text-content:focus {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.text-content:empty:before {
+  content: attr(data-placeholder);
+  color: #ccc;
+}
+
+/* ===== Quote Block (Magnum Style) ===== */
+.block-quote {
+  max-width: 700px;
+  margin: 40px auto;
+  padding: 40px;
+  text-align: center;
+  position: relative;
+}
+
+.block-quote blockquote {
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+
+.quote-text {
+  font-size: 1.8rem;
+  line-height: 1.5;
+  color: #1a1a1a;
+  font-family: 'Crimson Text', Georgia, serif;
+  font-style: italic;
+  font-weight: 500;
+  outline: none;
+  padding: 12px;
+  border-radius: 4px;
+  transition: background 0.2s;
+  position: relative;
+}
+
+.quote-text:focus {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.quote-text:before {
+  content: '"';
+  position: absolute;
+  left: -40px;
+  top: -20px;
+  font-size: 5rem;
+  color: #e0e0e0;
+  font-family: Georgia, serif;
+  line-height: 1;
+}
+
+.block-quote cite {
+  display: block;
+  margin-top: 20px;
+  font-size: 1rem;
+  color: #999;
+  font-style: normal;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  outline: none;
+  padding: 8px;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.block-quote cite:focus {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+/* ===== Add Block Trigger ===== */
+.add-block-trigger {
+  display: flex;
+  justify-content: center;
+  margin-top: 40px;
+  padding: 40px 0;
+}
+
+.add-block-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 28px;
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #666;
+}
+
+.add-block-btn:hover {
+  border-color: #2b2b2b;
+  color: #2b2b2b;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.add-block-btn svg {
+  color: inherit;
+}
+
+/* ===== Settings Sidebar (Right) ===== */
+.settings-sidebar {
+  position: fixed;
+  right: 20px;
+  top: 100px;
+}
+
+.sidebar-toggle-btn {
+  width: 44px;
+  height: 44px;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.sidebar-toggle-btn:hover {
+  border-color: #2b2b2b;
+  color: #2b2b2b;
+  transform: scale(1.05);
+}
+
+/* ===== Mobile Responsive ===== */
+@media (max-width: 768px) {
+  .editor-top-bar {
+    padding: 0 12px;
+  }
+
+  .top-bar-actions {
+    gap: 4px;
+  }
+
+  .action-btn {
+    font-size: 10px;
+    padding: 6px 8px;
+  }
+
+  .action-btn.publish-btn {
+    padding: 8px 12px;
+  }
+
+  .story-header-section {
+    padding: 100px 20px 40px;
+  }
+
+  .story-title {
+    font-size: 2rem;
+  }
+
+  .story-subtitle {
+    font-size: 1.1rem;
+  }
+
+  .story-byline {
+    font-size: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .layout-controls {
+    padding: 0 20px;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .story-canvas {
+    padding: 0 16px;
+  }
+
+  .story-blocks-container {
+    gap: 40px;
+  }
+
+  .block-text {
+    padding: 16px 20px;
+  }
+
+  .text-content {
+    font-size: 1.05rem;
+  }
+
+  .block-quote {
+    padding: 20px;
+  }
+
+  .quote-text {
+    font-size: 1.4rem;
+  }
+
+  .quote-text:before {
+    left: -20px;
+    font-size: 3rem;
+  }
+
+  .settings-sidebar {
+    right: 12px;
+    top: 80px;
+  }
+
+  .sidebar-toggle-btn {
+    width: 40px;
+    height: 40px;
+  }
+
+  .add-block-sidebar {
+    width: 260px;
+  }
+}
+
+@media (max-width: 480px) {
+  .story-title {
+    font-size: 1.6rem;
+  }
+
+  .story-subtitle {
+    font-size: 1rem;
+  }
+
+  .layout-options {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .layout-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .block-text {
+    padding: 12px;
+  }
+
+  .text-content {
+    font-size: 1rem;
+  }
+
+  .quote-text {
+    font-size: 1.2rem;
+  }
+}
