@@ -132,7 +132,7 @@ const Dashboard = () => {
               <span></span>
             </button>
             <Link to="/" className="logo-link">
-              <img src="/indic-logo.svg" alt="INDIC" className="site-logo" />
+              <img src="/Indic.png" alt="INDIC" className="site-logo" />
             </Link>
             <Link to="/" className="nav-link">
               <svg className="icon" viewBox="0 0 20 20" width="20" height="20">
@@ -183,14 +183,7 @@ const Dashboard = () => {
       {/* Profile Section */}
       <div className="profile-section">
         <div className="profile-icon">
-          <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
-            <circle cx="30" cy="30" r="28" stroke="#d0d0d0" strokeWidth="1"/>
-            <circle cx="30" cy="30" r="20" stroke="#d0d0d0" strokeWidth="1"/>
-            <line x1="30" y1="10" x2="30" y2="50" stroke="#d0d0d0" strokeWidth="1"/>
-            <line x1="10" y1="30" x2="50" y2="30" stroke="#d0d0d0" strokeWidth="1"/>
-            <line x1="16" y1="16" x2="44" y2="44" stroke="#d0d0d0" strokeWidth="1"/>
-            <line x1="44" y1="16" x2="16" y2="44" stroke="#d0d0d0" strokeWidth="1"/>
-          </svg>
+          <img src="/Indic.png" alt="Profile" className="profile-logo" />
         </div>
         <h1 className="profile-name">{userData?.displayName || currentUser?.email}</h1>
         {stats.published > 0 && (
@@ -215,7 +208,7 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* User Stories */}
+          {/* User Stories - always show 2 slots */}
           {articles.slice(0, 2).map((article) => (
               <div key={article.id} className="story-card">
                 {article.featuredImage ? (
@@ -295,6 +288,23 @@ const Dashboard = () => {
                 </div>
               </div>
             ))}
+
+          {/* Empty placeholder columns to always show 3 columns */}
+          {articles.length === 0 && (
+            <>
+              <div className="story-card empty-card">
+                <div className="story-placeholder empty-placeholder"></div>
+              </div>
+              <div className="story-card empty-card">
+                <div className="story-placeholder empty-placeholder"></div>
+              </div>
+            </>
+          )}
+          {articles.length === 1 && (
+            <div className="story-card empty-card">
+              <div className="story-placeholder empty-placeholder"></div>
+            </div>
+          )}
         </div>
       </div>
     </div>

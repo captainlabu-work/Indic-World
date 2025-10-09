@@ -133,15 +133,15 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 60px;
-  height: 60px;
+  width: 80px;
+  height: 80px;
 }
 
-.profile-icon svg {
-  opacity: 0.5;
-  display: block;
+.profile-logo {
   width: 100%;
   height: 100%;
+  object-fit: contain;
+  opacity: 0.8;
 }
 
 .profile-name {
@@ -349,6 +349,17 @@
   text-align: center;
   letter-spacing: 1px;
   margin: 0;
+}
+
+/* Empty Placeholder Columns */
+.empty-card {
+  background: white;
+  border: 1px solid #e5e5e5;
+}
+
+.empty-placeholder {
+  background: white;
+  height: 450px;
 }
 
 .draft-story-button {
