@@ -9,11 +9,12 @@ import { useNotification } from '../components/common/NotificationSystem';
 import './Dashboard.css';
 
 const Dashboard = () => {
-  const { currentUser, userData } = useAuth();
+  const { currentUser, userData, logout } = useAuth();
   const { showConfirmation, success, error } = useNotification();
   const navigate = useNavigate();
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [stats, setStats] = useState({
     total: 0,
     published: 0,
@@ -112,6 +113,16 @@ const Dashboard = () => {
     }
   };
 
+  const handleSignOut = async () => {
+    try {
+      await logout();
+      navigate('/');
+    } catch (err) {
+      console.error('Error signing out:', err);
+      error('Failed to sign out. Please try again.');
+    }
+  };
+
   if (loading) {
     return (
       <div className="exposure-dashboard">
@@ -126,7 +137,7 @@ const Dashboard = () => {
       <header className="exposure-header">
         <nav className="exposure-nav">
           <div className="nav-left">
-            <button className="menu-toggle">
+            <button className="menu-toggle" onClick={() => setMenuOpen(!menuOpen)}>
               <span></span>
               <span></span>
               <span></span>
@@ -171,6 +182,12 @@ const Dashboard = () => {
               BOOKMARKS
             </button>
             <button
+              onClick={handleSignOut}
+              className="signout-button"
+            >
+              SIGN OUT
+            </button>
+            <button
               onClick={() => navigate('/create-story')}
               className="start-story-button"
             >
@@ -178,6 +195,64 @@ const Dashboard = () => {
             </button>
           </div>
         </nav>
+
+        {/* Hamburger Menu */}
+        <div className={`hamburger-menu ${menuOpen ? 'open' : ''}`}>
+          <div className="menu-overlay" onClick={() => setMenuOpen(false)}></div>
+          <div className="menu-panel">
+            <button className="menu-close" onClick={() => setMenuOpen(false)}>
+              ←
+            </button>
+
+            <div className="menu-header">
+              <div className="menu-user">
+                <div className="menu-user-avatar">
+                  <img src="/Indic.png" alt="User" />
+                </div>
+                <div className="menu-user-info">
+                  <span className="menu-user-label">SIGNED IN AS</span>
+                  <span className="menu-user-name">{userData?.displayName || currentUser?.email}</span>
+                </div>
+              </div>
+            </div>
+
+            <nav className="menu-nav">
+              <Link to="/dashboard" className="menu-item" onClick={() => setMenuOpen(false)}>
+                Dashboard
+              </Link>
+              <Link to="/settings" className="menu-item" onClick={() => setMenuOpen(false)}>
+                Settings
+              </Link>
+              <Link to="/stats" className="menu-item" onClick={() => setMenuOpen(false)}>
+                Statistics
+              </Link>
+              <Link to="/payments" className="menu-item" onClick={() => setMenuOpen(false)}>
+                Payments
+              </Link>
+              <Link to="/" className="menu-item" onClick={() => setMenuOpen(false)}>
+                Explore
+              </Link>
+              <button className="menu-item" onClick={handleSignOut}>
+                Sign Out
+              </button>
+              <Link to="/contact" className="menu-item" onClick={() => setMenuOpen(false)}>
+                Contact Us
+              </Link>
+            </nav>
+
+            <div className="menu-footer">
+              <Link to="/help" className="menu-footer-link" onClick={() => setMenuOpen(false)}>
+                HELP & SUPPORT
+              </Link>
+              <Link to="/terms" className="menu-footer-link" onClick={() => setMenuOpen(false)}>
+                TERMS OF USE
+              </Link>
+              <Link to="/privacy" className="menu-footer-link" onClick={() => setMenuOpen(false)}>
+                PRIVACY POLICY
+              </Link>
+            </div>
+          </div>
+        </div>
       </header>
 
       {/* Profile Section */}
