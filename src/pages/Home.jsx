@@ -3,127 +3,21 @@ import { Link, useNavigate } from 'react-router-dom';
 import { collection, query, where, orderBy, onSnapshot, limit } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { useAuth } from '../contexts/AuthContext';
+import { authenticStories } from '../data/authenticStories';
 import './Home.css';
 
 const Home = () => {
-  // Fake featured story for demo
-  const fakeFeaturedStory = {
-    id: 'featured-1',
-    title: 'The Last Storytellers of Kashmir',
-    excerpt: 'In the heart of the Himalayas, ancient oral traditions face extinction as modernization threatens to silence voices that have echoed through valleys for centuries.',
-    content: 'A long form story about the traditional storytellers...',
-    featuredImage: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?q=80&w=2071',
-    category: 'word',
-    authorName: 'Aisha Sharma',
-    authorId: 'author-1',
-    publishedAt: { toDate: () => new Date() },
-    views: 1250
-  };
-
-  const [featuredStory, setFeaturedStory] = useState(fakeFeaturedStory);
-  const [topPicks, setTopPicks] = useState([]);
-  const [staffPicks, setStaffPicks] = useState([]);
-  const [categoryFeatures, setCategoryFeatures] = useState({
-    word: null,
-    lens: null,
-    motion: null
-  });
-  const [loading, setLoading] = useState(false); // Set to false since we have fake data
+  // Use authentic stories from our curated collection
+  const [featuredStory, setFeaturedStory] = useState(authenticStories.featured);
+  const [topPicks, setTopPicks] = useState(authenticStories.topPicks);
+  const [staffPicks, setStaffPicks] = useState(authenticStories.staffPicks);
+  const [categoryFeatures, setCategoryFeatures] = useState(authenticStories.categoryFeatures);
+  const [loading, setLoading] = useState(false);
   const { currentUser } = useAuth();
   const navigate = useNavigate();
 
-  // Fake stories for demo
-  const fakeTopPicks = [
-    {
-      id: 'top-1',
-      title: 'Streets of Old Delhi: A Photo Essay',
-      excerpt: 'Capturing the essence of centuries-old bazaars through the lens of modern storytelling.',
-      featuredImage: 'https://images.unsplash.com/photo-1524492412937-b28074a5d7da?q=80&w=2071',
-      category: 'lens',
-      authorName: 'Raj Patel',
-      publishedAt: { toDate: () => new Date() }
-    },
-    {
-      id: 'top-2',
-      title: 'The Monsoon Diaries',
-      excerpt: 'A filmmaker\'s journey documenting the transformation of rural India during the rains.',
-      featuredImage: 'https://images.unsplash.com/photo-1561361513-2d000a50f0dc?q=80&w=2076',
-      category: 'motion',
-      authorName: 'Maya Krishnan',
-      publishedAt: { toDate: () => new Date() }
-    },
-    {
-      id: 'top-3',
-      title: 'Forgotten Temples of the South',
-      excerpt: 'Exploring architectural marvels hidden in the Western Ghats.',
-      featuredImage: 'https://images.unsplash.com/photo-1582510003544-4d00b7f74220?q=80&w=2070',
-      category: 'word',
-      authorName: 'Arjun Nair',
-      publishedAt: { toDate: () => new Date() }
-    },
-    {
-      id: 'top-4',
-      title: 'The Spice Route Revival',
-      excerpt: 'How ancient trade paths are inspiring modern culinary adventures.',
-      featuredImage: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?q=80&w=2070',
-      category: 'word',
-      authorName: 'Priya Mehta',
-      publishedAt: { toDate: () => new Date() }
-    }
-  ];
-
-  const fakeStaffPicks = [
-    {
-      id: 'staff-1',
-      title: 'Voices from the Sundarbans',
-      excerpt: 'Stories of resilience from the world\'s largest mangrove forest.',
-      featuredImage: 'https://images.unsplash.com/photo-1570168007204-dfb528c6958f?q=80&w=2070',
-      category: 'word',
-      authorName: 'Ananya Das',
-      publishedAt: { toDate: () => new Date() }
-    },
-    {
-      id: 'staff-2',
-      title: 'The Dance of Democracy',
-      excerpt: 'A visual journey through India\'s electoral process.',
-      featuredImage: 'https://images.unsplash.com/photo-1532375810709-75b1da00537c?q=80&w=2076',
-      category: 'lens',
-      authorName: 'Vikram Singh',
-      publishedAt: { toDate: () => new Date() }
-    },
-    {
-      id: 'staff-3',
-      title: 'Himalayan Echoes',
-      excerpt: 'A documentary on the changing soundscapes of mountain communities.',
-      featuredImage: 'https://images.unsplash.com/photo-1586611292717-f828b167408c?q=80&w=2074',
-      category: 'motion',
-      authorName: 'Tenzin Norbu',
-      publishedAt: { toDate: () => new Date() }
-    },
-    {
-      id: 'staff-4',
-      title: 'The Cotton Chronicles',
-      excerpt: 'From field to fabric: The untold stories of Indian textile workers.',
-      featuredImage: 'https://images.unsplash.com/photo-1605630662224-cac4dfa4f668?q=80&w=2070',
-      category: 'word',
-      authorName: 'Fatima Ahmed',
-      publishedAt: { toDate: () => new Date() }
-    }
-  ];
-
   useEffect(() => {
-    // Set fake data initially
-    setTopPicks(fakeTopPicks);
-    setStaffPicks(fakeStaffPicks);
-
-    // Set category features with fake data
-    setCategoryFeatures({
-      word: fakeTopPicks.find(s => s.category === 'word') || fakeStaffPicks[0],
-      lens: fakeTopPicks.find(s => s.category === 'lens') || fakeStaffPicks[1],
-      motion: fakeTopPicks.find(s => s.category === 'motion') || fakeStaffPicks[2]
-    });
-
-    // Fetch published articles (will override fake data when available)
+    // Optional: Fetch any real published articles from Firebase to mix with authentic stories
     const unsubscribe = onSnapshot(
       query(
         collection(db, 'articles'),
@@ -138,28 +32,11 @@ const Home = () => {
         }));
 
         if (publishedArticles.length > 0) {
-          // Set featured story (most recent)
-          setFeaturedStory(publishedArticles[0]);
+          // You can mix real user-generated articles with authentic stories
+          // For now, we're using our curated authentic stories
 
-          // Set top picks (most viewed - simulated for now, next 4 stories)
-          setTopPicks(publishedArticles.slice(1, 5));
-
-          // Set staff picks (next 4 stories)
-          setStaffPicks(publishedArticles.slice(5, 9));
-
-          // Set category features
-          const wordArticles = publishedArticles.filter(a => !a.category || a.category === 'word');
-          const lensArticles = publishedArticles.filter(a => a.category === 'lens');
-          const motionArticles = publishedArticles.filter(a => a.category === 'motion');
-
-          setCategoryFeatures({
-            word: wordArticles[0] || fakeTopPicks.find(s => s.category === 'word'),
-            lens: lensArticles[0] || fakeTopPicks.find(s => s.category === 'lens'),
-            motion: motionArticles[0] || fakeTopPicks.find(s => s.category === 'motion')
-          });
-        } else {
-          // If no articles from database, keep fake data
-          console.log('Using demo content - no published articles found');
+          // Optionally mix user articles with our curated content
+          // For now, we're prioritizing authentic stories
         }
         setLoading(false);
       },
@@ -209,8 +86,15 @@ const Home = () => {
     }
   };
 
-  const handleStoryClick = (articleId) => {
-    navigate(`/article/${articleId}`);
+  const handleStoryClick = (storyId) => {
+    // Check if it's an authentic story or a user article
+    if (typeof storyId === 'string' && storyId.includes('-')) {
+      // Authentic stories have IDs like 'nepal-earth-2024'
+      navigate(`/photo-essay/${storyId}`);
+    } else {
+      // User articles from Firebase
+      navigate(`/article/${storyId}`);
+    }
   };
 
   if (loading) {

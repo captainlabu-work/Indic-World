@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { NotificationProvider } from './components/common/NotificationSystem';
 import Navbar from './components/common/Navbar';
@@ -8,12 +8,13 @@ import Home from './pages/Home';
 import About from './pages/About';
 import Contact from './pages/Contact';
 import Auth from './pages/Auth';
-import Dashboard from './pages/Dashboard';
-import Admin from './pages/Admin';
 import Profile from './pages/Profile';
+import Settings from './pages/Settings';
+import Admin from './pages/Admin';
 import CreateStory from './pages/CreateStory';
 import EditArticle from './pages/EditArticle';
 import Article from './pages/Article';
+import PhotoEssay from './pages/PhotoEssay';
 import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
 import './App.css';
@@ -35,19 +36,12 @@ function App() {
                 <Route path="/signup" element={<Auth />} />
 
                 {/* Protected Routes */}
+                {/* Redirect old dashboard to new profile */}
                 <Route
                   path="/dashboard"
                   element={
                     <ProtectedRoute>
-                      <Dashboard />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin"
-                  element={
-                    <ProtectedRoute adminOnly={true}>
-                      <Admin />
+                      <Navigate to="/profile" replace />
                     </ProtectedRoute>
                   }
                 />
@@ -56,6 +50,22 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <Profile />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/settings"
+                  element={
+                    <ProtectedRoute>
+                      <Settings />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin"
+                  element={
+                    <ProtectedRoute adminOnly={true}>
+                      <Admin />
                     </ProtectedRoute>
                   }
                 />
@@ -78,6 +88,9 @@ function App() {
 
                 {/* Article View */}
                 <Route path="/article/:id" element={<Article />} />
+
+                {/* Photo Essay View for Authentic Stories */}
+                <Route path="/photo-essay/:storyId" element={<PhotoEssay />} />
 
                 {/* Legal Pages */}
                 <Route path="/privacy-policy" element={<Privacy />} />
