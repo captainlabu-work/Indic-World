@@ -1,7 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getStoryById, getStoriesByCategory, formatStoryDate } from '../data/authenticStories';
+import { getStoryById, getStoriesByCategory } from '../data/publicDomainStories';
 import './PhotoEssay.css';
+
+// Helper function to format date
+const formatStoryDate = (date) => {
+  const options = { year: 'numeric', month: 'long', day: 'numeric' };
+  return date.toLocaleDateString('en-US', options);
+};
 
 const PhotoEssay = () => {
   const { storyId } = useParams();
@@ -51,10 +57,13 @@ const PhotoEssay = () => {
     }
   };
 
-  const getReadingTime = (content) => {
-    if (!content) return '5 min read';
+  const getReadingTime = (story) => {
+    // Use pre-calculated reading time if available
+    if (story.readingTime) return story.readingTime;
+    // Otherwise calculate from content
+    if (!story.content) return '5 min read';
     const wordsPerMinute = 200;
-    const words = content.split(/\s+/).length;
+    const words = story.content.split(/\s+/).length;
     const minutes = Math.ceil(words / wordsPerMinute);
     return `${minutes} min read`;
   };
@@ -140,7 +149,7 @@ const PhotoEssay = () => {
           <svg viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd"/>
           </svg>
-          {getReadingTime(story.content)}
+          {getReadingTime(story)}
         </div>
 
         {story.license && (
@@ -161,19 +170,17 @@ const PhotoEssay = () => {
         {renderContent(story.content)}
 
         {/* Additional Images (if available) */}
-        {story.additionalImages && story.additionalImages.length > 0 && (
+        {story.images && story.images.length > 0 && (
           <div className="photo-grid">
-            {story.additionalImages.map((image, index) => (
+            {story.images.map((imageUrl, index) => (
               <div key={index} className="photo-item">
-                <img src={image.url} alt={image.caption || `Photo ${index + 1}`} />
-                {image.caption && (
-                  <div className="photo-caption">
-                    {image.caption}
-                    {image.credit && (
-                      <span className="photo-credit">{image.credit}</span>
-                    )}
-                  </div>
-                )}
+                <img src={imageUrl} alt={`${story.title} - Photo ${index + 1}`} />
+                <div className="photo-caption">
+                  {story.title} - Historical Documentation
+                  {story.credits && (
+                    <span className="photo-credit"> • {story.credits}</span>
+                  )}
+                </div>
               </div>
             ))}
           </div>

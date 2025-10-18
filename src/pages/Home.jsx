@@ -3,15 +3,15 @@ import { Link, useNavigate } from 'react-router-dom';
 import { collection, query, where, orderBy, onSnapshot, limit } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { useAuth } from '../contexts/AuthContext';
-import { authenticStories } from '../data/authenticStories';
+import { publicDomainStories } from '../data/publicDomainStories';
 import './Home.css';
 
 const Home = () => {
-  // Use authentic stories from our curated collection
-  const [featuredStory, setFeaturedStory] = useState(authenticStories.featured);
-  const [topPicks, setTopPicks] = useState(authenticStories.topPicks);
-  const [staffPicks, setStaffPicks] = useState(authenticStories.staffPicks);
-  const [categoryFeatures, setCategoryFeatures] = useState(authenticStories.categoryFeatures);
+  // Use public domain stories from our curated collection
+  const [featuredStory, setFeaturedStory] = useState(publicDomainStories.featured);
+  const [topPicks, setTopPicks] = useState(publicDomainStories.topPicks);
+  const [staffPicks, setStaffPicks] = useState(publicDomainStories.staffPicks);
+  const [categoryFeatures, setCategoryFeatures] = useState(publicDomainStories.categoryFeatures);
   const [loading, setLoading] = useState(false);
   const { currentUser } = useAuth();
   const navigate = useNavigate();
@@ -60,10 +60,13 @@ const Home = () => {
     });
   };
 
-  const getReadingTime = (content) => {
-    if (!content) return '5 min';
+  const getReadingTime = (story) => {
+    // Use pre-calculated reading time if available
+    if (story.readingTime) return story.readingTime;
+    // Otherwise calculate from content
+    if (!story.content) return '5 min';
     const wordsPerMinute = 200;
-    const words = content.split(/\s+/).length;
+    const words = story.content.split(/\s+/).length;
     const minutes = Math.ceil(words / wordsPerMinute);
     return `${minutes} min read`;
   };
@@ -127,7 +130,7 @@ const Home = () => {
               <div className="featured-overlay-meta">
                 <span className="featured-author">By {featuredStory.authorName}</span>
                 <span className="featured-date">{formatDate(featuredStory.publishedAt)}</span>
-                <span className="featured-reading-time">{getReadingTime(featuredStory.content)}</span>
+                <span className="featured-reading-time">{getReadingTime(featuredStory)}</span>
               </div>
               <button
                 className="featured-read-btn"

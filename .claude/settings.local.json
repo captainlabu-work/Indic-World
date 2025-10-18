@@ -6,7 +6,8 @@
       "Bash(npm install:*)",
       "Bash(git commit:*)",
       "Bash(npm run build:*)",
-      "WebFetch(domain:eldenboss.exposure.co)"
+      "WebFetch(domain:eldenboss.exposure.co)",
+      "Bash(npm run dev)"
     ],
     "deny": [],
     "ask": []
