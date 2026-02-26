@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import './VisualStoryEditor.css';
 
@@ -9,7 +9,6 @@ const VisualStoryEditor = ({ onSave, initialData = null }) => {
   const [authorName, setAuthorName] = useState(initialData?.authorName || '');
   const [layout, setLayout] = useState(initialData?.layout || 'simple');
   const [showSidebar, setShowSidebar] = useState(false);
-  const fileInputRef = useRef(null);
 
   // Simplified block types (Magnum Photos style)
   const blockTypes = {
@@ -97,7 +96,7 @@ const VisualStoryEditor = ({ onSave, initialData = null }) => {
             {block.content.image ? (
               <>
                 <div className="image-container">
-                  <img src={block.content.image} alt="" />
+                  <img src={block.content.image} alt="" loading="lazy" />
                 </div>
                 <div className="image-meta">
                   <input

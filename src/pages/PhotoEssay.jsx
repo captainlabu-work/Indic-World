@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getStoryById, getStoriesByCategory } from '../data/publicDomainStories';
+import { getStoryById, getStoriesByCategory } from '../data/historicalStories';
 import './PhotoEssay.css';
 
 // Helper function to format date
@@ -174,7 +174,7 @@ const PhotoEssay = () => {
           <div className="photo-grid">
             {story.images.map((imageUrl, index) => (
               <div key={index} className="photo-item">
-                <img src={imageUrl} alt={`${story.title} - Photo ${index + 1}`} />
+                <img src={imageUrl} alt={`${story.title} - Photo ${index + 1}`} loading="lazy" />
                 <div className="photo-caption">
                   {story.title} - Historical Documentation
                   {story.credits && (
@@ -238,6 +238,7 @@ const PhotoEssay = () => {
                     src={relatedStory.featuredImage}
                     alt={relatedStory.title}
                     className="related-story-image"
+                    loading="lazy"
                   />
                   <h4 className="related-story-title">{relatedStory.title}</h4>
                   <p className="related-story-author">By {relatedStory.authorName}</p>

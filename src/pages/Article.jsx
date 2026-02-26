@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { doc, getDoc, updateDoc, increment } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { useAuth } from '../contexts/AuthContext';
@@ -8,7 +8,6 @@ import './Article.css';
 
 const Article = () => {
   const { id } = useParams();
-  const navigate = useNavigate();
   const { currentUser } = useAuth();
   const [article, setArticle] = useState(null);
   const [loading, setLoading] = useState(true);

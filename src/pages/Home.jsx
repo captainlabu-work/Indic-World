@@ -1,54 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { collection, query, where, orderBy, onSnapshot, limit } from 'firebase/firestore';
-import { db } from '../firebase/config';
 import { useAuth } from '../contexts/AuthContext';
-import { publicDomainStories } from '../data/publicDomainStories';
+import { historicalStories } from '../data/historicalStories';
 import './Home.css';
 
 const Home = () => {
-  // Use public domain stories from our curated collection
-  const [featuredStory, setFeaturedStory] = useState(publicDomainStories.featured);
-  const [topPicks, setTopPicks] = useState(publicDomainStories.topPicks);
-  const [staffPicks, setStaffPicks] = useState(publicDomainStories.staffPicks);
-  const [categoryFeatures, setCategoryFeatures] = useState(publicDomainStories.categoryFeatures);
-  const [loading, setLoading] = useState(false);
+  // Use historical stories from our curated collection
+  const [featuredStory] = useState(historicalStories.featured);
+  const [topPicks] = useState(historicalStories.topPicks);
+  const [staffPicks] = useState(historicalStories.staffPicks);
+  const [categoryFeatures] = useState(historicalStories.categoryFeatures);
   const { currentUser } = useAuth();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    // Optional: Fetch any real published articles from Firebase to mix with authentic stories
-    const unsubscribe = onSnapshot(
-      query(
-        collection(db, 'articles'),
-        where('status', '==', 'published'),
-        orderBy('publishedAt', 'desc'),
-        limit(20)
-      ),
-      (snapshot) => {
-        const publishedArticles = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-
-        if (publishedArticles.length > 0) {
-          // You can mix real user-generated articles with authentic stories
-          // For now, we're using our curated authentic stories
-
-          // Optionally mix user articles with our curated content
-          // For now, we're prioritizing authentic stories
-        }
-        setLoading(false);
-      },
-      (error) => {
-        console.error('Error fetching articles:', error);
-        // Keep fake data on error
-        setLoading(false);
-      }
-    );
-
-    return () => unsubscribe();
-  }, []);
 
   const formatDate = (timestamp) => {
     if (!timestamp) return '';
@@ -99,14 +62,6 @@ const Home = () => {
       navigate(`/article/${storyId}`);
     }
   };
-
-  if (loading) {
-    return (
-      <div className="loading-container">
-        <div className="loading-spinner"></div>
-      </div>
-    );
-  }
 
   return (
     <div className="home-container">
@@ -160,6 +115,7 @@ const Home = () => {
                 <img
                   src={story.featuredImage || 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?q=80&w=2028'}
                   alt={story.title}
+                  loading="lazy"
                 />
                 <div className="story-category-badge">
                   {getCategoryIcon(story.category)} {getCategoryLabel(story.category)}
@@ -196,6 +152,7 @@ const Home = () => {
                 <img
                   src={story.featuredImage || 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?q=80&w=2028'}
                   alt={story.title}
+                  loading="lazy"
                 />
                 <div className="story-category-badge">
                   {getCategoryIcon(story.category)} {getCategoryLabel(story.category)}

@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { articleService, userService } from '../firebase/services';
-import { collection, getDocs, query, where, onSnapshot, orderBy } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
 import { db } from '../firebase/config';
-import { formatTimestamp, formatRelativeTime, parseMarkdownToHtml } from '../utils/formatters';
+import { formatTimestamp, formatRelativeTime } from '../utils/formatters';
 import { useNotification } from '../components/common/NotificationSystem';
 import './Admin.css';
 
@@ -385,7 +385,7 @@ const Admin = () => {
             <h4>Full Content:</h4>
             <div className="content-preview">{article.content}</div>
             {article.featuredImage && (
-              <img src={article.featuredImage} alt={article.title} className="featured-image" />
+              <img src={article.featuredImage} alt={article.title} className="featured-image" loading="lazy" />
             )}
           </div>
 

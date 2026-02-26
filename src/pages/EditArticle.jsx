@@ -7,8 +7,8 @@ import RichTextEditor from '../components/RichTextEditor';
 import './CreateStory.css';
 
 const EditArticle = () => {
-  const { currentUser, userData } = useAuth();
-  const { success, error: showError, info, showConfirmation } = useNotification();
+  const { currentUser } = useAuth();
+  const { success, info, showConfirmation } = useNotification();
   const navigate = useNavigate();
   const { id } = useParams();
   const [formData, setFormData] = useState({
@@ -26,40 +26,40 @@ const EditArticle = () => {
   const [article, setArticle] = useState(null);
 
   useEffect(() => {
+    const fetchArticle = async () => {
+      try {
+        const articleData = await articleService.getArticle(id);
+
+        if (!articleData) {
+          setError('Article not found');
+          return;
+        }
+
+        // Check if user owns this article
+        if (articleData.authorId !== currentUser.uid) {
+          setError('You do not have permission to edit this article');
+          return;
+        }
+
+        setArticle(articleData);
+        setFormData({
+          title: articleData.title,
+          excerpt: articleData.excerpt,
+          content: articleData.content,
+          tags: articleData.tags?.join(', ') || ''
+        });
+        setExistingImageUrl(articleData.featuredImage || '');
+        setImagePreview(articleData.featuredImage || null);
+      } catch (err) {
+        console.error('Error fetching article:', err);
+        setError('Failed to load article');
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchArticle();
-  }, [id]);
-
-  const fetchArticle = async () => {
-    try {
-      const articleData = await articleService.getArticle(id);
-
-      if (!articleData) {
-        setError('Article not found');
-        return;
-      }
-
-      // Check if user owns this article
-      if (articleData.authorId !== currentUser.uid) {
-        setError('You do not have permission to edit this article');
-        return;
-      }
-
-      setArticle(articleData);
-      setFormData({
-        title: articleData.title,
-        excerpt: articleData.excerpt,
-        content: articleData.content,
-        tags: articleData.tags?.join(', ') || ''
-      });
-      setExistingImageUrl(articleData.featuredImage || '');
-      setImagePreview(articleData.featuredImage || null);
-    } catch (err) {
-      console.error('Error fetching article:', err);
-      setError('Failed to load article');
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [id, currentUser.uid]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;

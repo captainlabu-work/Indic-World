@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { articleService } from '../firebase/services';
 import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
 import { db } from '../firebase/config';
-import { formatTimestamp, formatRelativeTime } from '../utils/formatters';
+import { formatRelativeTime } from '../utils/formatters';
 import { useNotification } from '../components/common/NotificationSystem';
 import './Profile.css';
 
@@ -71,26 +71,6 @@ const Profile = () => {
     // Cleanup listener on unmount
     return () => unsubscribe();
   }, [currentUser]);
-
-  const handleArchiveArticle = async (articleId, articleTitle) => {
-    const confirmed = await showConfirmation({
-      title: 'Archive Article',
-      message: `Are you sure you want to archive "${articleTitle}"? You can unarchive it later from your archive.`,
-      confirmText: 'Archive',
-      cancelText: 'Cancel',
-      type: 'warning'
-    });
-
-    if (confirmed) {
-      try {
-        await articleService.archiveArticle(articleId);
-        success('Article archived successfully');
-      } catch (err) {
-        console.error('Error archiving article:', err);
-        error('Failed to archive article. Please try again.');
-      }
-    }
-  };
 
   const handleDeleteArticle = async (articleId, articleTitle) => {
     const confirmed = await showConfirmation({

@@ -1,23 +1,26 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { NotificationProvider } from './components/common/NotificationSystem';
 import Navbar from './components/common/Navbar';
 import Footer from './components/common/Footer';
 import ProtectedRoute from './components/common/ProtectedRoute';
-import Home from './pages/Home';
-import About from './pages/About';
-import Contact from './pages/Contact';
-import Auth from './pages/Auth';
-import Profile from './pages/Profile';
-import Settings from './pages/Settings';
-import Admin from './pages/Admin';
-import CreateStory from './pages/CreateStory';
-import EditArticle from './pages/EditArticle';
-import Article from './pages/Article';
-import PhotoEssay from './pages/PhotoEssay';
-import Privacy from './pages/Privacy';
-import Terms from './pages/Terms';
 import './App.css';
+
+// Lazy load all pages — only downloaded when the user navigates to them
+const Home = lazy(() => import('./pages/Home'));
+const About = lazy(() => import('./pages/About'));
+const Contact = lazy(() => import('./pages/Contact'));
+const Auth = lazy(() => import('./pages/Auth'));
+const Profile = lazy(() => import('./pages/Profile'));
+const Settings = lazy(() => import('./pages/Settings'));
+const Admin = lazy(() => import('./pages/Admin'));
+const CreateStory = lazy(() => import('./pages/CreateStory'));
+const EditArticle = lazy(() => import('./pages/EditArticle'));
+const Article = lazy(() => import('./pages/Article'));
+const PhotoEssay = lazy(() => import('./pages/PhotoEssay'));
+const Privacy = lazy(() => import('./pages/Privacy'));
+const Terms = lazy(() => import('./pages/Terms'));
 
 function App() {
   return (
@@ -27,6 +30,7 @@ function App() {
           <div className="app">
             <Navbar />
             <main>
+              <Suspense fallback={<div className="loading-container"><div className="loading-spinner"></div></div>}>
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/about" element={<About />} />
@@ -96,6 +100,7 @@ function App() {
                 <Route path="/privacy-policy" element={<Privacy />} />
                 <Route path="/terms" element={<Terms />} />
               </Routes>
+              </Suspense>
             </main>
             <Footer />
           </div>
