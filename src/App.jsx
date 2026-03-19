@@ -19,6 +19,7 @@ const CreateStory = lazy(() => import('./pages/CreateStory'));
 const EditArticle = lazy(() => import('./pages/EditArticle'));
 const Article = lazy(() => import('./pages/Article'));
 const PhotoEssay = lazy(() => import('./pages/PhotoEssay'));
+const CategoryPage = lazy(() => import('./pages/CategoryPage'));
 const Privacy = lazy(() => import('./pages/Privacy'));
 const Terms = lazy(() => import('./pages/Terms'));
 
@@ -95,6 +96,11 @@ function App() {
 
                 {/* Photo Essay View for Authentic Stories */}
                 <Route path="/photo-essay/:storyId" element={<PhotoEssay />} />
+
+                {/* Category Pages */}
+                <Route path="/word" element={<CategoryPage category="word" />} />
+                <Route path="/lens" element={<CategoryPage category="lens" />} />
+                <Route path="/motion" element={<CategoryPage category="motion" />} />
 
                 {/* Legal Pages */}
                 <Route path="/privacy-policy" element={<Privacy />} />

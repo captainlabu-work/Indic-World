@@ -1,31 +1,77 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { articleService, storageService } from '../firebase/services';
 import { useNotification } from '../components/common/NotificationSystem';
-import RichTextEditor from '../components/RichTextEditor';
-import VisualStoryEditor from '../components/VisualStoryEditor';
+import StoryEditor from '../components/StoryEditor';
 import './CreateStory.css';
 
 const CreateStory = () => {
   const { currentUser, userData } = useAuth();
   const { success, error: showError, showConfirmation } = useNotification();
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
+  const [searchParams] = useSearchParams();
+
+  // Get category from URL param (?category=word) or default to 'word'
+  const urlCategory = searchParams.get('category') || 'word';
+  const [category, setCategory] = useState(urlCategory);
+
+  // Motion-specific state (direct upload form)
+  const [motionData, setMotionData] = useState({
     title: '',
     excerpt: '',
-    content: '',
     tags: '',
-    category: 'word' // Default to Indic Word
+    videoFile: null
   });
   const [featuredImage, setFeaturedImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleInputChange = (e) => {
+  // === Story Editor save handler (for Word & Lens) ===
+  const handleEditorSave = async (storyData, status = 'pending') => {
+    if (!currentUser) {
+      showError('You must be logged in to create a story');
+      navigate('/auth');
+      return;
+    }
+
+    try {
+      const articleData = {
+        title: storyData.title || 'Untitled Story',
+        excerpt: storyData.subtitle || '',
+        content: JSON.stringify(storyData),
+        category: storyData.category || category,
+        featuredImage: storyData.coverImage || '',
+        tags: [],
+        authorId: currentUser.uid,
+        authorName: storyData.authorName || userData?.displayName || currentUser.email,
+        status,
+        views: 0,
+        isVisualStory: true
+      };
+
+      await articleService.createArticle(articleData);
+
+      if (status === 'pending') {
+        success('Story submitted for review!');
+      } else {
+        success('Story saved as draft!');
+      }
+      navigate('/profile');
+    } catch (err) {
+      console.error('Error creating story:', err);
+      showError(`Failed to save story: ${err.message || 'Unknown error'}`);
+    }
+  };
+
+  const handleEditorPublish = (storyData) => handleEditorSave(storyData, 'pending');
+  const handleEditorDraft = (storyData) => handleEditorSave(storyData, 'draft');
+
+  // === Motion form handlers ===
+  const handleMotionInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setMotionData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleImageChange = (e) => {
@@ -45,31 +91,19 @@ const CreateStory = () => {
     }
   };
 
-
-  const handleDiscard = async () => {
-    const hasContent = formData.title || formData.excerpt || formData.content;
-
-    if (hasContent) {
-      const confirmed = await showConfirmation({
-        title: 'Discard Changes?',
-        message: 'Are you sure you want to discard this story? All unsaved changes will be lost.',
-        confirmText: 'Discard',
-        cancelText: 'Keep Writing',
-        type: 'warning'
-      });
-
-      if (confirmed) {
-        navigate('/dashboard');
+  const handleVideoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 100 * 1024 * 1024) {
+        setError('Video must be less than 100MB');
+        return;
       }
-    } else {
-      navigate('/dashboard');
+      setMotionData(prev => ({ ...prev, videoFile: file }));
+      setError('');
     }
   };
 
-  const handleSubmit = async (e, status = 'draft') => {
-    e.preventDefault();
-
-    // Check if user is authenticated
+  const handleMotionSubmit = async (status = 'draft') => {
     if (!currentUser) {
       showError('You must be logged in to create a story');
       navigate('/auth');
@@ -81,193 +115,190 @@ const CreateStory = () => {
 
     try {
       let imageUrl = '';
+      let videoUrl = '';
 
-      // Upload image if present
       if (featuredImage) {
         try {
           imageUrl = await storageService.uploadImage(featuredImage, `articles/${Date.now()}_${featuredImage.name}`);
         } catch (uploadError) {
           console.error('Image upload error:', uploadError);
-          setError('Failed to upload image. Please try again or continue without an image.');
-          // Continue without image instead of failing completely
           imageUrl = '';
         }
       }
 
-      // Prepare article data
+      if (motionData.videoFile) {
+        try {
+          videoUrl = await storageService.uploadImage(motionData.videoFile, `videos/${Date.now()}_${motionData.videoFile.name}`);
+        } catch (uploadError) {
+          console.error('Video upload error:', uploadError);
+          setError('Failed to upload video. Please try again.');
+          setLoading(false);
+          return;
+        }
+      }
+
       const articleData = {
-        title: formData.title,
-        excerpt: formData.excerpt,
-        content: formData.content,
-        category: formData.category,
+        title: motionData.title,
+        excerpt: motionData.excerpt,
+        content: videoUrl,
+        category: 'motion',
         featuredImage: imageUrl,
-        tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
+        tags: motionData.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
         authorId: currentUser.uid,
         authorName: userData?.displayName || currentUser.email,
-        status: status,
-        views: 0
-      };
-
-      // Create article
-      await articleService.createArticle(articleData);
-
-      // Redirect based on status
-      if (status === 'pending') {
-        success('Story submitted for review!');
-      } else {
-        success('Story saved as draft!');
-      }
-      navigate('/dashboard');
-    } catch (err) {
-      console.error('Error creating article:', err);
-
-      // Provide more specific error messages
-      if (err.message?.includes('permission')) {
-        showError('Permission denied. Please make sure you are logged in and try again.');
-      } else if (err.message?.includes('network')) {
-        showError('Network error. Please check your connection and try again.');
-      } else {
-        showError(`Failed to create story: ${err.message || 'Unknown error'}`);
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleVisualStorySave = async (storyData) => {
-    if (!currentUser) {
-      showError('You must be logged in to create a story');
-      navigate('/auth');
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      // Prepare visual story data
-      const articleData = {
-        title: storyData.title || 'Untitled Story',
-        excerpt: storyData.subtitle || '',
-        content: JSON.stringify(storyData), // Store the visual story structure as JSON
-        category: 'lens',
-        featuredImage: storyData.coverImage || '',
-        tags: [],
-        authorId: currentUser.uid,
-        authorName: userData?.displayName || currentUser.email,
-        status: 'draft',
+        status,
         views: 0,
-        isVisualStory: true // Flag to identify visual stories
+        isMotion: true
       };
 
       await articleService.createArticle(articleData);
-      success('Visual story saved!');
-      navigate('/dashboard');
+
+      if (status === 'pending') {
+        success('Video submitted for review!');
+      } else {
+        success('Video saved as draft!');
+      }
+      navigate('/profile');
     } catch (err) {
-      console.error('Error creating visual story:', err);
-      showError('Failed to save visual story. Please try again.');
+      console.error('Error creating video:', err);
+      showError(`Failed to save: ${err.message || 'Unknown error'}`);
     } finally {
       setLoading(false);
     }
   };
 
-  // Show visual editor for Indic Lens category
-  if (formData.category === 'lens') {
+  const handleDiscard = async () => {
+    const hasContent = motionData.title || motionData.excerpt;
+    if (hasContent) {
+      const confirmed = await showConfirmation({
+        title: 'Discard Changes?',
+        message: 'Are you sure? All unsaved changes will be lost.',
+        confirmText: 'Discard',
+        cancelText: 'Keep Editing',
+        type: 'warning'
+      });
+      if (confirmed) navigate('/profile');
+    } else {
+      navigate('/profile');
+    }
+  };
+
+  // === For Word & Lens: show the block-based editor ===
+  if (category === 'word' || category === 'lens') {
     return (
-      <div className="create-story-container">
-        <VisualStoryEditor
-          onSave={handleVisualStorySave}
+      <div className="create-story-container create-story-editor-mode">
+        {/* Category switcher at top */}
+        <div className="editor-category-bar">
+          <div className="category-selector compact">
+            <button
+              className={`category-tab ${category === 'word' ? 'active' : ''}`}
+              onClick={() => setCategory('word')}
+            >
+              Indic Word
+            </button>
+            <button
+              className={`category-tab ${category === 'lens' ? 'active' : ''}`}
+              onClick={() => setCategory('lens')}
+            >
+              Indic Lens
+            </button>
+            <button
+              className={`category-tab ${category === 'motion' ? 'active' : ''}`}
+              onClick={() => setCategory('motion')}
+            >
+              Indic Motion
+            </button>
+          </div>
+        </div>
+        <StoryEditor
+          onSave={handleEditorPublish}
+          onSaveDraft={handleEditorDraft}
           initialData={null}
+          category={category}
         />
       </div>
     );
   }
 
+  // === For Motion: show direct upload form ===
   return (
     <div className="create-story-container">
+      <div className="editor-category-bar">
+        <div className="category-selector compact">
+          <button
+            className={`category-tab ${category === 'word' ? 'active' : ''}`}
+            onClick={() => setCategory('word')}
+          >
+            Indic Word
+          </button>
+          <button
+            className={`category-tab ${category === 'lens' ? 'active' : ''}`}
+            onClick={() => setCategory('lens')}
+          >
+            Indic Lens
+          </button>
+          <button
+            className={`category-tab ${category === 'motion' ? 'active' : ''}`}
+            onClick={() => setCategory('motion')}
+          >
+            Indic Motion
+          </button>
+        </div>
+      </div>
+
       <div className="create-story-header">
-        <h1>Create Your Story</h1>
-        <p className="create-story-subtitle">Share your thoughts with the world</p>
+        <h1>Upload Video</h1>
+        <p className="create-story-subtitle">Share a documentary, film, or video essay</p>
       </div>
 
       <form className="create-story-form">
         <div className="form-group">
-          <label htmlFor="category">Category *</label>
-          <div className="category-selector">
-            <label className={`category-option ${formData.category === 'word' ? 'active' : ''}`}>
-              <input
-                type="radio"
-                name="category"
-                value="word"
-                checked={formData.category === 'word'}
-                onChange={handleInputChange}
-              />
-              <span className="category-icon">✍️</span>
-              <div className="category-info">
-                <span className="category-name">Indic Word</span>
-                <span className="category-desc">Written narratives, op-eds, reportage</span>
-              </div>
-            </label>
-            <label className={`category-option ${formData.category === 'lens' ? 'active' : ''}`}>
-              <input
-                type="radio"
-                name="category"
-                value="lens"
-                checked={formData.category === 'lens'}
-                onChange={handleInputChange}
-              />
-              <span className="category-icon">📸</span>
-              <div className="category-info">
-                <span className="category-name">Indic Lens</span>
-                <span className="category-desc">Photo essays, visual journalism</span>
-              </div>
-            </label>
-            <label className={`category-option ${formData.category === 'motion' ? 'active' : ''}`}>
-              <input
-                type="radio"
-                name="category"
-                value="motion"
-                checked={formData.category === 'motion'}
-                onChange={handleInputChange}
-              />
-              <span className="category-icon">🎬</span>
-              <div className="category-info">
-                <span className="category-name">Indic Motion</span>
-                <span className="category-desc">Documentaries, films, video stories</span>
-              </div>
-            </label>
-          </div>
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="title">Story Title *</label>
+          <label htmlFor="title">Title *</label>
           <input
             type="text"
             id="title"
             name="title"
-            value={formData.title}
-            onChange={handleInputChange}
-            placeholder="Enter a compelling title"
+            value={motionData.title}
+            onChange={handleMotionInputChange}
+            placeholder="Enter a title for your video"
             required
           />
         </div>
 
         <div className="form-group">
-          <label htmlFor="excerpt">Excerpt *</label>
+          <label htmlFor="excerpt">Description *</label>
           <textarea
             id="excerpt"
             name="excerpt"
-            value={formData.excerpt}
-            onChange={handleInputChange}
-            placeholder="Brief summary of your story (max 200 characters)"
+            value={motionData.excerpt}
+            onChange={handleMotionInputChange}
+            placeholder="Brief description of your video (max 200 characters)"
             maxLength={200}
             rows={3}
             required
           />
-          <small className="char-count">{formData.excerpt.length}/200</small>
+          <small className="char-count">{motionData.excerpt.length}/200</small>
         </div>
 
         <div className="form-group">
-          <label htmlFor="featuredImage">Featured Image</label>
+          <label htmlFor="videoFile">Video File *</label>
+          <input
+            type="file"
+            id="videoFile"
+            accept="video/*"
+            onChange={handleVideoChange}
+            className="file-input"
+          />
+          {motionData.videoFile && (
+            <div className="file-selected">
+              Selected: {motionData.videoFile.name} ({(motionData.videoFile.size / (1024 * 1024)).toFixed(1)} MB)
+            </div>
+          )}
+          <small className="form-hint">Max 100MB. Supported: MP4, MOV, AVI, WebM</small>
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="featuredImage">Thumbnail Image</label>
           <input
             type="file"
             id="featuredImage"
@@ -286,28 +317,10 @@ const CreateStory = () => {
                 }}
                 className="remove-image-btn"
               >
-                Remove Image
+                Remove
               </button>
             </div>
           )}
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="content">Story Content *</label>
-          <RichTextEditor
-            value={formData.content}
-            onChange={handleInputChange}
-            placeholder="Write your story here...
-
-Use markdown formatting:
-- **bold** for bold text
-- *italic* for italic text
-- # Heading 1, ## Heading 2, ### Heading 3
-- - List item for bullet points
-- > Quote for blockquotes
-- [text](url) for links
-- `code` for inline code"
-          />
         </div>
 
         <div className="form-group">
@@ -316,15 +329,13 @@ Use markdown formatting:
             type="text"
             id="tags"
             name="tags"
-            value={formData.tags}
-            onChange={handleInputChange}
-            placeholder="Enter tags separated by commas (e.g., travel, photography, life)"
+            value={motionData.tags}
+            onChange={handleMotionInputChange}
+            placeholder="e.g., documentary, short film, india"
           />
         </div>
 
-        {error && (
-          <div className="error-message">{error}</div>
-        )}
+        {error && <div className="error-message">{error}</div>}
 
         <div className="form-actions">
           <button
@@ -337,17 +348,17 @@ Use markdown formatting:
           </button>
           <button
             type="button"
-            onClick={(e) => handleSubmit(e, 'draft')}
+            onClick={() => handleMotionSubmit('draft')}
             className="draft-btn"
-            disabled={loading || !formData.title || !formData.excerpt || !formData.content}
+            disabled={loading || !motionData.title || !motionData.excerpt}
           >
             {loading ? 'Saving...' : 'Save as Draft'}
           </button>
           <button
             type="button"
-            onClick={(e) => handleSubmit(e, 'pending')}
+            onClick={() => handleMotionSubmit('pending')}
             className="submit-btn"
-            disabled={loading || !formData.title || !formData.excerpt || !formData.content}
+            disabled={loading || !motionData.title || !motionData.excerpt || !motionData.videoFile}
           >
             {loading ? 'Submitting...' : 'Submit for Review'}
           </button>

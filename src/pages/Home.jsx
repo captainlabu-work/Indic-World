@@ -206,7 +206,7 @@ const Home = () => {
                     <p>{categoryFeatures.word.excerpt}</p>
                   </div>
                 )}
-                <Link to="/stories?category=word" className="explore-link">
+                <Link to="/word" className="explore-link" onClick={(e) => e.stopPropagation()}>
                   Explore Word →
                 </Link>
               </div>
@@ -238,7 +238,7 @@ const Home = () => {
                     <p>{categoryFeatures.lens.excerpt}</p>
                   </div>
                 )}
-                <Link to="/stories?category=lens" className="explore-link">
+                <Link to="/lens" className="explore-link" onClick={(e) => e.stopPropagation()}>
                   Explore Lens →
                 </Link>
               </div>
@@ -270,7 +270,7 @@ const Home = () => {
                     <p>{categoryFeatures.motion.excerpt}</p>
                   </div>
                 )}
-                <Link to="/stories?category=motion" className="explore-link">
+                <Link to="/motion" className="explore-link" onClick={(e) => e.stopPropagation()}>
                   Explore Motion →
                 </Link>
               </div>

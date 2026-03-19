@@ -336,6 +336,72 @@
   color: #666;
 }
 
+/* Editor mode - no padding when using StoryEditor */
+.create-story-editor-mode {
+  padding: 0;
+  max-width: 100%;
+}
+
+/* Category Tab Bar */
+.editor-category-bar {
+  position: fixed;
+  top: 56px;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border-bottom: 1px solid #e0e0e0;
+  z-index: 999;
+  display: flex;
+  justify-content: center;
+  padding: 0;
+}
+
+.category-selector.compact {
+  display: flex;
+  gap: 0;
+  margin: 0;
+}
+
+.category-tab {
+  padding: 12px 24px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: #888;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.category-tab:hover {
+  color: #1a1a1a;
+}
+
+.category-tab.active {
+  color: #1a1a1a;
+  border-bottom-color: #1a1a1a;
+}
+
+/* Video file selected indicator */
+.file-selected {
+  padding: 0.6rem 1rem;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  color: #0369a1;
+  margin-top: 0.5rem;
+}
+
+.form-hint {
+  font-size: 0.8rem;
+  color: #999;
+  margin-top: 0.3rem;
+}
+
 @keyframes fadeInUp {
   from {
     opacity: 0;
