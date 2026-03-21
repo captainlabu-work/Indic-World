@@ -131,6 +131,7 @@ const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', category = 'wo
 
       {/* Canvas */}
       <div className="te-canvas">
+       <div className="te-editor-card">
         {/* Byline */}
         <div className="te-byline">
           <span>By </span>
@@ -316,6 +317,7 @@ const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', category = 'wo
 
         {/* Editor */}
         <EditorContent editor={editor} />
+       </div>
       </div>
     </div>
   );
