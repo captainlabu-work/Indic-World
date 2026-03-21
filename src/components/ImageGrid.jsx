@@ -1,14 +1,131 @@
 import { Node } from '@tiptap/core';
 import { NodeViewWrapper, ReactNodeViewRenderer } from '@tiptap/react';
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useState } from 'react';
+
+// Per-cell resizable image component
+const GridCell = ({ img, index, onFile, onCaption, onRemove, onResize }) => {
+  const fileRef = useRef(null);
+  const imgRef = useRef(null);
+  const [resizing, setResizing] = useState(false);
+
+  const handleResizeY = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const startY = e.clientY;
+    const startH = imgRef.current?.offsetHeight || 200;
+    setResizing(true);
+
+    const onMouseMove = (moveEvent) => {
+      const diff = moveEvent.clientY - startY;
+      const newH = Math.max(80, startH + diff);
+      onResize(index, `${newH}px`);
+    };
+
+    const onMouseUp = () => {
+      setResizing(false);
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+    };
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  }, [index, onResize]);
+
+  if (!img.src) {
+    return (
+      <div className="te-grid-cell">
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*"
+          onChange={(e) => onFile(e, index)}
+          hidden
+        />
+        <button
+          type="button"
+          className="te-grid-placeholder"
+          onClick={() => fileRef.current?.click()}
+        >
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <rect x="3" y="3" width="18" height="18" rx="2" />
+            <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" stroke="none" />
+            <path d="M21 15l-5-5L5 21" strokeLinecap="round" />
+          </svg>
+          <span>Click to add image</span>
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`te-grid-cell ${resizing ? 'resizing' : ''}`}>
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/*"
+        onChange={(e) => onFile(e, index)}
+        hidden
+      />
+      <div className="te-grid-img-wrap">
+        <img
+          ref={imgRef}
+          src={img.src}
+          alt={img.alt || ''}
+          draggable={false}
+          style={{
+            height: img.height || 'auto',
+            objectFit: img.height ? 'cover' : 'contain',
+          }}
+        />
+
+        {/* Bottom resize handle */}
+        <div
+          className="te-grid-resize-handle"
+          onMouseDown={handleResizeY}
+          title="Drag to resize height"
+        >
+          <span className="te-grid-resize-bar" />
+        </div>
+
+        {/* Replace image button */}
+        <button
+          type="button"
+          className="te-grid-replace"
+          onClick={() => fileRef.current?.click()}
+          title="Replace image"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+            <polyline points="17 8 12 3 7 8" />
+            <line x1="12" y1="3" x2="12" y2="15" />
+          </svg>
+        </button>
+
+        {/* Remove button */}
+        <button
+          type="button"
+          className="te-grid-remove"
+          onClick={() => onRemove(index)}
+          title="Remove image"
+        >
+          &times;
+        </button>
+
+        {/* Caption */}
+        <input
+          type="text"
+          className="te-grid-caption"
+          value={img.caption || ''}
+          onChange={(e) => onCaption(index, e.target.value)}
+          placeholder="Caption..."
+        />
+      </div>
+    </div>
+  );
+};
 
 const GridNodeView = ({ node, updateAttributes, selected }) => {
   const { columns, images } = node.attrs;
-  const fileRefs = useRef([]);
-
-  const handleUpload = useCallback((index) => {
-    fileRefs.current[index]?.click();
-  }, []);
 
   const handleFile = useCallback((e, index) => {
     const file = e.target.files?.[0];
@@ -27,7 +144,7 @@ const GridNodeView = ({ node, updateAttributes, selected }) => {
         const url = canvas.toDataURL('image/jpeg', 0.85);
 
         const updated = [...images];
-        updated[index] = { ...updated[index], src: url };
+        updated[index] = { ...updated[index], src: url, height: '' };
         updateAttributes({ images: updated });
       };
       img.src = ev.target.result;
@@ -44,7 +161,13 @@ const GridNodeView = ({ node, updateAttributes, selected }) => {
 
   const removeImage = useCallback((index) => {
     const updated = [...images];
-    updated[index] = { src: '', alt: '', caption: '' };
+    updated[index] = { src: '', alt: '', caption: '', height: '' };
+    updateAttributes({ images: updated });
+  }, [images, updateAttributes]);
+
+  const handleResize = useCallback((index, height) => {
+    const updated = [...images];
+    updated[index] = { ...updated[index], height };
     updateAttributes({ images: updated });
   }, [images, updateAttributes]);
 
@@ -52,48 +175,15 @@ const GridNodeView = ({ node, updateAttributes, selected }) => {
     <NodeViewWrapper className={`te-image-grid cols-${columns} ${selected ? 'selected' : ''}`}>
       <div className="te-grid-row">
         {images.slice(0, columns).map((img, i) => (
-          <div className="te-grid-cell" key={i}>
-            <input
-              ref={(el) => { fileRefs.current[i] = el; }}
-              type="file"
-              accept="image/*"
-              onChange={(e) => handleFile(e, i)}
-              hidden
-            />
-            {img.src ? (
-              <div className="te-grid-img-wrap">
-                <img src={img.src} alt={img.alt || ''} draggable={false} />
-                <button
-                  type="button"
-                  className="te-grid-remove"
-                  onClick={() => removeImage(i)}
-                  title="Remove image"
-                >
-                  &times;
-                </button>
-                <input
-                  type="text"
-                  className="te-grid-caption"
-                  value={img.caption || ''}
-                  onChange={(e) => handleCaptionChange(i, e.target.value)}
-                  placeholder="Caption..."
-                />
-              </div>
-            ) : (
-              <button
-                type="button"
-                className="te-grid-placeholder"
-                onClick={() => handleUpload(i)}
-              >
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                  <rect x="3" y="3" width="18" height="18" rx="2" />
-                  <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" stroke="none" />
-                  <path d="M21 15l-5-5L5 21" strokeLinecap="round" />
-                </svg>
-                <span>Click to add image</span>
-              </button>
-            )}
-          </div>
+          <GridCell
+            key={i}
+            img={img}
+            index={i}
+            onFile={handleFile}
+            onCaption={handleCaptionChange}
+            onRemove={removeImage}
+            onResize={handleResize}
+          />
         ))}
       </div>
     </NodeViewWrapper>
@@ -111,8 +201,8 @@ const ImageGrid = Node.create({
       columns: { default: 2 },
       images: {
         default: [
-          { src: '', alt: '', caption: '' },
-          { src: '', alt: '', caption: '' },
+          { src: '', alt: '', caption: '', height: '' },
+          { src: '', alt: '', caption: '', height: '' },
         ],
         parseHTML: (el) => {
           try {
@@ -145,6 +235,7 @@ const ImageGrid = Node.create({
           src: '',
           alt: '',
           caption: '',
+          height: '',
         }));
         return chain().insertContent({ type: this.name, attrs: { columns, images } }).run();
       },

@@ -524,7 +524,11 @@
 .te-grid-img-wrap {
   position: relative;
   border-radius: 4px;
-  overflow: hidden;
+  overflow: visible;
+}
+
+.te-grid-cell.resizing {
+  user-select: none;
 }
 
 .te-grid-img-wrap img {
@@ -534,12 +538,13 @@
   border-radius: 4px;
 }
 
-.te-grid-remove {
+/* Grid image action buttons */
+.te-grid-remove,
+.te-grid-replace {
   position: absolute;
   top: 6px;
-  right: 6px;
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
   background: rgba(0, 0, 0, 0.6);
   color: #fff;
   border: none;
@@ -554,12 +559,59 @@
   transition: opacity 0.2s;
 }
 
-.te-grid-img-wrap:hover .te-grid-remove {
+.te-grid-remove {
+  right: 6px;
+}
+
+.te-grid-replace {
+  right: 36px;
+  font-size: 12px;
+}
+
+.te-grid-img-wrap:hover .te-grid-remove,
+.te-grid-img-wrap:hover .te-grid-replace {
   opacity: 1;
 }
 
 .te-grid-remove:hover {
   background: rgba(220, 50, 50, 0.85);
+}
+
+.te-grid-replace:hover {
+  background: rgba(60, 60, 60, 0.85);
+}
+
+/* Bottom resize handle for grid images */
+.te-grid-resize-handle {
+  position: absolute;
+  bottom: -6px;
+  left: 10%;
+  right: 10%;
+  height: 14px;
+  cursor: ns-resize;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+  z-index: 5;
+}
+
+.te-grid-img-wrap:hover .te-grid-resize-handle {
+  opacity: 1;
+}
+
+.te-grid-resize-bar {
+  width: 40px;
+  height: 4px;
+  background: #1a1a1a;
+  border-radius: 2px;
+  opacity: 0.6;
+}
+
+.te-grid-resize-handle:hover .te-grid-resize-bar {
+  opacity: 1;
+  width: 60px;
 }
 
 /* Caption input */
@@ -574,6 +626,7 @@
   color: #666;
   outline: none;
   border-radius: 0 0 4px 4px;
+  margin-top: 2px;
 }
 
 .te-grid-caption:focus {
