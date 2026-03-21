@@ -4,7 +4,7 @@
 .tiptap-editor {
   width: 100%;
   min-height: 100vh;
-  background: #fafafa;
+  background: #f4f1ec;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
 }
 
@@ -62,7 +62,7 @@
 .te-canvas {
   max-width: 780px;
   margin: 0 auto;
-  padding: 100px 24px 120px;
+  padding: 140px 24px 120px;
 }
 
 /* ===== Byline ===== */
@@ -141,7 +141,7 @@
   border-radius: 8px;
   margin-bottom: 24px;
   position: sticky;
-  top: 64px;
+  top: 108px;
   z-index: 50;
   box-shadow: 0 2px 8px rgba(0,0,0,0.04);
   flex-wrap: wrap;
@@ -323,7 +323,7 @@
   .te-topbar { padding: 0 16px; }
 
   .te-canvas {
-    padding: 80px 16px 80px;
+    padding: 130px 16px 80px;
   }
 
   .te-title-input {
@@ -335,7 +335,7 @@
   }
 
   .te-toolbar {
-    top: 56px;
+    top: 100px;
     padding: 6px 8px;
     gap: 2px;
   }
