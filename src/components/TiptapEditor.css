@@ -340,6 +340,34 @@
   user-select: none;
 }
 
+/* Drag handle */
+.te-drag-handle {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  border-radius: 6px;
+  cursor: grab;
+  opacity: 0;
+  transition: opacity 0.2s;
+  z-index: 5;
+}
+
+.te-drag-handle:active {
+  cursor: grabbing;
+}
+
+.te-resizable-image:hover .te-drag-handle,
+.te-resizable-image.selected .te-drag-handle {
+  opacity: 1;
+}
+
 /* Resize handle */
 .te-resize-handle {
   position: absolute;
