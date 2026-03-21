@@ -1,9 +1,9 @@
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import Image from '@tiptap/extension-image';
 import Placeholder from '@tiptap/extension-placeholder';
 import TextAlign from '@tiptap/extension-text-align';
 import Underline from '@tiptap/extension-underline';
+import ResizableImage from './ResizableImage';
 import { useRef, useCallback } from 'react';
 import './TiptapEditor.css';
 
@@ -31,13 +31,7 @@ const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', category = 'wo
       StarterKit.configure({
         heading: { levels: [1, 2, 3] },
       }),
-      Image.configure({
-        inline: false,
-        allowBase64: true,
-        HTMLAttributes: {
-          class: 'te-content-image',
-        },
-      }),
+      ResizableImage,
       Placeholder.configure({
         placeholder: 'Start writing your story...',
       }),
@@ -76,7 +70,7 @@ const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', category = 'wo
         canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
         const url = canvas.toDataURL('image/jpeg', 0.85);
 
-        editor.chain().focus().setImage({ src: url }).run();
+        editor.chain().focus().setResizableImage({ src: url }).run();
       };
       img.src = ev.target.result;
     };
