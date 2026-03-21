@@ -4,6 +4,7 @@ import Placeholder from '@tiptap/extension-placeholder';
 import TextAlign from '@tiptap/extension-text-align';
 import Underline from '@tiptap/extension-underline';
 import ResizableImage from './ResizableImage';
+import ImageGrid from './ImageGrid';
 import { useRef, useCallback } from 'react';
 import './TiptapEditor.css';
 
@@ -32,6 +33,7 @@ const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', category = 'wo
         heading: { levels: [1, 2, 3] },
       }),
       ResizableImage,
+      ImageGrid,
       Placeholder.configure({
         placeholder: 'Start writing your story...',
       }),
@@ -252,6 +254,25 @@ const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', category = 'wo
                 <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.5"/>
                 <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/>
                 <path d="M21 15l-5-5L5 21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+              </svg>
+            </ToolbarBtn>
+            <ToolbarBtn
+              onClick={() => editor.chain().focus().insertImageGrid(2).run()}
+              title="2-Column Images"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <rect x="2" y="3" width="9" height="18" rx="1.5"/>
+                <rect x="13" y="3" width="9" height="18" rx="1.5"/>
+              </svg>
+            </ToolbarBtn>
+            <ToolbarBtn
+              onClick={() => editor.chain().focus().insertImageGrid(3).run()}
+              title="3-Column Images"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <rect x="1" y="3" width="6" height="18" rx="1"/>
+                <rect x="9" y="3" width="6" height="18" rx="1"/>
+                <rect x="17" y="3" width="6" height="18" rx="1"/>
               </svg>
             </ToolbarBtn>
             <ToolbarBtn
