@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { articleService, storageService } from '../firebase/services';
 import { useNotification } from '../components/common/NotificationSystem';
-import StoryEditor from '../components/StoryEditor';
+import TiptapEditor from '../components/TiptapEditor';
 import './CreateStory.css';
 
 const CreateStory = () => {
@@ -28,19 +28,21 @@ const CreateStory = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // === Story Editor save handler (for Word & Lens) ===
-  const handleEditorSave = async (storyData, status = 'pending') => {
+  // === Tiptap Editor save handler (for Word & Lens) ===
+  const handleEditorSave = async (storyData) => {
     if (!currentUser) {
       showError('You must be logged in to create a story');
       navigate('/auth');
       return;
     }
 
+    const status = storyData.status || 'pending';
+
     try {
       const articleData = {
         title: storyData.title || 'Untitled Story',
         excerpt: storyData.subtitle || '',
-        content: JSON.stringify(storyData),
+        content: storyData.content || '',
         category: storyData.category || category,
         featuredImage: storyData.coverImage || '',
         tags: [],
@@ -50,6 +52,11 @@ const CreateStory = () => {
         views: 0,
         isVisualStory: true
       };
+
+      // Store JSON structure separately if available
+      if (storyData.contentJSON) {
+        articleData.contentJSON = JSON.stringify(storyData.contentJSON);
+      }
 
       await articleService.createArticle(articleData);
 
@@ -64,9 +71,6 @@ const CreateStory = () => {
       showError(`Failed to save story: ${err.message || 'Unknown error'}`);
     }
   };
-
-  const handleEditorPublish = (storyData) => handleEditorSave(storyData, 'pending');
-  const handleEditorDraft = (storyData) => handleEditorSave(storyData, 'draft');
 
   // === Motion form handlers ===
   const handleMotionInputChange = (e) => {
@@ -210,11 +214,11 @@ const CreateStory = () => {
             </button>
           </div>
         </div>
-        <StoryEditor
-          onSave={handleEditorPublish}
-          onSaveDraft={handleEditorDraft}
-          initialData={null}
+        <TiptapEditor
+          onSave={handleEditorSave}
+          onSaveDraft={handleEditorSave}
           category={category}
+          authorName={userData?.displayName || currentUser?.email || ''}
         />
       </div>
     );

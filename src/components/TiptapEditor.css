@@ -1,0 +1,389 @@
+/* Tiptap Editor — Magnum-inspired minimal styling */
+
+/* ===== Base ===== */
+.tiptap-editor {
+  width: 100%;
+  min-height: 100vh;
+  background: #fafafa;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}
+
+/* ===== Top Bar ===== */
+.te-topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 56px;
+  background: #1a1a1a;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  z-index: 1000;
+}
+
+.te-back-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+.te-back-btn:hover { opacity: 1; }
+
+.te-topbar-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.te-btn {
+  padding: 8px 20px;
+  border: none;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.te-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.te-btn-draft { background: transparent; color: #ccc; border: 1px solid #555; }
+.te-btn-draft:hover:not(:disabled) { color: #fff; border-color: #888; }
+.te-btn-publish { background: #fff; color: #1a1a1a; }
+.te-btn-publish:hover:not(:disabled) { background: #e0e0e0; }
+
+/* ===== Canvas ===== */
+.te-canvas {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 100px 24px 120px;
+}
+
+/* ===== Byline ===== */
+.te-byline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin-bottom: 40px;
+  font-size: 0.85rem;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
+
+.te-author-input {
+  background: none;
+  border: none;
+  outline: none;
+  color: #1a1a1a;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  padding: 4px 8px;
+  border-radius: 3px;
+  transition: background 0.2s;
+  max-width: 200px;
+}
+.te-author-input:focus { background: rgba(0,0,0,0.04); }
+.te-author-input::placeholder { color: #ccc; }
+.te-date { color: #aaa; }
+
+/* ===== Title & Subtitle ===== */
+.te-title-input {
+  width: 100%;
+  font-size: 3rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-family: 'Crimson Text', Georgia, serif;
+  letter-spacing: -0.5px;
+  line-height: 1.15;
+  text-align: center;
+  padding: 8px 0;
+  margin-bottom: 12px;
+}
+.te-title-input::placeholder { color: #d0d0d0; }
+
+.te-subtitle-input {
+  width: 100%;
+  font-size: 1.3rem;
+  font-style: italic;
+  font-weight: 400;
+  color: #666;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-family: 'Crimson Text', Georgia, serif;
+  text-align: center;
+  padding: 4px 0;
+  margin-bottom: 40px;
+}
+.te-subtitle-input::placeholder { color: #ccc; }
+
+/* ===== Toolbar ===== */
+.te-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  background: #fff;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  margin-bottom: 24px;
+  position: sticky;
+  top: 64px;
+  z-index: 50;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  flex-wrap: wrap;
+}
+
+.te-toolbar-group {
+  display: flex;
+  gap: 2px;
+}
+
+.te-toolbar-divider {
+  width: 1px;
+  height: 24px;
+  background: #e8e8e8;
+  margin: 0 4px;
+}
+
+.te-toolbar-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #666;
+  font-size: 13px;
+  transition: all 0.15s;
+}
+.te-toolbar-btn:hover:not(:disabled) {
+  background: #f0f0f0;
+  color: #1a1a1a;
+}
+.te-toolbar-btn.active {
+  background: #1a1a1a;
+  color: #fff;
+}
+.te-toolbar-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+/* ===== Tiptap Editor Content ===== */
+.te-editor-content {
+  outline: none;
+  min-height: 400px;
+  font-family: 'Crimson Text', Georgia, serif;
+  font-size: 1.15rem;
+  line-height: 1.85;
+  color: #333;
+}
+
+/* Placeholder */
+.te-editor-content p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: #ccc;
+  pointer-events: none;
+  height: 0;
+  font-style: italic;
+}
+
+/* Headings */
+.te-editor-content h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 2rem 0 1rem;
+  font-family: 'Crimson Text', Georgia, serif;
+  letter-spacing: -0.3px;
+}
+
+.te-editor-content h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 1.5rem 0 0.8rem;
+  font-family: 'Crimson Text', Georgia, serif;
+}
+
+/* Paragraphs */
+.te-editor-content p {
+  margin-bottom: 1.2rem;
+}
+
+/* Blockquote — Magnum style */
+.te-editor-content blockquote {
+  border-left: 3px solid #1a1a1a;
+  margin: 2rem 0;
+  padding: 1rem 0 1rem 2rem;
+  font-size: 1.3rem;
+  font-style: italic;
+  color: #444;
+  line-height: 1.6;
+}
+
+/* Lists */
+.te-editor-content ul,
+.te-editor-content ol {
+  margin: 1rem 0;
+  padding-left: 1.5rem;
+}
+
+.te-editor-content li {
+  margin-bottom: 0.5rem;
+}
+
+/* Horizontal rule */
+.te-editor-content hr {
+  border: none;
+  border-top: 2px solid #e0e0e0;
+  max-width: 120px;
+  margin: 2.5rem auto;
+}
+
+/* Images — full width, Magnum style */
+.te-editor-content .te-content-image {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 2px;
+  margin: 2rem 0;
+  cursor: pointer;
+}
+
+/* Selected image */
+.te-editor-content .te-content-image.ProseMirror-selectednode {
+  outline: 3px solid #1a1a1a;
+  outline-offset: 3px;
+}
+
+/* Code */
+.te-editor-content code {
+  background: #f4f4f4;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 0.9em;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+
+.te-editor-content pre {
+  background: #1a1a1a;
+  color: #f0f0f0;
+  padding: 1rem 1.5rem;
+  border-radius: 6px;
+  margin: 1.5rem 0;
+  overflow-x: auto;
+}
+
+.te-editor-content pre code {
+  background: none;
+  padding: 0;
+  color: inherit;
+}
+
+/* Bold & Italic */
+.te-editor-content strong {
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.te-editor-content em {
+  font-style: italic;
+}
+
+/* Text alignment */
+.te-editor-content [style*="text-align: center"] {
+  text-align: center;
+}
+
+.te-editor-content [style*="text-align: right"] {
+  text-align: right;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .te-topbar { padding: 0 16px; }
+
+  .te-canvas {
+    padding: 80px 16px 80px;
+  }
+
+  .te-title-input {
+    font-size: 2.2rem;
+  }
+
+  .te-subtitle-input {
+    font-size: 1.1rem;
+  }
+
+  .te-toolbar {
+    top: 56px;
+    padding: 6px 8px;
+    gap: 2px;
+  }
+
+  .te-toolbar-btn {
+    width: 30px;
+    height: 30px;
+  }
+
+  .te-toolbar-divider {
+    height: 20px;
+    margin: 0 2px;
+  }
+
+  .te-editor-content {
+    font-size: 1.05rem;
+  }
+
+  .te-editor-content h2 {
+    font-size: 1.6rem;
+  }
+
+  .te-editor-content h3 {
+    font-size: 1.3rem;
+  }
+
+  .te-editor-content blockquote {
+    font-size: 1.1rem;
+    padding-left: 1.2rem;
+  }
+
+  .te-byline {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .te-title-input {
+    font-size: 1.8rem;
+  }
+
+  .te-btn {
+    padding: 7px 14px;
+    font-size: 12px;
+  }
+
+  .te-editor-content {
+    font-size: 1rem;
+  }
+}
