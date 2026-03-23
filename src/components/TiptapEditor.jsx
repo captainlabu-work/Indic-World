@@ -5,8 +5,20 @@ import TextAlign from '@tiptap/extension-text-align';
 import Underline from '@tiptap/extension-underline';
 import ResizableImage from './ResizableImage';
 import ImageGrid from './ImageGrid';
-import { useRef, useCallback } from 'react';
+import { useRef, useCallback, useState, useEffect } from 'react';
 import './TiptapEditor.css';
+
+const DRAFT_KEY = 'indic-editor-draft';
+
+// Read saved draft once (outside component to avoid re-reads)
+function loadDraft() {
+  try {
+    const raw = localStorage.getItem(DRAFT_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
 
 // Toolbar button component
 const ToolbarBtn = ({ onClick, active, disabled, title, children }) => (
@@ -23,9 +35,17 @@ const ToolbarBtn = ({ onClick, active, disabled, title, children }) => (
 
 const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', category = 'word', authorName: initialAuthor = '' }) => {
   const fileInputRef = useRef(null);
-  const authorRef = useRef(initialAuthor);
-  const titleRef = useRef('');
-  const subtitleRef = useRef('');
+  const saveTimerRef = useRef(null);
+  const draft = useRef(loadDraft());
+
+  // Controlled state for title/subtitle/author (restorable from draft)
+  const [title, setTitle] = useState(draft.current?.title || '');
+  const [subtitle, setSubtitle] = useState(draft.current?.subtitle || '');
+  const [authorName, setAuthorName] = useState(draft.current?.authorName || initialAuthor);
+
+  // Ref that always holds the latest field values for the debounced save
+  const fieldsRef = useRef({ title: '', subtitle: '', authorName: '' });
+  fieldsRef.current = { title, subtitle, authorName };
 
   const editor = useEditor({
     extensions: [
@@ -42,13 +62,71 @@ const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', category = 'wo
       }),
       Underline,
     ],
-    content: initialContent || '',
+    content: draft.current?.contentJSON || initialContent || '',
     editorProps: {
       attributes: {
         class: 'te-editor-content',
       },
     },
   });
+
+  // --- Autosave logic ---
+  const saveDraftToStorage = useCallback(() => {
+    if (!editor) return;
+    const data = {
+      ...fieldsRef.current,
+      contentJSON: editor.getJSON(),
+      category,
+      savedAt: Date.now(),
+    };
+    try {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(data));
+    } catch {
+      // localStorage quota exceeded — silently ignore
+    }
+  }, [editor, category]);
+
+  const scheduleSave = useCallback(() => {
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(saveDraftToStorage, 2000);
+  }, [saveDraftToStorage]);
+
+  // Save on editor content change
+  useEffect(() => {
+    if (!editor) return;
+    const handler = () => scheduleSave();
+    editor.on('update', handler);
+    return () => editor.off('update', handler);
+  }, [editor, scheduleSave]);
+
+  // Save on field change
+  useEffect(() => {
+    scheduleSave();
+  }, [title, subtitle, authorName, scheduleSave]);
+
+  // Cleanup timer on unmount — flush final save
+  useEffect(() => {
+    return () => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+      // Final save on unmount
+      if (editor && !editor.isDestroyed) {
+        const data = {
+          ...fieldsRef.current,
+          contentJSON: editor.getJSON(),
+          category,
+          savedAt: Date.now(),
+        };
+        try {
+          localStorage.setItem(DRAFT_KEY, JSON.stringify(data));
+        } catch {}
+      }
+    };
+  }, [editor, category]);
+
+  const clearDraft = useCallback(() => {
+    localStorage.removeItem(DRAFT_KEY);
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+  }, []);
 
   // Image upload handler
   const handleImageUpload = useCallback(() => {
@@ -61,7 +139,6 @@ const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', category = 'wo
 
     const reader = new FileReader();
     reader.onload = (ev) => {
-      // Resize image before inserting
       const img = new window.Image();
       img.onload = () => {
         const maxW = 1200;
@@ -82,22 +159,24 @@ const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', category = 'wo
 
   // Save handlers
   const buildPayload = (status) => ({
-    title: titleRef.current,
-    subtitle: subtitleRef.current,
-    authorName: authorRef.current,
+    title,
+    subtitle,
+    authorName,
     content: editor?.getHTML() || '',
     contentJSON: editor?.getJSON() || null,
     category,
-    coverImage: '', // Could extract first image from content
+    coverImage: '',
     status,
   });
 
   const handlePublish = () => {
-    if (!titleRef.current) return;
+    if (!title) return;
+    clearDraft();
     onSave?.(buildPayload('pending'));
   };
 
   const handleDraft = () => {
+    clearDraft();
     onSaveDraft?.(buildPayload('draft'));
   };
 
@@ -119,7 +198,7 @@ const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', category = 'wo
           {onSaveDraft && (
             <button className="te-btn te-btn-draft" onClick={handleDraft}>Save Draft</button>
           )}
-          <button className="te-btn te-btn-publish" onClick={handlePublish} disabled={!titleRef.current && !editor.getText()}>
+          <button className="te-btn te-btn-publish" onClick={handlePublish} disabled={!title && !editor.getText()}>
             Submit for Review
           </button>
         </div>
@@ -134,8 +213,8 @@ const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', category = 'wo
           <input
             type="text"
             className="te-author-input"
-            defaultValue={initialAuthor}
-            onChange={(e) => { authorRef.current = e.target.value; }}
+            value={authorName}
+            onChange={(e) => setAuthorName(e.target.value)}
             placeholder="Your Name"
           />
           <span> | </span>
@@ -148,8 +227,8 @@ const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', category = 'wo
         <input
           type="text"
           className="te-title-input"
-          defaultValue=""
-          onChange={(e) => { titleRef.current = e.target.value; }}
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
           placeholder="Story Title"
         />
 
@@ -157,8 +236,8 @@ const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', category = 'wo
         <input
           type="text"
           className="te-subtitle-input"
-          defaultValue=""
-          onChange={(e) => { subtitleRef.current = e.target.value; }}
+          value={subtitle}
+          onChange={(e) => setSubtitle(e.target.value)}
           placeholder="A short subtitle or tagline"
         />
 
