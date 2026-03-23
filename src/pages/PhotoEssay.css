@@ -170,6 +170,18 @@
   margin-bottom: 24px;
 }
 
+/* Magazine-style drop cap — first paragraph only */
+.essay-text > p:first-of-type::first-letter {
+  float: left;
+  font-family: 'Source Serif 4', 'Crimson Text', Georgia, serif;
+  font-size: 3.8em;
+  font-weight: 600;
+  line-height: 0.85;
+  margin-right: 8px;
+  margin-top: 4px;
+  color: #1a1a1a;
+}
+
 /* Photo Grid Layouts */
 .photo-single {
   margin: 60px -40px;

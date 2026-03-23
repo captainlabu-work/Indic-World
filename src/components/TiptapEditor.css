@@ -257,17 +257,9 @@
   font-style: italic;
 }
 
-/* ===== Drop Cap — first paragraph ===== */
-.te-editor-content > p:first-of-type::first-letter {
-  float: left;
-  font-family: var(--te-font-serif);
-  font-size: 4.2em;
-  font-weight: 600;
-  line-height: 0.8;
-  padding-right: 10px;
-  padding-top: 6px;
-  color: #1a1a1a;
-}
+/* ===== Drop Cap — disabled in editor, enabled in published view ===== */
+/* Drop cap causes layout issues during editing (cursor jumps, line breaks).
+   Apply only in the published article renderer, not here. */
 
 /* Headings */
 .te-editor-content h2 {
@@ -812,9 +804,6 @@
     justify-content: center;
   }
 
-  .te-editor-content > p:first-of-type::first-letter {
-    font-size: 3.2em;
-  }
 }
 
 @media (max-width: 480px) {
@@ -836,7 +825,4 @@
     font-size: 1rem;
   }
 
-  .te-editor-content > p:first-of-type::first-letter {
-    font-size: 2.8em;
-  }
 }
