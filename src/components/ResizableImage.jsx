@@ -4,7 +4,7 @@ import { useCallback, useRef, useState } from 'react';
 
 // React component for the resizable image node view
 const ImageNodeView = ({ node, updateAttributes, selected }) => {
-  const { src, alt, width, layout } = node.attrs;
+  const { src, alt, width, layout, caption } = node.attrs;
   const containerRef = useRef(null);
   const [resizing, setResizing] = useState(false);
 
@@ -52,6 +52,15 @@ const ImageNodeView = ({ node, updateAttributes, selected }) => {
       ref={containerRef}
     >
       <img src={src} alt={alt || ''} draggable={false} />
+
+      {/* Caption input — always visible under image */}
+      <input
+        type="text"
+        className="te-image-caption"
+        value={caption || ''}
+        onChange={(e) => updateAttributes({ caption: e.target.value })}
+        placeholder="Add a caption..."
+      />
 
       {/* Drag grip handle */}
       <div className="te-drag-handle" data-drag-handle>
@@ -155,6 +164,7 @@ const ResizableImage = Node.create({
       title: { default: null },
       width: { default: '100%' },
       layout: { default: 'center' },
+      caption: { default: '' },
     };
   },
 

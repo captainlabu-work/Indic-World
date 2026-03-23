@@ -1,4 +1,14 @@
-/* Tiptap Editor — Magnum-inspired minimal styling */
+/* Tiptap Editor — Editorial / Magazine styling */
+
+/* ===== Font Variables ===== */
+:root {
+  --te-font-serif: 'Source Serif 4', 'Crimson Text', Georgia, 'Times New Roman', serif;
+  --te-font-ui: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+  --te-color-text: #2c2c2c;
+  --te-color-text-light: #6b6b6b;
+  --te-color-text-muted: #9a9a9a;
+  --te-color-border: #e4e4e4;
+}
 
 /* ===== Base ===== */
 .tiptap-editor {
@@ -9,14 +19,14 @@
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  font-family: var(--te-font-ui);
   position: relative;
 }
 
-/* Blur overlay on background */
+/* Blur overlay — scoped to editor only, not footer */
 .tiptap-editor::before {
   content: '';
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
   right: 0;
@@ -69,8 +79,9 @@
   border: none;
   border-radius: 4px;
   font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.3px;
+  font-weight: 500;
+  font-family: var(--te-font-ui);
+  letter-spacing: 0.2px;
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -91,15 +102,15 @@
 
 /* ===== Editor Card (pop-out effect) ===== */
 .te-editor-card {
-  background: rgba(255, 255, 255, 0.97);
-  border-radius: 20px;
-  padding: 48px 56px 60px;
+  background: rgba(255, 255, 255, 0.98);
+  border-radius: 16px;
+  padding: 56px 64px 72px;
   box-shadow:
-    0 2px 4px rgba(0, 0, 0, 0.08),
-    0 8px 24px rgba(0, 0, 0, 0.12),
-    0 24px 60px rgba(0, 0, 0, 0.16);
+    0 2px 4px rgba(0, 0, 0, 0.06),
+    0 8px 24px rgba(0, 0, 0, 0.10),
+    0 24px 60px rgba(0, 0, 0, 0.14);
   position: relative;
-  border: 1px solid rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.5);
 }
 
 /* ===== Byline ===== */
@@ -108,22 +119,24 @@
   align-items: center;
   justify-content: center;
   gap: 4px;
-  margin-bottom: 40px;
-  font-size: 0.85rem;
-  color: #999;
+  margin-bottom: 48px;
+  font-size: 0.8rem;
+  font-family: var(--te-font-ui);
+  color: var(--te-color-text-muted);
   text-transform: uppercase;
-  letter-spacing: 1.5px;
+  letter-spacing: 2px;
 }
 
 .te-author-input {
   background: none;
   border: none;
   outline: none;
-  color: #1a1a1a;
+  color: var(--te-color-text);
   font-weight: 600;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
+  font-family: var(--te-font-ui);
   text-transform: uppercase;
-  letter-spacing: 1.5px;
+  letter-spacing: 2px;
   padding: 4px 8px;
   border-radius: 3px;
   transition: background 0.2s;
@@ -131,39 +144,39 @@
 }
 .te-author-input:focus { background: rgba(0,0,0,0.04); }
 .te-author-input::placeholder { color: #ccc; }
-.te-date { color: #aaa; }
+.te-date { color: var(--te-color-text-muted); }
 
 /* ===== Title & Subtitle ===== */
 .te-title-input {
   width: 100%;
-  font-size: 3rem;
-  font-weight: 700;
-  color: #1a1a1a;
+  font-size: 2.8rem;
+  font-weight: 400;
+  color: var(--te-color-text);
   border: none;
   background: transparent;
   outline: none;
-  font-family: 'Crimson Text', Georgia, serif;
-  letter-spacing: -0.5px;
-  line-height: 1.15;
+  font-family: var(--te-font-serif);
+  letter-spacing: -0.3px;
+  line-height: 1.2;
   text-align: center;
   padding: 8px 0;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
 }
 .te-title-input::placeholder { color: #d0d0d0; }
 
 .te-subtitle-input {
   width: 100%;
-  font-size: 1.3rem;
+  font-size: 1.25rem;
   font-style: italic;
   font-weight: 400;
-  color: #666;
+  color: var(--te-color-text-light);
   border: none;
   background: transparent;
   outline: none;
-  font-family: 'Crimson Text', Georgia, serif;
+  font-family: var(--te-font-serif);
   text-align: center;
   padding: 4px 0;
-  margin-bottom: 40px;
+  margin-bottom: 48px;
 }
 .te-subtitle-input::placeholder { color: #ccc; }
 
@@ -173,14 +186,14 @@
   align-items: center;
   gap: 4px;
   padding: 8px 12px;
-  background: #f8f8f8;
-  border: 1px solid #e8e8e8;
+  background: #fafafa;
+  border: 1px solid var(--te-color-border);
   border-radius: 8px;
-  margin-bottom: 24px;
+  margin-bottom: 32px;
   position: sticky;
   top: 100px;
   z-index: 50;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.03);
   flex-wrap: wrap;
 }
 
@@ -192,7 +205,7 @@
 .te-toolbar-divider {
   width: 1px;
   height: 24px;
-  background: #e8e8e8;
+  background: var(--te-color-border);
   margin: 0 4px;
 }
 
@@ -206,13 +219,14 @@
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  color: #666;
+  color: var(--te-color-text-light);
   font-size: 13px;
+  font-family: var(--te-font-ui);
   transition: all 0.15s;
 }
 .te-toolbar-btn:hover:not(:disabled) {
   background: #f0f0f0;
-  color: #1a1a1a;
+  color: var(--te-color-text);
 }
 .te-toolbar-btn.active {
   background: #1a1a1a;
@@ -227,10 +241,10 @@
 .te-editor-content {
   outline: none;
   min-height: 400px;
-  font-family: 'Crimson Text', Georgia, serif;
-  font-size: 1.15rem;
-  line-height: 1.85;
-  color: #333;
+  font-family: var(--te-font-serif);
+  font-size: 1.2rem;
+  line-height: 1.9;
+  color: var(--te-color-text);
 }
 
 /* Placeholder */
@@ -243,57 +257,72 @@
   font-style: italic;
 }
 
+/* ===== Drop Cap — first paragraph ===== */
+.te-editor-content > p:first-of-type::first-letter {
+  float: left;
+  font-family: var(--te-font-serif);
+  font-size: 4.2em;
+  font-weight: 600;
+  line-height: 0.8;
+  padding-right: 10px;
+  padding-top: 6px;
+  color: #1a1a1a;
+}
+
 /* Headings */
 .te-editor-content h2 {
-  font-size: 2rem;
-  font-weight: 700;
+  font-size: 1.9rem;
+  font-weight: 600;
   color: #1a1a1a;
-  margin: 2rem 0 1rem;
-  font-family: 'Crimson Text', Georgia, serif;
-  letter-spacing: -0.3px;
+  margin: 2.5rem 0 1.2rem;
+  font-family: var(--te-font-serif);
+  letter-spacing: -0.2px;
+  line-height: 1.3;
 }
 
 .te-editor-content h3 {
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   font-weight: 600;
   color: #1a1a1a;
-  margin: 1.5rem 0 0.8rem;
-  font-family: 'Crimson Text', Georgia, serif;
+  margin: 2rem 0 1rem;
+  font-family: var(--te-font-serif);
+  line-height: 1.35;
 }
 
-/* Paragraphs */
+/* Paragraphs — magazine spacing */
 .te-editor-content p {
-  margin-bottom: 1.2rem;
+  margin-bottom: 1.6rem;
 }
 
-/* Blockquote — Magnum style */
+/* Blockquote — editorial pull quote */
 .te-editor-content blockquote {
-  border-left: 3px solid #1a1a1a;
-  margin: 2rem 0;
-  padding: 1rem 0 1rem 2rem;
-  font-size: 1.3rem;
+  border-left: 2px solid #1a1a1a;
+  margin: 2.5rem 0;
+  padding: 0.5rem 0 0.5rem 2rem;
+  font-size: 1.35rem;
   font-style: italic;
   color: #444;
   line-height: 1.6;
+  font-family: var(--te-font-serif);
 }
 
 /* Lists */
 .te-editor-content ul,
 .te-editor-content ol {
-  margin: 1rem 0;
+  margin: 1.2rem 0;
   padding-left: 1.5rem;
 }
 
 .te-editor-content li {
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.6rem;
 }
 
-/* Horizontal rule */
+/* Horizontal rule — thin editorial divider */
 .te-editor-content hr {
   border: none;
-  border-top: 2px solid #e0e0e0;
-  max-width: 120px;
-  margin: 2.5rem auto;
+  border-top: 1px solid #d0d0d0;
+  max-width: 80px;
+  margin: 3rem auto;
 }
 
 /* ===== Resizable Images ===== */
@@ -301,10 +330,10 @@
   position: relative;
   display: inline-block;
   vertical-align: top;
-  margin: 8px 0;
+  margin: 1.5rem 0;
   cursor: pointer;
   transition: box-shadow 0.2s;
-  border-radius: 3px;
+  border-radius: 2px;
   overflow: visible;
 }
 
@@ -316,19 +345,19 @@
 
 .te-resizable-image.left {
   float: left;
-  margin-right: 16px;
+  margin-right: 24px;
 }
 
 .te-resizable-image.right {
   float: right;
-  margin-left: 16px;
+  margin-left: 24px;
 }
 
 .te-resizable-image img {
   width: 100%;
   height: auto;
   display: block;
-  border-radius: 3px;
+  border-radius: 2px;
 }
 
 .te-resizable-image.selected {
@@ -338,6 +367,29 @@
 
 .te-resizable-image.resizing {
   user-select: none;
+}
+
+/* ===== Image Caption (single image) ===== */
+.te-image-caption {
+  width: 100%;
+  padding: 8px 2px 6px;
+  border: none;
+  background: transparent;
+  font-size: 0.8rem;
+  font-family: var(--te-font-ui);
+  font-weight: 400;
+  color: var(--te-color-text-muted);
+  outline: none;
+  letter-spacing: 0.2px;
+  line-height: 1.4;
+}
+
+.te-image-caption:focus {
+  color: var(--te-color-text-light);
+}
+
+.te-image-caption::placeholder {
+  color: #c5c5c5;
 }
 
 /* Drag handle */
@@ -437,7 +489,8 @@
   border: none;
   color: #aaa;
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 500;
+  font-family: var(--te-font-ui);
   letter-spacing: 0.3px;
   cursor: pointer;
   border-radius: 4px;
@@ -466,8 +519,8 @@
 
 /* ===== Image Grid (2-col / 3-col) ===== */
 .te-image-grid {
-  margin: 1.5rem 0;
-  border-radius: 4px;
+  margin: 2rem 0;
+  border-radius: 2px;
   transition: outline 0.15s;
 }
 
@@ -478,7 +531,7 @@
 
 .te-grid-row {
   display: grid;
-  gap: 12px;
+  gap: 16px;
 }
 
 .te-image-grid.cols-2 .te-grid-row {
@@ -504,26 +557,26 @@
   align-items: center;
   justify-content: center;
   gap: 10px;
-  background: #f5f5f5;
-  border: 2px dashed #d0d0d0;
-  border-radius: 6px;
+  background: #f8f8f8;
+  border: 2px dashed #d8d8d8;
+  border-radius: 4px;
   cursor: pointer;
-  color: #aaa;
-  font-size: 13px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: #b0b0b0;
+  font-size: 12px;
+  font-family: var(--te-font-ui);
   transition: all 0.2s;
 }
 
 .te-grid-placeholder:hover {
   border-color: #999;
   color: #666;
-  background: #efefef;
+  background: #f0f0f0;
 }
 
 /* Filled image slot */
 .te-grid-img-wrap {
   position: relative;
-  border-radius: 4px;
+  border-radius: 2px;
   overflow: visible;
 }
 
@@ -535,7 +588,7 @@
   width: 100%;
   height: auto;
   display: block;
-  border-radius: 4px;
+  border-radius: 2px;
 }
 
 /* Grid image action buttons */
@@ -614,27 +667,28 @@
   width: 60px;
 }
 
-/* Caption input */
+/* Caption input — grid + single image (Magnum/editorial style) */
 .te-grid-caption {
   width: 100%;
-  padding: 6px 8px;
+  padding: 8px 2px 4px;
   border: none;
-  background: rgba(0, 0, 0, 0.03);
-  font-size: 12px;
-  font-family: 'Crimson Text', Georgia, serif;
-  font-style: italic;
-  color: #666;
+  background: transparent;
+  font-size: 0.8rem;
+  font-family: var(--te-font-ui);
+  font-weight: 400;
+  color: var(--te-color-text-muted);
   outline: none;
-  border-radius: 0 0 4px 4px;
-  margin-top: 2px;
+  letter-spacing: 0.2px;
+  line-height: 1.4;
+  margin-top: 4px;
 }
 
 .te-grid-caption:focus {
-  background: rgba(0, 0, 0, 0.06);
+  color: var(--te-color-text-light);
 }
 
 .te-grid-caption::placeholder {
-  color: #bbb;
+  color: #c5c5c5;
 }
 
 /* Code */
@@ -651,7 +705,7 @@
   color: #f0f0f0;
   padding: 1rem 1.5rem;
   border-radius: 6px;
-  margin: 1.5rem 0;
+  margin: 2rem 0;
   overflow-x: auto;
 }
 
@@ -689,7 +743,7 @@
   }
 
   .te-editor-card {
-    border-radius: 14px;
+    border-radius: 12px;
     padding: 32px 24px 40px;
   }
 
@@ -712,11 +766,11 @@
   }
 
   .te-title-input {
-    font-size: 2.2rem;
+    font-size: 2rem;
   }
 
   .te-subtitle-input {
-    font-size: 1.1rem;
+    font-size: 1.05rem;
   }
 
   .te-toolbar {
@@ -737,14 +791,15 @@
 
   .te-editor-content {
     font-size: 1.05rem;
+    line-height: 1.8;
   }
 
   .te-editor-content h2 {
-    font-size: 1.6rem;
+    font-size: 1.5rem;
   }
 
   .te-editor-content h3 {
-    font-size: 1.3rem;
+    font-size: 1.25rem;
   }
 
   .te-editor-content blockquote {
@@ -756,11 +811,15 @@
     flex-wrap: wrap;
     justify-content: center;
   }
+
+  .te-editor-content > p:first-of-type::first-letter {
+    font-size: 3.2em;
+  }
 }
 
 @media (max-width: 480px) {
   .te-title-input {
-    font-size: 1.8rem;
+    font-size: 1.7rem;
   }
 
   .te-editor-card {
@@ -775,5 +834,9 @@
 
   .te-editor-content {
     font-size: 1rem;
+  }
+
+  .te-editor-content > p:first-of-type::first-letter {
+    font-size: 2.8em;
   }
 }
