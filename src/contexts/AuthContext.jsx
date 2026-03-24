@@ -1,5 +1,5 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-import { onAuthStateChanged } from 'firebase/auth';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth } from '../firebase/config';
 import { userService } from '../firebase/services';
 import { ensureUserDocument } from '../utils/fixUserData';
@@ -58,11 +58,14 @@ export const AuthProvider = ({ children }) => {
     return unsubscribe;
   }, []);
 
+  const logout = useCallback(() => signOut(auth), []);
+
   const value = {
     currentUser,
     userData,
     isAdmin,
-    loading
+    loading,
+    logout
   };
 
   return (
