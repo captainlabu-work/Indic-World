@@ -6,9 +6,33 @@ import Underline from '@tiptap/extension-underline';
 import ResizableImage from './ResizableImage';
 import ImageGrid from './ImageGrid';
 import { useRef, useCallback, useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Plugin, PluginKey } from '@tiptap/pm/state';
+import { Extension } from '@tiptap/core';
 import './TiptapEditor.css';
 
 const DRAFT_KEY = 'indic-editor-draft';
+
+// Extension: ensure an empty paragraph exists at the top when the first node is non-text
+const EnsureTopParagraph = Extension.create({
+  name: 'ensureTopParagraph',
+  addProseMirrorPlugins() {
+    return [
+      new Plugin({
+        key: new PluginKey('ensureTopParagraph'),
+        appendTransaction(_transactions, _oldState, newState) {
+          const { doc, schema } = newState;
+          const firstNode = doc.firstChild;
+          if (firstNode && firstNode.type.name !== 'paragraph' && firstNode.type.name !== 'heading') {
+            const paragraph = schema.nodes.paragraph.create();
+            return newState.tr.insert(0, paragraph);
+          }
+          return null;
+        },
+      }),
+    ];
+  },
+});
 
 // Read saved draft once (outside component to avoid re-reads)
 function loadDraft() {
@@ -37,6 +61,7 @@ const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', category = 'wo
   const fileInputRef = useRef(null);
   const saveTimerRef = useRef(null);
   const draft = useRef(loadDraft());
+  const navigate = useNavigate();
 
   // Controlled state for title/subtitle/author (restorable from draft)
   const [title, setTitle] = useState(draft.current?.title || '');
@@ -61,6 +86,7 @@ const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', category = 'wo
         types: ['heading', 'paragraph'],
       }),
       Underline,
+      EnsureTopParagraph,
     ],
     content: draft.current?.contentJSON || initialContent || '',
     editorProps: {
@@ -189,11 +215,22 @@ const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', category = 'wo
 
       {/* Top Bar */}
       <header className="te-topbar">
-        <button className="te-back-btn" onClick={() => window.history.back()}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-            <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </button>
+        <div className="te-topbar-left">
+          {/* Home icon */}
+          <button className="te-nav-btn" onClick={() => navigate('/')} title="Home">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+              <polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
+          </button>
+          {/* Profile / Dashboard icon */}
+          <button className="te-nav-btn" onClick={() => navigate('/profile')} title="Dashboard">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+          </button>
+        </div>
         <div className="te-topbar-actions">
           {onSaveDraft && (
             <button className="te-btn te-btn-draft" onClick={handleDraft}>Save Draft</button>
