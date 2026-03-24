@@ -61,11 +61,12 @@ const CreateStory = () => {
       await articleService.createArticle(articleData);
 
       if (status === 'pending') {
-        success('Story submitted for review!');
+        success('Your story has been submitted for review. You\'ll be notified once it\'s published.');
       } else {
-        success('Story saved as draft!');
+        success('Draft saved. You can continue editing anytime from your dashboard.');
       }
-      navigate('/profile');
+      // Brief delay so the user sees the notification before navigating
+      setTimeout(() => navigate('/profile'), 1200);
     } catch (err) {
       console.error('Error creating story:', err);
       showError(`Failed to save story: ${err.message || 'Unknown error'}`);

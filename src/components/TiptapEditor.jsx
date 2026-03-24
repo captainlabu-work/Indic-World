@@ -154,6 +154,13 @@ const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', category = 'wo
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
   }, []);
 
+  // Inline toast state
+  const [toast, setToast] = useState(null);
+  const showToast = useCallback((message) => {
+    setToast(message);
+    setTimeout(() => setToast(null), 3000);
+  }, []);
+
   // Image upload handler
   const handleImageUpload = useCallback(() => {
     fileInputRef.current?.click();
@@ -197,11 +204,13 @@ const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', category = 'wo
 
   const handlePublish = () => {
     if (!title) return;
+    showToast('Submitting your story for review...');
     clearDraft();
     onSave?.(buildPayload('pending'));
   };
 
   const handleDraft = () => {
+    showToast('Draft saved successfully');
     clearDraft();
     onSaveDraft?.(buildPayload('draft'));
   };
@@ -240,6 +249,16 @@ const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', category = 'wo
           </button>
         </div>
       </header>
+
+      {/* Inline toast notification */}
+      {toast && (
+        <div className="te-toast">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20 6L9 17l-5-5"/>
+          </svg>
+          {toast}
+        </div>
+      )}
 
       {/* Canvas */}
       <div className="te-canvas">
