@@ -59,14 +59,10 @@ const EditArticle = () => {
       // Upload new thumbnail if provided
       let featuredImageUrl = article.featuredImage || '';
       if (storyData.thumbnailFile) {
-        try {
-          featuredImageUrl = await storageService.uploadImage(
-            storyData.thumbnailFile,
-            `articles/${Date.now()}_${storyData.thumbnailFile.name}`
-          );
-        } catch (uploadErr) {
-          console.error('Thumbnail upload error:', uploadErr);
-        }
+        featuredImageUrl = await storageService.uploadImage(
+          storyData.thumbnailFile,
+          `articles/${Date.now()}_${storyData.thumbnailFile.name}`
+        );
       }
 
       const updateData = {

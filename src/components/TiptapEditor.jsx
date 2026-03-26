@@ -268,15 +268,17 @@ const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', initialData = 
 
   const handlePublish = () => {
     if (!title) return;
-    showToast('Submitting your story for review...');
+    showToast('Saving...');
+    const payload = buildPayload('pending');
     clearDraft();
-    onSave?.(buildPayload('pending'));
+    onSave?.(payload);
   };
 
   const handleDraft = () => {
-    showToast('Draft saved successfully');
+    showToast('Saving...');
+    const payload = buildPayload('draft');
     clearDraft();
-    onSaveDraft?.(buildPayload('draft'));
+    onSaveDraft?.(payload);
   };
 
   if (!editor) return null;
