@@ -57,20 +57,32 @@ const ToolbarBtn = ({ onClick, active, disabled, title, children }) => (
   </button>
 );
 
-const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', category = 'word', authorName: initialAuthor = '' }) => {
+const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', initialData = null, category: categoryProp = 'word', authorName: initialAuthor = '' }) => {
   const fileInputRef = useRef(null);
   const saveTimerRef = useRef(null);
-  const draft = useRef(loadDraft());
+  const isEditMode = !!initialData;
+  const draft = useRef(isEditMode ? null : loadDraft());
   const navigate = useNavigate();
 
-  // Controlled state for title/subtitle/author (restorable from draft)
-  const [title, setTitle] = useState(draft.current?.title || '');
-  const [subtitle, setSubtitle] = useState(draft.current?.subtitle || '');
-  const [authorName, setAuthorName] = useState(draft.current?.authorName || initialAuthor);
+  // Controlled state for title/subtitle/author (restorable from draft or initialData)
+  const [title, setTitle] = useState(initialData?.title || draft.current?.title || '');
+  const [subtitle, setSubtitle] = useState(initialData?.subtitle || draft.current?.subtitle || '');
+  const [authorName, setAuthorName] = useState(initialData?.authorName || draft.current?.authorName || initialAuthor);
+  const category = initialData?.category || categoryProp;
 
   // Ref that always holds the latest field values for the debounced save
   const fieldsRef = useRef({ title: '', subtitle: '', authorName: '' });
   fieldsRef.current = { title, subtitle, authorName };
+
+  // Resolve initial editor content: initialData (edit mode) > draft > fallback
+  const resolvedContent = (() => {
+    if (initialData) {
+      if (initialData.contentJSON) return typeof initialData.contentJSON === 'string' ? JSON.parse(initialData.contentJSON) : initialData.contentJSON;
+      if (initialData.content) return initialData.content;
+      return '';
+    }
+    return draft.current?.contentJSON || initialContent || '';
+  })();
 
   const editor = useEditor({
     extensions: [
@@ -88,7 +100,7 @@ const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', category = 'wo
       Underline,
       EnsureTopParagraph,
     ],
-    content: draft.current?.contentJSON || initialContent || '',
+    content: resolvedContent,
     editorProps: {
       attributes: {
         class: 'te-editor-content',
@@ -96,9 +108,9 @@ const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', category = 'wo
     },
   });
 
-  // --- Autosave logic ---
+  // --- Autosave logic (only for new stories, not edit mode) ---
   const saveDraftToStorage = useCallback(() => {
-    if (!editor) return;
+    if (!editor || isEditMode) return;
     const data = {
       ...fieldsRef.current,
       contentJSON: editor.getJSON(),
@@ -110,30 +122,32 @@ const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', category = 'wo
     } catch {
       // localStorage quota exceeded — silently ignore
     }
-  }, [editor, category]);
+  }, [editor, category, isEditMode]);
 
   const scheduleSave = useCallback(() => {
+    if (isEditMode) return;
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(saveDraftToStorage, 2000);
-  }, [saveDraftToStorage]);
+  }, [saveDraftToStorage, isEditMode]);
 
   // Save on editor content change
   useEffect(() => {
-    if (!editor) return;
+    if (!editor || isEditMode) return;
     const handler = () => scheduleSave();
     editor.on('update', handler);
     return () => editor.off('update', handler);
-  }, [editor, scheduleSave]);
+  }, [editor, scheduleSave, isEditMode]);
 
   // Save on field change
   useEffect(() => {
-    scheduleSave();
-  }, [title, subtitle, authorName, scheduleSave]);
+    if (!isEditMode) scheduleSave();
+  }, [title, subtitle, authorName, scheduleSave, isEditMode]);
 
   // Cleanup timer on unmount — flush final save
   useEffect(() => {
     return () => {
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+      if (isEditMode) return;
       // Final save on unmount
       if (editor && !editor.isDestroyed) {
         const data = {
@@ -147,7 +161,7 @@ const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', category = 'wo
         } catch {}
       }
     };
-  }, [editor, category]);
+  }, [editor, category, isEditMode]);
 
   const clearDraft = useCallback(() => {
     localStorage.removeItem(DRAFT_KEY);
@@ -202,6 +216,12 @@ const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', category = 'wo
     status,
   });
 
+  // Discard handler
+  const handleDiscard = () => {
+    if (!isEditMode) clearDraft();
+    navigate('/profile');
+  };
+
   const handlePublish = () => {
     if (!title) return;
     showToast('Submitting your story for review...');
@@ -241,6 +261,7 @@ const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', category = 'wo
           </button>
         </div>
         <div className="te-topbar-actions">
+          <button className="te-btn te-btn-discard" onClick={handleDiscard}>Discard</button>
           {onSaveDraft && (
             <button className="te-btn te-btn-draft" onClick={handleDraft}>Save Draft</button>
           )}

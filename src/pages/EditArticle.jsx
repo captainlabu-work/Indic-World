@@ -3,53 +3,46 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { articleService, storageService } from '../firebase/services';
 import { useNotification } from '../components/common/NotificationSystem';
-import RichTextEditor from '../components/RichTextEditor';
+import TiptapEditor from '../components/TiptapEditor';
 import './CreateStory.css';
 
 const EditArticle = () => {
-  const { currentUser } = useAuth();
-  const { success, info, showConfirmation } = useNotification();
+  const { currentUser, userData } = useAuth();
+  const { success, error: showError, showConfirmation } = useNotification();
   const navigate = useNavigate();
   const { id } = useParams();
-  const [formData, setFormData] = useState({
-    title: '',
-    excerpt: '',
-    content: '',
-    tags: ''
-  });
+  const [article, setArticle] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  // Motion edit state
+  const [motionData, setMotionData] = useState({ title: '', excerpt: '', tags: '' });
   const [featuredImage, setFeaturedImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
-  const [existingImageUrl, setExistingImageUrl] = useState('');
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
-  const [article, setArticle] = useState(null);
 
   useEffect(() => {
     const fetchArticle = async () => {
       try {
         const articleData = await articleService.getArticle(id);
-
         if (!articleData) {
           setError('Article not found');
           return;
         }
-
-        // Check if user owns this article
         if (articleData.authorId !== currentUser.uid) {
           setError('You do not have permission to edit this article');
           return;
         }
-
         setArticle(articleData);
-        setFormData({
-          title: articleData.title,
-          excerpt: articleData.excerpt,
-          content: articleData.content,
-          tags: articleData.tags?.join(', ') || ''
-        });
-        setExistingImageUrl(articleData.featuredImage || '');
-        setImagePreview(articleData.featuredImage || null);
+        // Pre-fill motion form if motion article
+        if (articleData.isMotion || articleData.category === 'motion') {
+          setMotionData({
+            title: articleData.title || '',
+            excerpt: articleData.excerpt || '',
+            tags: articleData.tags?.join(', ') || ''
+          });
+          setImagePreview(articleData.featuredImage || null);
+        }
       } catch (err) {
         console.error('Error fetching article:', err);
         setError('Failed to load article');
@@ -57,244 +50,188 @@ const EditArticle = () => {
         setLoading(false);
       }
     };
-
     fetchArticle();
   }, [id, currentUser.uid]);
 
-  const handleInputChange = (e) => {
+  // === Desk editor save handler (Word & Lens) ===
+  const handleEditorSave = async (storyData) => {
+    try {
+      const updateData = {
+        title: storyData.title || 'Untitled Story',
+        excerpt: storyData.subtitle || '',
+        content: storyData.content || '',
+        category: storyData.category || article.category || 'word',
+        status: storyData.status,
+        isVisualStory: true,
+      };
+      if (storyData.contentJSON) {
+        updateData.contentJSON = JSON.stringify(storyData.contentJSON);
+      }
+      if (article.status === 'needs-revision' && storyData.status === 'pending') {
+        updateData.isRevised = true;
+        updateData.revisionNote = '';
+      }
+      await articleService.updateArticle(id, updateData);
+      if (storyData.status === 'pending') {
+        success('Story submitted for review!');
+      } else {
+        success('Draft saved successfully!');
+      }
+      setTimeout(() => navigate('/profile'), 1200);
+    } catch (err) {
+      console.error('Error updating story:', err);
+      showError(`Failed to save: ${err.message || 'Unknown error'}`);
+    }
+  };
+
+  // === Motion form handlers ===
+  const handleMotionInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setMotionData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        setError('Image size must be less than 5MB');
-        return;
-      }
-      if (!file.type.startsWith('image/')) {
-        setError('File must be an image');
-        return;
-      }
+      if (file.size > 5 * 1024 * 1024) { setError('Image must be under 5MB'); return; }
+      if (!file.type.startsWith('image/')) { setError('File must be an image'); return; }
       setFeaturedImage(file);
       setImagePreview(URL.createObjectURL(file));
       setError('');
     }
   };
 
-  const handleDiscard = async () => {
-    const confirmed = await showConfirmation({
-      title: 'Discard Changes?',
-      message: 'Are you sure you want to discard all unsaved changes?',
-      confirmText: 'Discard',
-      cancelText: 'Keep Editing',
-      type: 'warning'
-    });
-
-    if (confirmed) {
-      navigate('/dashboard');
-    }
-  };
-
-  const handleSubmit = async (e, status = 'draft') => {
-    e.preventDefault();
+  const handleMotionSubmit = async (status = 'draft') => {
     setSaving(true);
-    setError('');
-
     try {
-      let imageUrl = existingImageUrl;
-
-      // Upload new image if changed
+      let imageUrl = article.featuredImage || '';
       if (featuredImage) {
         imageUrl = await storageService.uploadImage(featuredImage, `articles/${Date.now()}_${featuredImage.name}`);
       }
-
-      // Prepare article data
-      const articleData = {
-        title: formData.title,
-        excerpt: formData.excerpt,
-        content: formData.content,
+      const updateData = {
+        title: motionData.title,
+        excerpt: motionData.excerpt,
         featuredImage: imageUrl,
-        tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
-        status: status
+        tags: motionData.tags.split(',').map(t => t.trim()).filter(Boolean),
+        category: 'motion',
+        status,
       };
-
-      // If this was previously needs-revision and now being resubmitted, mark as revised
-      if (article?.status === 'needs-revision' && status === 'pending') {
-        articleData.isRevised = true;
-        articleData.revisionNote = ''; // Clear the revision note
+      if (article.status === 'needs-revision' && status === 'pending') {
+        updateData.isRevised = true;
+        updateData.revisionNote = '';
       }
-
-      // Update article
-      await articleService.updateArticle(id, articleData);
-
-      // Show success message
-      if (status === 'pending') {
-        if (article?.status === 'needs-revision') {
-          success('Revised article submitted for review!');
-          info('Article sent back for revision with your feedback');
-        } else {
-          success('Article updated and submitted for review!');
-        }
-      } else {
-        success('Article updated successfully!');
-      }
-
-      navigate('/dashboard');
+      await articleService.updateArticle(id, updateData);
+      success(status === 'pending' ? 'Video submitted for review!' : 'Draft saved!');
+      navigate('/profile');
     } catch (err) {
-      console.error('Error updating article:', err);
-      setError('Failed to update article. Please try again.');
+      console.error('Error updating video:', err);
+      showError(`Failed to save: ${err.message || 'Unknown error'}`);
     } finally {
       setSaving(false);
     }
   };
 
+  const handleDiscard = async () => {
+    const confirmed = await showConfirmation({
+      title: 'Discard Changes?',
+      message: 'Are you sure? All unsaved changes will be lost.',
+      confirmText: 'Discard',
+      cancelText: 'Keep Editing',
+      type: 'warning'
+    });
+    if (confirmed) navigate('/profile');
+  };
+
   if (loading) {
-    return (
-      <div className="create-story-container">
-        <div className="loading-state">Loading article...</div>
-      </div>
-    );
+    return <div className="create-story-container"><div className="loading-state">Loading article...</div></div>;
   }
-
   if (error && !article) {
-    return (
-      <div className="create-story-container">
-        <div className="error-message">{error}</div>
-      </div>
-    );
+    return <div className="create-story-container"><div className="error-message">{error}</div></div>;
   }
 
-  return (
-    <div className="create-story-container">
-      <div className="create-story-header">
-        <h1>Edit Your Story</h1>
-        <p className="create-story-subtitle">Make changes to your story</p>
-        {article?.status === 'needs-revision' && article?.revisionNote && (
-          <div className="revision-note">
-            <strong>Admin Feedback:</strong> {article.revisionNote}
-          </div>
-        )}
-      </div>
+  const isMotion = article.isMotion || article.category === 'motion';
 
-      <form className="create-story-form">
-        <div className="form-group">
-          <label htmlFor="title">Story Title *</label>
-          <input
-            type="text"
-            id="title"
-            name="title"
-            value={formData.title}
-            onChange={handleInputChange}
-            placeholder="Enter a compelling title"
-            required
-          />
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="excerpt">Excerpt *</label>
-          <textarea
-            id="excerpt"
-            name="excerpt"
-            value={formData.excerpt}
-            onChange={handleInputChange}
-            placeholder="Brief summary of your story (max 200 characters)"
-            maxLength={200}
-            rows={3}
-            required
-          />
-          <small className="char-count">{formData.excerpt.length}/200</small>
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="featuredImage">Featured Image</label>
-          <input
-            type="file"
-            id="featuredImage"
-            accept="image/*"
-            onChange={handleImageChange}
-            className="file-input"
-          />
-          {imagePreview && (
-            <div className="image-preview">
-              <img src={imagePreview} alt="Preview" />
-              <button
-                type="button"
-                onClick={() => {
-                  setFeaturedImage(null);
-                  setImagePreview(null);
-                  setExistingImageUrl('');
-                }}
-                className="remove-image-btn"
-              >
-                Remove Image
-              </button>
+  // === Motion edit form ===
+  if (isMotion) {
+    return (
+      <div className="create-story-container">
+        <div className="create-story-header">
+          <h1>Edit Video</h1>
+          <p className="create-story-subtitle">Update your video submission</p>
+          {article.status === 'needs-revision' && article.revisionNote && (
+            <div className="revision-note">
+              <strong>Admin Feedback:</strong> {article.revisionNote}
             </div>
           )}
         </div>
+        <form className="create-story-form">
+          <div className="form-group">
+            <label htmlFor="title">Title *</label>
+            <input type="text" id="title" name="title" value={motionData.title} onChange={handleMotionInputChange} placeholder="Video title" required />
+          </div>
+          <div className="form-group">
+            <label htmlFor="excerpt">Description *</label>
+            <textarea id="excerpt" name="excerpt" value={motionData.excerpt} onChange={handleMotionInputChange} placeholder="Brief description" maxLength={200} rows={3} required />
+            <small className="char-count">{motionData.excerpt.length}/200</small>
+          </div>
+          <div className="form-group">
+            <label htmlFor="featuredImage">Thumbnail Image</label>
+            <input type="file" id="featuredImage" accept="image/*" onChange={handleImageChange} className="file-input" />
+            {imagePreview && (
+              <div className="image-preview">
+                <img src={imagePreview} alt="Preview" />
+                <button type="button" onClick={() => { setFeaturedImage(null); setImagePreview(null); }} className="remove-image-btn">Remove</button>
+              </div>
+            )}
+          </div>
+          <div className="form-group">
+            <label htmlFor="tags">Tags (Optional)</label>
+            <input type="text" id="tags" name="tags" value={motionData.tags} onChange={handleMotionInputChange} placeholder="e.g., documentary, short film" />
+          </div>
+          {error && <div className="error-message">{error}</div>}
+          <div className="form-actions">
+            <button type="button" onClick={handleDiscard} className="discard-btn" disabled={saving}>Discard</button>
+            <button type="button" onClick={() => handleMotionSubmit('draft')} className="draft-btn" disabled={saving || !motionData.title || !motionData.excerpt}>
+              {saving ? 'Saving...' : 'Save as Draft'}
+            </button>
+            <button type="button" onClick={() => handleMotionSubmit('pending')} className="submit-btn" disabled={saving || !motionData.title || !motionData.excerpt}>
+              {saving ? 'Submitting...' : 'Submit for Review'}
+            </button>
+          </div>
+        </form>
+      </div>
+    );
+  }
 
-        <div className="form-group">
-          <label htmlFor="content">Story Content *</label>
-          <RichTextEditor
-            value={formData.content}
-            onChange={handleInputChange}
-            placeholder="Write your story here...
+  // === Desk editor (Word & Lens) ===
+  // Parse contentJSON if it's stored as string
+  let contentJSON = article.contentJSON;
+  if (typeof contentJSON === 'string') {
+    try { contentJSON = JSON.parse(contentJSON); } catch { contentJSON = null; }
+  }
 
-Use markdown formatting:
-- **bold** for bold text
-- *italic* for italic text
-- # Heading 1, ## Heading 2, ### Heading 3
-- - List item for bullet points
-- > Quote for blockquotes
-- [text](url) for links
-- `code` for inline code"
-          />
+  const initialData = {
+    title: article.title || '',
+    subtitle: article.excerpt || '',
+    authorName: article.authorName || '',
+    contentJSON,
+    content: article.content || '',
+    category: article.category || 'word',
+  };
+
+  return (
+    <div className="create-story-container create-story-editor-mode">
+      {article.status === 'needs-revision' && article.revisionNote && (
+        <div className="revision-banner">
+          <strong>Admin Feedback:</strong> {article.revisionNote}
         </div>
-
-        <div className="form-group">
-          <label htmlFor="tags">Tags (Optional)</label>
-          <input
-            type="text"
-            id="tags"
-            name="tags"
-            value={formData.tags}
-            onChange={handleInputChange}
-            placeholder="Enter tags separated by commas (e.g., travel, photography, life)"
-          />
-        </div>
-
-        {error && (
-          <div className="error-message">{error}</div>
-        )}
-
-        <div className="form-actions">
-          <button
-            type="button"
-            onClick={handleDiscard}
-            className="discard-btn"
-            disabled={saving}
-          >
-            Discard
-          </button>
-          <button
-            type="button"
-            onClick={(e) => handleSubmit(e, 'draft')}
-            className="draft-btn"
-            disabled={saving || !formData.title || !formData.excerpt || !formData.content}
-          >
-            {saving ? 'Saving...' : 'Save as Draft'}
-          </button>
-          <button
-            type="button"
-            onClick={(e) => handleSubmit(e, 'pending')}
-            className="submit-btn"
-            disabled={saving || !formData.title || !formData.excerpt || !formData.content}
-          >
-            {saving ? 'Submitting...' : 'Submit for Review'}
-          </button>
-        </div>
-      </form>
+      )}
+      <TiptapEditor
+        onSave={handleEditorSave}
+        onSaveDraft={handleEditorSave}
+        initialData={initialData}
+        authorName={article.authorName || userData?.displayName || currentUser?.email || ''}
+      />
     </div>
   );
 };

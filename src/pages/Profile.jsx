@@ -256,7 +256,7 @@ const Profile = () => {
       {/* Stories Grid */}
       <div className="stories-container">
         <div className="stories-grid">
-          {/* Permanent Create Story Card */}
+          {/* Slot 1: Always the "Start new draft" card — never replaced */}
           <div className="story-card create-story-card" onClick={() => navigate('/create-story')}>
             <div className="story-placeholder">
               <div className="create-story-icon">
@@ -270,8 +270,8 @@ const Profile = () => {
             </div>
           </div>
 
-          {/* User Stories - always show 2 slots */}
-          {articles.slice(0, 2).map((article) => (
+          {/* Slot 2+: Saved stories (drafts, pending, published, etc.) */}
+          {articles.map((article) => (
             <div key={article.id} className="story-card">
               {article.featuredImage ? (
                 <div
@@ -351,22 +351,12 @@ const Profile = () => {
             </div>
           ))}
 
-          {/* Empty placeholder columns to always show 3 columns */}
-          {articles.length === 0 && (
-            <>
-              <div className="story-card empty-card">
-                <div className="story-placeholder empty-placeholder"></div>
-              </div>
-              <div className="story-card empty-card">
-                <div className="story-placeholder empty-placeholder"></div>
-              </div>
-            </>
-          )}
-          {articles.length === 1 && (
-            <div className="story-card empty-card">
+          {/* Empty placeholders to fill first row to 3 columns */}
+          {Array.from({ length: Math.max(0, 2 - articles.length) }, (_, i) => (
+            <div key={`empty-${i}`} className="story-card empty-card">
               <div className="story-placeholder empty-placeholder"></div>
             </div>
-          )}
+          ))}
         </div>
       </div>
     </div>

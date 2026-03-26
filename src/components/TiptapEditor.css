@@ -132,10 +132,13 @@
   transition: all 0.2s;
 }
 .te-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.te-btn-discard { background: transparent; color: #999; border: 1px solid #444; }
+.te-btn-discard:hover { color: #fff; border-color: #888; }
 .te-btn-draft { background: transparent; color: #ccc; border: 1px solid #555; }
 .te-btn-draft:hover:not(:disabled) { color: #fff; border-color: #888; }
 .te-btn-publish { background: #fff; color: #1a1a1a; }
 .te-btn-publish:hover:not(:disabled) { background: #e0e0e0; }
+
 
 /* ===== Canvas ===== */
 .te-canvas {

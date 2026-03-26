@@ -12,11 +12,11 @@ const CreateStory = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  // Get category from URL param (?category=word) or default to 'word'
+  // Map URL ?category param to editor tab: word/lens → desk, motion → motion
   const urlCategory = searchParams.get('category') || 'word';
-  const [category, setCategory] = useState(urlCategory);
+  const [editorTab, setEditorTab] = useState(urlCategory === 'motion' ? 'motion' : 'desk');
 
-  // Motion-specific state (direct upload form)
+  // Motion-specific state
   const [motionData, setMotionData] = useState({
     title: '',
     excerpt: '',
@@ -28,7 +28,7 @@ const CreateStory = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // === Tiptap Editor save handler (for Word & Lens) ===
+  // === Desk editor save handler (Word & Lens) ===
   const handleEditorSave = async (storyData) => {
     if (!currentUser) {
       showError('You must be logged in to create a story');
@@ -43,7 +43,7 @@ const CreateStory = () => {
         title: storyData.title || 'Untitled Story',
         excerpt: storyData.subtitle || '',
         content: storyData.content || '',
-        category: storyData.category || category,
+        category: storyData.category || 'word',
         featuredImage: storyData.coverImage || '',
         tags: [],
         authorId: currentUser.uid,
@@ -53,7 +53,6 @@ const CreateStory = () => {
         isVisualStory: true
       };
 
-      // Store JSON structure separately if available
       if (storyData.contentJSON) {
         articleData.contentJSON = JSON.stringify(storyData.contentJSON);
       }
@@ -65,7 +64,6 @@ const CreateStory = () => {
       } else {
         success('Draft saved. You can continue editing anytime from your dashboard.');
       }
-      // Brief delay so the user sees the notification before navigating
       setTimeout(() => navigate('/profile'), 1200);
     } catch (err) {
       console.error('Error creating story:', err);
@@ -82,14 +80,8 @@ const CreateStory = () => {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        setError('Image size must be less than 5MB');
-        return;
-      }
-      if (!file.type.startsWith('image/')) {
-        setError('File must be an image');
-        return;
-      }
+      if (file.size > 5 * 1024 * 1024) { setError('Image size must be less than 5MB'); return; }
+      if (!file.type.startsWith('image/')) { setError('File must be an image'); return; }
       setFeaturedImage(file);
       setImagePreview(URL.createObjectURL(file));
       setError('');
@@ -99,10 +91,7 @@ const CreateStory = () => {
   const handleVideoChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (file.size > 100 * 1024 * 1024) {
-        setError('Video must be less than 100MB');
-        return;
-      }
+      if (file.size > 100 * 1024 * 1024) { setError('Video must be less than 100MB'); return; }
       setMotionData(prev => ({ ...prev, videoFile: file }));
       setError('');
     }
@@ -114,23 +103,18 @@ const CreateStory = () => {
       navigate('/auth');
       return;
     }
-
     setLoading(true);
     setError('');
-
     try {
       let imageUrl = '';
       let videoUrl = '';
-
       if (featuredImage) {
         try {
           imageUrl = await storageService.uploadImage(featuredImage, `articles/${Date.now()}_${featuredImage.name}`);
         } catch (uploadError) {
           console.error('Image upload error:', uploadError);
-          imageUrl = '';
         }
       }
-
       if (motionData.videoFile) {
         try {
           videoUrl = await storageService.uploadImage(motionData.videoFile, `videos/${Date.now()}_${motionData.videoFile.name}`);
@@ -141,28 +125,21 @@ const CreateStory = () => {
           return;
         }
       }
-
       const articleData = {
         title: motionData.title,
         excerpt: motionData.excerpt,
         content: videoUrl,
         category: 'motion',
         featuredImage: imageUrl,
-        tags: motionData.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
+        tags: motionData.tags.split(',').map(tag => tag.trim()).filter(Boolean),
         authorId: currentUser.uid,
         authorName: userData?.displayName || currentUser.email,
         status,
         views: 0,
         isMotion: true
       };
-
       await articleService.createArticle(articleData);
-
-      if (status === 'pending') {
-        success('Video submitted for review!');
-      } else {
-        success('Video saved as draft!');
-      }
+      success(status === 'pending' ? 'Video submitted for review!' : 'Video saved as draft!');
       navigate('/profile');
     } catch (err) {
       console.error('Error creating video:', err);
@@ -188,66 +165,33 @@ const CreateStory = () => {
     }
   };
 
-  // === For Word & Lens: show the block-based editor ===
-  if (category === 'word' || category === 'lens') {
+  // === Desk tab: TiptapEditor for Word & Lens ===
+  if (editorTab === 'desk') {
     return (
       <div className="create-story-container create-story-editor-mode">
-        {/* Category switcher at top */}
         <div className="editor-category-bar">
           <div className="category-selector compact">
-            <button
-              className={`category-tab ${category === 'word' ? 'active' : ''}`}
-              onClick={() => setCategory('word')}
-            >
-              Indic Word
-            </button>
-            <button
-              className={`category-tab ${category === 'lens' ? 'active' : ''}`}
-              onClick={() => setCategory('lens')}
-            >
-              Indic Lens
-            </button>
-            <button
-              className={`category-tab ${category === 'motion' ? 'active' : ''}`}
-              onClick={() => setCategory('motion')}
-            >
-              Indic Motion
-            </button>
+            <button className="category-tab active">Desk</button>
+            <button className="category-tab" onClick={() => setEditorTab('motion')}>Motion</button>
           </div>
         </div>
         <TiptapEditor
           onSave={handleEditorSave}
           onSaveDraft={handleEditorSave}
-          category={category}
+          category={urlCategory === 'lens' ? 'lens' : 'word'}
           authorName={userData?.displayName || currentUser?.email || ''}
         />
       </div>
     );
   }
 
-  // === For Motion: show direct upload form ===
+  // === Motion tab: Upload form ===
   return (
     <div className="create-story-container">
       <div className="editor-category-bar">
         <div className="category-selector compact">
-          <button
-            className={`category-tab ${category === 'word' ? 'active' : ''}`}
-            onClick={() => setCategory('word')}
-          >
-            Indic Word
-          </button>
-          <button
-            className={`category-tab ${category === 'lens' ? 'active' : ''}`}
-            onClick={() => setCategory('lens')}
-          >
-            Indic Lens
-          </button>
-          <button
-            className={`category-tab ${category === 'motion' ? 'active' : ''}`}
-            onClick={() => setCategory('motion')}
-          >
-            Indic Motion
-          </button>
+          <button className="category-tab" onClick={() => setEditorTab('desk')}>Desk</button>
+          <button className="category-tab active">Motion</button>
         </div>
       </div>
 
@@ -259,41 +203,18 @@ const CreateStory = () => {
       <form className="create-story-form">
         <div className="form-group">
           <label htmlFor="title">Title *</label>
-          <input
-            type="text"
-            id="title"
-            name="title"
-            value={motionData.title}
-            onChange={handleMotionInputChange}
-            placeholder="Enter a title for your video"
-            required
-          />
+          <input type="text" id="title" name="title" value={motionData.title} onChange={handleMotionInputChange} placeholder="Enter a title for your video" required />
         </div>
 
         <div className="form-group">
           <label htmlFor="excerpt">Description *</label>
-          <textarea
-            id="excerpt"
-            name="excerpt"
-            value={motionData.excerpt}
-            onChange={handleMotionInputChange}
-            placeholder="Brief description of your video (max 200 characters)"
-            maxLength={200}
-            rows={3}
-            required
-          />
+          <textarea id="excerpt" name="excerpt" value={motionData.excerpt} onChange={handleMotionInputChange} placeholder="Brief description of your video (max 200 characters)" maxLength={200} rows={3} required />
           <small className="char-count">{motionData.excerpt.length}/200</small>
         </div>
 
         <div className="form-group">
           <label htmlFor="videoFile">Video File *</label>
-          <input
-            type="file"
-            id="videoFile"
-            accept="video/*"
-            onChange={handleVideoChange}
-            className="file-input"
-          />
+          <input type="file" id="videoFile" accept="video/*" onChange={handleVideoChange} className="file-input" />
           {motionData.videoFile && (
             <div className="file-selected">
               Selected: {motionData.videoFile.name} ({(motionData.videoFile.size / (1024 * 1024)).toFixed(1)} MB)
@@ -304,67 +225,28 @@ const CreateStory = () => {
 
         <div className="form-group">
           <label htmlFor="featuredImage">Thumbnail Image</label>
-          <input
-            type="file"
-            id="featuredImage"
-            accept="image/*"
-            onChange={handleImageChange}
-            className="file-input"
-          />
+          <input type="file" id="featuredImage" accept="image/*" onChange={handleImageChange} className="file-input" />
           {imagePreview && (
             <div className="image-preview">
               <img src={imagePreview} alt="Preview" />
-              <button
-                type="button"
-                onClick={() => {
-                  setFeaturedImage(null);
-                  setImagePreview(null);
-                }}
-                className="remove-image-btn"
-              >
-                Remove
-              </button>
+              <button type="button" onClick={() => { setFeaturedImage(null); setImagePreview(null); }} className="remove-image-btn">Remove</button>
             </div>
           )}
         </div>
 
         <div className="form-group">
           <label htmlFor="tags">Tags (Optional)</label>
-          <input
-            type="text"
-            id="tags"
-            name="tags"
-            value={motionData.tags}
-            onChange={handleMotionInputChange}
-            placeholder="e.g., documentary, short film, india"
-          />
+          <input type="text" id="tags" name="tags" value={motionData.tags} onChange={handleMotionInputChange} placeholder="e.g., documentary, short film, india" />
         </div>
 
         {error && <div className="error-message">{error}</div>}
 
         <div className="form-actions">
-          <button
-            type="button"
-            onClick={handleDiscard}
-            className="discard-btn"
-            disabled={loading}
-          >
-            Discard
-          </button>
-          <button
-            type="button"
-            onClick={() => handleMotionSubmit('draft')}
-            className="draft-btn"
-            disabled={loading || !motionData.title || !motionData.excerpt}
-          >
+          <button type="button" onClick={handleDiscard} className="discard-btn" disabled={loading}>Discard</button>
+          <button type="button" onClick={() => handleMotionSubmit('draft')} className="draft-btn" disabled={loading || !motionData.title || !motionData.excerpt}>
             {loading ? 'Saving...' : 'Save as Draft'}
           </button>
-          <button
-            type="button"
-            onClick={() => handleMotionSubmit('pending')}
-            className="submit-btn"
-            disabled={loading || !motionData.title || !motionData.excerpt || !motionData.videoFile}
-          >
+          <button type="button" onClick={() => handleMotionSubmit('pending')} className="submit-btn" disabled={loading || !motionData.title || !motionData.excerpt || !motionData.videoFile}>
             {loading ? 'Submitting...' : 'Submit for Review'}
           </button>
         </div>
