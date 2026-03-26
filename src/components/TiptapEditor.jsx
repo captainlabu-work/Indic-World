@@ -57,8 +57,19 @@ const ToolbarBtn = ({ onClick, active, disabled, title, children }) => (
   </button>
 );
 
+const TAG_OPTIONS = [
+  'Art & Culture',
+  'Society & Politics',
+  'History & Literature',
+  'Camera & Cinema',
+  'Science & Tech',
+  'Travel & Places',
+  'Philosophy & Religion',
+];
+
 const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', initialData = null, category: categoryProp = 'word', authorName: initialAuthor = '' }) => {
   const fileInputRef = useRef(null);
+  const thumbnailInputRef = useRef(null);
   const saveTimerRef = useRef(null);
   const isEditMode = !!initialData;
   const draft = useRef(isEditMode ? null : loadDraft());
@@ -68,7 +79,13 @@ const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', initialData = 
   const [title, setTitle] = useState(initialData?.title || draft.current?.title || '');
   const [subtitle, setSubtitle] = useState(initialData?.subtitle || draft.current?.subtitle || '');
   const [authorName, setAuthorName] = useState(initialData?.authorName || draft.current?.authorName || initialAuthor);
-  const category = initialData?.category || categoryProp;
+
+  // Article Settings state
+  const [category, setCategory] = useState(initialData?.category || draft.current?.category || categoryProp);
+  const [tags, setTags] = useState(initialData?.tags || draft.current?.tags || []);
+  const [thumbnail, setThumbnail] = useState(initialData?.thumbnail || initialData?.featuredImage || null);
+  const [thumbnailFile, setThumbnailFile] = useState(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Ref that always holds the latest field values for the debounced save
   const fieldsRef = useRef({ title: '', subtitle: '', authorName: '' });
@@ -115,6 +132,7 @@ const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', initialData = 
       ...fieldsRef.current,
       contentJSON: editor.getJSON(),
       category,
+      tags,
       savedAt: Date.now(),
     };
     try {
@@ -122,7 +140,7 @@ const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', initialData = 
     } catch {
       // localStorage quota exceeded — silently ignore
     }
-  }, [editor, category, isEditMode]);
+  }, [editor, category, tags, isEditMode]);
 
   const scheduleSave = useCallback(() => {
     if (isEditMode) return;
@@ -154,6 +172,7 @@ const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', initialData = 
           ...fieldsRef.current,
           contentJSON: editor.getJSON(),
           category,
+          tags,
           savedAt: Date.now(),
         };
         try {
@@ -161,7 +180,7 @@ const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', initialData = 
         } catch {}
       }
     };
-  }, [editor, category, isEditMode]);
+  }, [editor, category, tags, isEditMode]);
 
   const clearDraft = useCallback(() => {
     localStorage.removeItem(DRAFT_KEY);
@@ -204,6 +223,29 @@ const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', initialData = 
     e.target.value = '';
   }, [editor]);
 
+  // Thumbnail upload handler
+  const handleThumbnailSelect = useCallback((e) => {
+    const file = e.target.files?.[0];
+    if (!file || !file.type.startsWith('image/')) return;
+    setThumbnailFile(file);
+    setThumbnail(URL.createObjectURL(file));
+    e.target.value = '';
+  }, []);
+
+  const removeThumbnail = useCallback(() => {
+    setThumbnail(null);
+    setThumbnailFile(null);
+  }, []);
+
+  // Tag toggle (max 2)
+  const toggleTag = useCallback((tag) => {
+    setTags(prev => {
+      if (prev.includes(tag)) return prev.filter(t => t !== tag);
+      if (prev.length >= 2) return prev;
+      return [...prev, tag];
+    });
+  }, []);
+
   // Save handlers
   const buildPayload = (status) => ({
     title,
@@ -212,7 +254,9 @@ const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', initialData = 
     content: editor?.getHTML() || '',
     contentJSON: editor?.getJSON() || null,
     category,
+    tags,
     coverImage: '',
+    thumbnailFile,
     status,
   });
 
@@ -239,8 +283,9 @@ const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', initialData = 
 
   return (
     <div className="tiptap-editor">
-      {/* Hidden file input */}
+      {/* Hidden file inputs */}
       <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileSelect} hidden />
+      <input ref={thumbnailInputRef} type="file" accept="image/*" onChange={handleThumbnailSelect} hidden />
 
       {/* Top Bar */}
       <header className="te-topbar">
@@ -267,6 +312,17 @@ const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', initialData = 
           )}
           <button className="te-btn te-btn-publish" onClick={handlePublish} disabled={!title && !editor.getText()}>
             Submit for Review
+          </button>
+          {/* Settings toggle */}
+          <button
+            className={`te-nav-btn te-settings-toggle ${sidebarOpen ? 'active' : ''}`}
+            onClick={() => setSidebarOpen(prev => !prev)}
+            title="Article Settings"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
+            </svg>
           </button>
         </div>
       </header>
@@ -490,6 +546,84 @@ const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', initialData = 
         <EditorContent editor={editor} />
        </div>
       </div>
+
+      {/* Article Settings Sidebar */}
+      {sidebarOpen && <div className="te-sidebar-overlay" onClick={() => setSidebarOpen(false)} />}
+      <aside className={`te-sidebar ${sidebarOpen ? 'open' : ''}`}>
+        <div className="te-sidebar-header">
+          <h3>Article Settings</h3>
+          <button className="te-sidebar-close" onClick={() => setSidebarOpen(false)}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+
+        <div className="te-sidebar-body">
+          {/* Category */}
+          <div className="te-sidebar-field">
+            <label className="te-sidebar-label">Category</label>
+            <select
+              className="te-sidebar-select"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+            >
+              <option value="word">Word</option>
+              <option value="lens">Lens</option>
+              <option value="motion">Motion</option>
+            </select>
+          </div>
+
+          {/* Tags */}
+          <div className="te-sidebar-field">
+            <label className="te-sidebar-label">
+              Tags
+              <span className="te-sidebar-hint">{tags.length}/2</span>
+            </label>
+            <div className="te-tag-grid">
+              {TAG_OPTIONS.map(tag => (
+                <button
+                  key={tag}
+                  type="button"
+                  className={`te-tag-chip ${tags.includes(tag) ? 'selected' : ''} ${tags.length >= 2 && !tags.includes(tag) ? 'disabled' : ''}`}
+                  onClick={() => toggleTag(tag)}
+                  disabled={tags.length >= 2 && !tags.includes(tag)}
+                >
+                  {tag}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Thumbnail */}
+          <div className="te-sidebar-field">
+            <label className="te-sidebar-label">Thumbnail</label>
+            <p className="te-sidebar-desc">Used for article cards and previews.</p>
+            {thumbnail ? (
+              <div className="te-thumbnail-preview">
+                <img src={thumbnail} alt="Thumbnail preview" />
+                <button className="te-thumbnail-remove" onClick={removeThumbnail} title="Remove thumbnail">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </button>
+              </div>
+            ) : (
+              <button
+                className="te-thumbnail-upload"
+                onClick={() => thumbnailInputRef.current?.click()}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2"/>
+                  <circle cx="8.5" cy="8.5" r="1.5"/>
+                  <path d="M21 15l-5-5L5 21"/>
+                </svg>
+                Upload image
+              </button>
+            )}
+          </div>
+        </div>
+      </aside>
     </div>
   );
 };

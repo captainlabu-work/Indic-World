@@ -56,11 +56,26 @@ const EditArticle = () => {
   // === Desk editor save handler (Word & Lens) ===
   const handleEditorSave = async (storyData) => {
     try {
+      // Upload new thumbnail if provided
+      let featuredImageUrl = article.featuredImage || '';
+      if (storyData.thumbnailFile) {
+        try {
+          featuredImageUrl = await storageService.uploadImage(
+            storyData.thumbnailFile,
+            `articles/${Date.now()}_${storyData.thumbnailFile.name}`
+          );
+        } catch (uploadErr) {
+          console.error('Thumbnail upload error:', uploadErr);
+        }
+      }
+
       const updateData = {
         title: storyData.title || 'Untitled Story',
         excerpt: storyData.subtitle || '',
         content: storyData.content || '',
         category: storyData.category || article.category || 'word',
+        featuredImage: featuredImageUrl,
+        tags: storyData.tags || article.tags || [],
         status: storyData.status,
         isVisualStory: true,
       };
@@ -217,6 +232,8 @@ const EditArticle = () => {
     contentJSON,
     content: article.content || '',
     category: article.category || 'word',
+    tags: article.tags || [],
+    featuredImage: article.featuredImage || null,
   };
 
   return (

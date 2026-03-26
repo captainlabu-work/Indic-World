@@ -39,13 +39,26 @@ const CreateStory = () => {
     const status = storyData.status || 'pending';
 
     try {
+      // Upload thumbnail if provided
+      let featuredImageUrl = storyData.coverImage || '';
+      if (storyData.thumbnailFile) {
+        try {
+          featuredImageUrl = await storageService.uploadImage(
+            storyData.thumbnailFile,
+            `articles/${Date.now()}_${storyData.thumbnailFile.name}`
+          );
+        } catch (uploadErr) {
+          console.error('Thumbnail upload error:', uploadErr);
+        }
+      }
+
       const articleData = {
         title: storyData.title || 'Untitled Story',
         excerpt: storyData.subtitle || '',
         content: storyData.content || '',
         category: storyData.category || 'word',
-        featuredImage: storyData.coverImage || '',
-        tags: [],
+        featuredImage: featuredImageUrl,
+        tags: storyData.tags || [],
         authorId: currentUser.uid,
         authorName: storyData.authorName || userData?.displayName || currentUser.email,
         status,
