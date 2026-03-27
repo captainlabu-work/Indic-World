@@ -380,6 +380,7 @@ export const articleService = {
   },
 
   // Get staff picks (articles marked as staff pick by admin)
+  // Sorted by staffPickOrder (ascending, nulls last), then by publishedAt desc
   async getStaffPicks(limitCount = 10) {
     try {
       const q = query(
@@ -390,7 +391,16 @@ export const articleService = {
         limit(limitCount)
       );
       const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const picks = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      // Client-side sort: staffPickOrder ascending (nulls last), then publishedAt desc
+      return picks.sort((a, b) => {
+        const aOrder = a.staffPickOrder ?? Infinity;
+        const bOrder = b.staffPickOrder ?? Infinity;
+        if (aOrder !== bOrder) return aOrder - bOrder;
+        const aTime = a.publishedAt?.seconds || a.createdAt?.seconds || 0;
+        const bTime = b.publishedAt?.seconds || b.createdAt?.seconds || 0;
+        return bTime - aTime;
+      });
     } catch (err) {
       console.warn('Staff picks query failed (index may be building), using fallback:', err.message);
       const q = query(
@@ -399,10 +409,17 @@ export const articleService = {
         orderBy("createdAt", "desc")
       );
       const querySnapshot = await getDocs(q);
-      return querySnapshot.docs
+      const picks = querySnapshot.docs
         .map(doc => ({ id: doc.id, ...doc.data() }))
-        .filter(a => a.staffPick === true)
-        .slice(0, limitCount);
+        .filter(a => a.staffPick === true);
+      return picks.sort((a, b) => {
+        const aOrder = a.staffPickOrder ?? Infinity;
+        const bOrder = b.staffPickOrder ?? Infinity;
+        if (aOrder !== bOrder) return aOrder - bOrder;
+        const aTime = a.publishedAt?.seconds || a.createdAt?.seconds || 0;
+        const bTime = b.publishedAt?.seconds || b.createdAt?.seconds || 0;
+        return bTime - aTime;
+      }).slice(0, limitCount);
     }
   },
 

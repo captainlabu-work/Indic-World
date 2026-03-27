@@ -244,6 +244,33 @@ const Admin = () => {
     }
   };
 
+  const handleToggleStaffPick = async (articleId, currentValue, e) => {
+    e.stopPropagation();
+    try {
+      const updates = { staffPick: !currentValue };
+      if (!currentValue) {
+        // When toggling ON, don't set order — admin can set it manually
+      } else {
+        // When toggling OFF, clear the order
+        updates.staffPickOrder = null;
+      }
+      await articleService.updateArticle(articleId, updates);
+      success(!currentValue ? 'Added to Staff Picks' : 'Removed from Staff Picks');
+    } catch (err) {
+      showError('Failed to update');
+    }
+  };
+
+  const handleStaffPickOrder = async (articleId, order, e) => {
+    e.stopPropagation();
+    try {
+      const val = order === '' ? null : parseInt(order, 10);
+      await articleService.updateArticle(articleId, { staffPickOrder: val });
+    } catch (err) {
+      showError('Failed to update order');
+    }
+  };
+
   const filterArticles = (articles) => {
     if (!searchTerm) return articles;
     return articles.filter(a =>
@@ -291,12 +318,33 @@ const Admin = () => {
           <button className="ac-btn ac-unpublish" onClick={(e) => handleUnpublish(article.id, e)} disabled={actionLoading}>Unpublish</button>
         )}
         {(article.status === 'pending' || article.status === 'published') && (
-          <button
-            className={`ac-btn ${article.publicDomainVerified ? 'ac-pd-active' : 'ac-pd'}`}
-            onClick={(e) => handleTogglePublicDomain(article.id, !!article.publicDomainVerified, e)}
-          >
-            {article.publicDomainVerified ? 'PD Verified' : 'Mark PD'}
-          </button>
+          <>
+            <button
+              className={`ac-btn ${article.publicDomainVerified ? 'ac-pd-active' : 'ac-pd'}`}
+              onClick={(e) => handleTogglePublicDomain(article.id, !!article.publicDomainVerified, e)}
+            >
+              {article.publicDomainVerified ? 'PD Verified' : 'Mark PD'}
+            </button>
+            <button
+              className={`ac-btn ${article.staffPick ? 'ac-sp-active' : 'ac-sp'}`}
+              onClick={(e) => handleToggleStaffPick(article.id, !!article.staffPick, e)}
+            >
+              {article.staffPick ? 'Staff Pick' : 'Staff Pick'}
+            </button>
+            {article.staffPick && (
+              <input
+                type="number"
+                className="ac-sp-order"
+                placeholder="#"
+                defaultValue={article.staffPickOrder ?? ''}
+                onClick={(e) => e.stopPropagation()}
+                onBlur={(e) => handleStaffPickOrder(article.id, e.target.value, e)}
+                onKeyDown={(e) => { if (e.key === 'Enter') { e.target.blur(); } }}
+                min="1"
+                title="Sort order (lower = first)"
+              />
+            )}
+          </>
         )}
         {article.status === 'archived' && (
           <button className="ac-btn ac-restore" onClick={(e) => handleUnarchive(article.id, e)} disabled={actionLoading}>Unarchive</button>

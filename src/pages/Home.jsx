@@ -151,9 +151,13 @@ const Home = () => {
   const featuredArticle = publishedArticles[0];
   const gridArticles = publishedArticles.slice(1);
 
-  // Use real data or placeholders
+  // Top Picks: show placeholders if empty
   const topPicksDisplay = topPicks.length > 0 ? topPicks : PLACEHOLDER_CARDS;
-  const staffPicksDisplay = staffPicks.length > 0 ? staffPicks : PLACEHOLDER_CARDS;
+
+  // Staff Picks: if none marked, fallback to latest published (limit 4)
+  const staffPicksDisplay = staffPicks.length > 0
+    ? staffPicks
+    : publishedArticles.slice(0, 4);
 
   return (
     <div className="home-container">
@@ -250,7 +254,7 @@ const Home = () => {
       )}
 
       {/* Staff Picks */}
-      {!loading && (
+      {!loading && staffPicksDisplay.length > 0 && (
         <ScrollRow
           title="Staff Picks"
           items={staffPicksDisplay}

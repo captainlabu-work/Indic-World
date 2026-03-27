@@ -355,6 +355,35 @@
   border: 1px solid #93c5fd;
 }
 
+.ac-sp {
+  background: #f3f4f6;
+  color: #6b7280;
+  border: 1px dashed #9ca3af;
+}
+
+.ac-sp-active {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fbbf24;
+}
+
+.ac-sp-order {
+  width: 38px;
+  padding: 0.25rem 0.3rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 3px;
+  font-family: 'Crimson Text', serif;
+  font-size: 0.75rem;
+  text-align: center;
+  color: #92400e;
+  background: #fffbeb;
+}
+
+.ac-sp-order:focus {
+  outline: none;
+  border-color: #f59e0b;
+}
+
 /* ===== Feedback Modal ===== */
 .admin-modal-overlay {
   position: fixed;
