@@ -1004,6 +1004,27 @@
   background: rgba(220, 50, 50, 0.85);
 }
 
+.te-sidebar-input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  font-family: 'Crimson Text', serif;
+  font-size: 0.9rem;
+  color: #333;
+  margin-top: 8px;
+  transition: border-color 0.2s;
+}
+
+.te-sidebar-input:focus {
+  outline: none;
+  border-color: #262626;
+}
+
+.te-sidebar-input::placeholder {
+  color: #aaa;
+}
+
 /* ===== Responsive ===== */
 @media (max-width: 768px) {
   .te-topbar { padding: 0 16px; }

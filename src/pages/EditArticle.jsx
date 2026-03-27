@@ -71,6 +71,7 @@ const EditArticle = () => {
         content: storyData.content || '',
         category: storyData.category || article.category || 'word',
         featuredImage: featuredImageUrl,
+        thumbnailCaption: storyData.thumbnailCaption || '',
         tags: storyData.tags || article.tags || [],
         status: storyData.status,
         isVisualStory: true,

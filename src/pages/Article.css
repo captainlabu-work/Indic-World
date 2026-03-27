@@ -22,6 +22,15 @@
   display: block;
 }
 
+.article-hero-caption {
+  font-size: 0.85rem;
+  color: #888;
+  font-family: 'Crimson Text', serif;
+  font-style: italic;
+  margin: 0.5rem 0 0;
+  line-height: 1.4;
+}
+
 /* ===== Article Content (narrow text column) ===== */
 .article-content {
   max-width: 720px;

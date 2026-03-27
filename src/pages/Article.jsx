@@ -193,6 +193,9 @@ const Article = () => {
       {article.featuredImage && (
         <div className="article-hero">
           <img src={article.featuredImage} alt={article.title} />
+          {article.thumbnailCaption && (
+            <p className="article-hero-caption">{article.thumbnailCaption}</p>
+          )}
         </div>
       )}
 

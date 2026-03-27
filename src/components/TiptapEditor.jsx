@@ -85,6 +85,7 @@ const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', initialData = 
   const [tags, setTags] = useState(initialData?.tags || draft.current?.tags || []);
   const [thumbnail, setThumbnail] = useState(initialData?.thumbnail || initialData?.featuredImage || null);
   const [thumbnailFile, setThumbnailFile] = useState(null);
+  const [thumbnailCaption, setThumbnailCaption] = useState(initialData?.thumbnailCaption || '');
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Ref that always holds the latest field values for the debounced save
@@ -257,6 +258,7 @@ const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', initialData = 
     tags,
     coverImage: '',
     thumbnailFile,
+    thumbnailCaption,
     status,
   });
 
@@ -623,6 +625,13 @@ const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', initialData = 
                 Upload image
               </button>
             )}
+            <input
+              type="text"
+              className="te-sidebar-input"
+              placeholder="Image caption (optional)"
+              value={thumbnailCaption}
+              onChange={(e) => setThumbnailCaption(e.target.value)}
+            />
           </div>
         </div>
       </aside>
