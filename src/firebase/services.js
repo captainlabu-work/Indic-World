@@ -245,15 +245,31 @@ export const articleService = {
 
   // Get published articles by category
   async getPublishedArticlesByCategory(category, limitCount = 20) {
-    const q = query(
-      collection(db, "articles"),
-      where("status", "==", "published"),
-      where("category", "==", category),
-      orderBy("createdAt", "desc"),
-      limit(limitCount)
-    );
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    try {
+      // Compound query (requires composite index in Firestore)
+      const q = query(
+        collection(db, "articles"),
+        where("status", "==", "published"),
+        where("category", "==", category),
+        orderBy("createdAt", "desc"),
+        limit(limitCount)
+      );
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    } catch (err) {
+      // Fallback: fetch all published, filter client-side (before index is created)
+      console.warn('Compound query failed (index may be building), using fallback:', err.message);
+      const q = query(
+        collection(db, "articles"),
+        where("status", "==", "published"),
+        orderBy("createdAt", "desc")
+      );
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs
+        .map(doc => ({ id: doc.id, ...doc.data() }))
+        .filter(a => a.category === category)
+        .slice(0, limitCount);
+    }
   },
 
   // Get pending articles (for admin)

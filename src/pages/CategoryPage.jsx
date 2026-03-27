@@ -4,7 +4,6 @@ import { useAuth } from '../contexts/AuthContext';
 import { articleService } from '../firebase/services';
 import { historicalStories } from '../data/historicalStories';
 import { authenticStories } from '../data/authenticStories';
-import { formatTimestamp } from '../utils/formatters';
 import './CategoryPage.css';
 
 const CATEGORY_CONFIG = {
@@ -80,12 +79,9 @@ const CategoryPage = ({ category }) => {
     loadStories();
   }, [category]);
 
-  const formatDate = (timestamp) => {
-    if (!timestamp) return '';
-    if (typeof timestamp?.toDate === 'function') {
-      return timestamp.toDate().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-    }
-    return formatTimestamp(timestamp, false);
+  const getFirstTag = (story) => {
+    if (story.tags && story.tags.length > 0) return story.tags[0];
+    return config.title.replace('Indic ', '').toUpperCase();
   };
 
   const handleStoryClick = (storyId) => {
@@ -103,69 +99,53 @@ const CategoryPage = ({ category }) => {
 
   return (
     <div className="category-page">
-      {/* Hero */}
-      <section className="cp-hero">
-        <div
-          className="cp-hero-bg"
-          style={{ backgroundImage: `url(${config.bgImage})` }}
-        >
-          <div className="cp-hero-overlay">
-            <h1 className="cp-hero-title">{config.title}</h1>
-            <p className="cp-hero-subtitle">{config.subtitle}</p>
-            <p className="cp-hero-desc">{config.description}</p>
-            {currentUser && (
-              <Link
-                to={`/create-story?category=${category}`}
-                className="cp-create-btn"
-              >
-                {category === 'motion' ? 'Upload Video' : 'Create Story'}
-              </Link>
-            )}
-          </div>
-        </div>
-      </section>
+      {/* Minimal Header Bar */}
+      <div className="cp-header-bar">
+        <h1 className="cp-header-title">{config.title}</h1>
+        <p className="cp-header-sub">{config.subtitle}</p>
+        {currentUser && (
+          <Link to={`/create-story?category=${category}`} className="cp-create-btn">
+            {category === 'motion' ? 'Upload Video' : 'Create Story'}
+          </Link>
+        )}
+      </div>
 
       {loading ? (
         <div className="cp-loading">
           <div className="cp-spinner"></div>
           <p>Loading stories...</p>
         </div>
+      ) : stories.length === 0 ? (
+        <section className="cp-empty">
+          <h2>No stories yet</h2>
+          <p>Be the first to share a story in {config.title}.</p>
+          {currentUser && (
+            <Link to={`/create-story?category=${category}`} className="cp-create-btn">
+              {category === 'motion' ? 'Upload Video' : 'Create Story'}
+            </Link>
+          )}
+        </section>
       ) : (
-        <>
-          {/* Cover Story */}
+        <div className="cp-content">
+          {/* Cover Story — Magnum style: big image, centered tag + title below */}
           {coverStory && (
-            <section className="cp-cover">
-              <article
-                className="cp-cover-card"
-                onClick={() => handleStoryClick(coverStory.id)}
-              >
-                <div className="cp-cover-image">
-                  <img
-                    src={coverStory.featuredImage || config.bgImage}
-                    alt={coverStory.title}
-                    loading="lazy"
-                  />
-                </div>
-                <div className="cp-cover-content">
-                  <h2>{coverStory.title}</h2>
-                  {coverStory.excerpt && (
-                    <p className="cp-cover-excerpt">{coverStory.excerpt}</p>
-                  )}
-                  <div className="cp-cover-meta">
-                    <span className="cp-author">{coverStory.authorName}</span>
-                    <span className="cp-date">{formatDate(coverStory.publishedAt || coverStory.createdAt)}</span>
-                  </div>
-                </div>
-              </article>
+            <section className="cp-cover" onClick={() => handleStoryClick(coverStory.id)}>
+              <div className="cp-cover-image">
+                <img
+                  src={coverStory.featuredImage || config.bgImage}
+                  alt={coverStory.title}
+                />
+              </div>
+              <div className="cp-cover-info">
+                <span className="cp-tag">{getFirstTag(coverStory)}</span>
+                <h2 className="cp-cover-title">{coverStory.title}</h2>
+              </div>
             </section>
           )}
 
-          {/* Story Grid */}
+          {/* Story Grid — 4 columns, Magnum style with left/right arrows feel */}
           {gridStories.length > 0 && (
-            <section className="cp-stories">
-              <div className="cp-section-header">
-                <h2>More Stories</h2>
-              </div>
+            <section className="cp-grid-section">
               <div className="cp-grid">
                 {gridStories.map(story => (
                   <article
@@ -180,32 +160,17 @@ const CategoryPage = ({ category }) => {
                         loading="lazy"
                       />
                     </div>
-                    <div className="cp-card-content">
-                      <h3>{story.title}</h3>
-                      <div className="cp-card-meta">
-                        <span className="cp-author">{story.authorName}</span>
-                        <span className="cp-date">{formatDate(story.publishedAt || story.createdAt)}</span>
-                      </div>
+                    <div className="cp-card-body">
+                      <span className="cp-tag">{getFirstTag(story)}</span>
+                      <h3 className="cp-card-title">{story.title}</h3>
+                      <span className="cp-card-author">{story.authorName}</span>
                     </div>
                   </article>
                 ))}
               </div>
             </section>
           )}
-
-          {/* Empty State */}
-          {stories.length === 0 && (
-            <section className="cp-empty">
-              <h2>No stories yet</h2>
-              <p>Be the first to share a story in {config.title}.</p>
-              {currentUser && (
-                <Link to={`/create-story?category=${category}`} className="cp-create-btn">
-                  {category === 'motion' ? 'Upload Video' : 'Create Story'}
-                </Link>
-              )}
-            </section>
-          )}
-        </>
+        </div>
       )}
 
       {/* CTA */}

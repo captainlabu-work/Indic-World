@@ -255,35 +255,32 @@ const Home = () => {
 
       {/* Published Stories from Community */}
       {publishedArticles.length > 0 && (
-        <section className="community-stories-section">
+        <section className="community-section">
           <div className="section-header">
             <h2 className="section-title">Fresh from the Community</h2>
             <p className="section-subtitle">Latest stories published by our writers</p>
           </div>
-          <div className="stories-grid">
+          <div className="community-grid">
             {publishedArticles.map((article) => (
               <article
                 key={article.id}
-                className="story-card"
+                className="community-card"
                 onClick={() => navigate(`/article/${article.id}`)}
               >
-                <div className="story-image">
+                <div className="community-card-image">
                   <img
                     src={article.featuredImage || 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?q=80&w=2028'}
                     alt={article.title}
                     loading="lazy"
                   />
-                  <div className="story-category-badge">
-                    {getCategoryIcon(article.category)} {getCategoryLabel(article.category)}
-                  </div>
                 </div>
-                <div className="story-content">
-                  <h3 className="story-title">{article.title}</h3>
-                  <p className="story-excerpt">{article.excerpt}</p>
-                  <div className="story-meta">
-                    <span className="story-author">{article.authorName}</span>
-                    <span className="story-reading-time">{getReadingTime(article)}</span>
-                  </div>
+                <div className="community-card-body">
+                  <span className="community-card-tag">
+                    {article.tags?.[0] || getCategoryLabel(article.category).replace('Indic ', '').toUpperCase()}
+                  </span>
+                  <h3 className="community-card-title">{article.title}</h3>
+                  <p className="community-card-excerpt">{article.excerpt}</p>
+                  <span className="community-card-author">{article.authorName}</span>
                 </div>
               </article>
             ))}
