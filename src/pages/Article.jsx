@@ -19,6 +19,7 @@ const Article = () => {
   const [actionLoading, setActionLoading] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
   const [feedbackText, setFeedbackText] = useState('');
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     const fetchArticle = async () => {
@@ -31,7 +32,6 @@ const Article = () => {
             ...articleDoc.data()
           };
 
-          // Allow: published articles (everyone), own articles (author), any article (admin)
           if (articleData.status !== 'published' &&
               !isAdmin &&
               (!currentUser || currentUser.uid !== articleData.authorId)) {
@@ -42,7 +42,6 @@ const Article = () => {
 
           setArticle(articleData);
 
-          // Only increment views for published articles viewed by non-authors
           if (articleData.status === 'published' &&
               (!currentUser || currentUser.uid !== articleData.authorId)) {
             await updateDoc(doc(db, 'articles', id), {
@@ -65,11 +64,15 @@ const Article = () => {
 
   const getReadingTime = (content) => {
     if (!content) return '1 min';
-    const wordsPerMinute = 200;
     const text = content.replace(/<[^>]*>/g, '');
     const words = text.split(/\s+/).filter(Boolean).length;
-    const minutes = Math.ceil(words / wordsPerMinute);
-    return `${minutes} min`;
+    return `${Math.ceil(words / 200)} min`;
+  };
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(window.location.href);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const handleApprove = async () => {
@@ -140,72 +143,61 @@ const Article = () => {
   const showAdminBar = isAdmin && article.status !== 'published';
 
   return (
-    <div className="article-container">
-      {/* Admin action bar */}
+    <div className="article-page">
+      {/* Admin review bar */}
       {showAdminBar && (
         <div className="admin-review-bar">
-          <div className="admin-review-status">
-            <span className={`review-badge status-${article.status}`}>
-              {article.status === 'needs-revision' ? 'Needs Revision' : article.status}
-            </span>
-            <span className="review-label">Admin Review</span>
+          <div className="admin-review-inner">
+            <div className="admin-review-status">
+              <span className={`review-badge status-${article.status}`}>
+                {article.status === 'needs-revision' ? 'Needs Revision' : article.status}
+              </span>
+              <span className="review-label">Admin Review</span>
+            </div>
+            {isPending && (
+              <div className="admin-review-actions">
+                <button className="review-btn review-approve" onClick={handleApprove} disabled={actionLoading}>
+                  {actionLoading ? 'Approving...' : 'Approve & Publish'}
+                </button>
+                <button className="review-btn review-feedback" onClick={() => setShowFeedback(!showFeedback)} disabled={actionLoading}>
+                  Feedback
+                </button>
+              </div>
+            )}
           </div>
-          {isPending && (
-            <div className="admin-review-actions">
-              <button
-                className="review-btn review-approve"
-                onClick={handleApprove}
-                disabled={actionLoading}
-              >
-                {actionLoading ? 'Approving...' : 'Approve & Publish'}
-              </button>
-              <button
-                className="review-btn review-feedback"
-                onClick={() => setShowFeedback(!showFeedback)}
-                disabled={actionLoading}
-              >
-                Feedback
-              </button>
+          {showFeedback && (
+            <div className="admin-feedback-panel">
+              <textarea
+                placeholder="Write feedback for the author..."
+                value={feedbackText}
+                onChange={(e) => setFeedbackText(e.target.value)}
+                className="feedback-textarea"
+              />
+              <div className="feedback-actions">
+                <button className="review-btn review-feedback" onClick={handleRequestChanges} disabled={actionLoading}>
+                  {actionLoading ? 'Sending...' : 'Request Changes'}
+                </button>
+                <button className="review-btn review-reject" onClick={handleReject} disabled={actionLoading}>
+                  {actionLoading ? 'Rejecting...' : 'Reject Permanently'}
+                </button>
+                <button className="review-btn review-cancel" onClick={() => { setShowFeedback(false); setFeedbackText(''); }}>
+                  Cancel
+                </button>
+              </div>
             </div>
           )}
         </div>
       )}
 
-      {/* Feedback panel */}
-      {showFeedback && (
-        <div className="admin-feedback-panel">
-          <textarea
-            placeholder="Write feedback for the author..."
-            value={feedbackText}
-            onChange={(e) => setFeedbackText(e.target.value)}
-            className="feedback-textarea"
-          />
-          <div className="feedback-actions">
-            <button
-              className="review-btn review-feedback"
-              onClick={handleRequestChanges}
-              disabled={actionLoading}
-            >
-              {actionLoading ? 'Sending...' : 'Request Changes'}
-            </button>
-            <button
-              className="review-btn review-reject"
-              onClick={handleReject}
-              disabled={actionLoading}
-            >
-              {actionLoading ? 'Rejecting...' : 'Reject Permanently'}
-            </button>
-            <button
-              className="review-btn review-cancel"
-              onClick={() => { setShowFeedback(false); setFeedbackText(''); }}
-            >
-              Cancel
-            </button>
-          </div>
+      {/* Featured image — wide */}
+      {article.featuredImage && (
+        <div className="article-hero">
+          <img src={article.featuredImage} alt={article.title} />
         </div>
       )}
 
       <article className="article-content">
+        {/* Header */}
         <header className="article-header">
           <h1 className="article-title">{article.title}</h1>
           <div className="article-meta">
@@ -221,66 +213,57 @@ const Article = () => {
           </div>
         </header>
 
-        {article.featuredImage && (
-          <div className="article-featured-image">
-            <img src={article.featuredImage} alt={article.title} />
-          </div>
-        )}
-
+        {/* Excerpt */}
         {article.excerpt && (
           <div className="article-excerpt">
             <p>{article.excerpt}</p>
           </div>
         )}
 
+        {/* Body */}
         <div
           className="article-body tiptap-content"
           dangerouslySetInnerHTML={{ __html: article.content || '' }}
         />
 
-        <footer className="article-footer">
-          <div className="article-tags">
-            {article.category && (
-              <span className="article-category">{article.category}</span>
-            )}
-            {article.tags && article.tags.map((tag, i) => (
-              <span key={i} className="article-tag">{tag}</span>
-            ))}
-          </div>
-
-          {currentUser && currentUser.uid === article.authorId && (
-            <div className="author-actions">
-              <Link to={`/edit-article/${article.id}`} className="edit-link">
-                Edit Story
-              </Link>
-            </div>
+        {/* Tags */}
+        <div className="article-tags">
+          {article.category && (
+            <span className="article-category">{article.category}</span>
           )}
-        </footer>
+          {article.tags && article.tags.map((tag, i) => (
+            <span key={i} className="article-tag">{tag}</span>
+          ))}
+        </div>
       </article>
 
-      <aside className="article-sidebar">
-        <div className="author-card">
-          <h3>About the Author</h3>
-          <p className="author-name">{article.authorName}</p>
-          <p className="author-bio">Storyteller at Indic</p>
-        </div>
+      {/* End matter — author, share, nav */}
+      <footer className="article-endmatter">
+        <div className="endmatter-divider"></div>
 
-        <div className="share-card">
-          <h3>Share this story</h3>
-          <div className="share-buttons">
-            <button
-              className="share-btn"
-              onClick={() => navigator.clipboard.writeText(window.location.href)}
-            >
-              Copy Link
-            </button>
+        <div className="endmatter-author">
+          <div className="endmatter-author-info">
+            <span className="endmatter-written-by">Written by</span>
+            <h3 className="endmatter-name">{article.authorName}</h3>
+            <p className="endmatter-bio">Storyteller at Indic</p>
           </div>
         </div>
 
-        <div className="back-navigation">
+        <div className="endmatter-actions">
+          <button className="endmatter-share" onClick={handleCopyLink}>
+            {copied ? 'Link Copied!' : 'Copy Link'}
+          </button>
+          {currentUser && currentUser.uid === article.authorId && (
+            <Link to={`/edit-article/${article.id}`} className="endmatter-edit">
+              Edit Story
+            </Link>
+          )}
+        </div>
+
+        <div className="endmatter-back">
           <Link to="/" className="back-link">&larr; Back to Stories</Link>
         </div>
-      </aside>
+      </footer>
     </div>
   );
 };
