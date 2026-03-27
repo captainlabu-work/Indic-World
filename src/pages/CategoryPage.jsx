@@ -2,8 +2,6 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { articleService } from '../firebase/services';
-import { historicalStories } from '../data/historicalStories';
-import { authenticStories } from '../data/authenticStories';
 import './CategoryPage.css';
 
 const CATEGORY_CONFIG = {
@@ -37,59 +35,21 @@ const CategoryPage = ({ category }) => {
   useEffect(() => {
     const loadStories = async () => {
       setLoading(true);
-
-      // 1. Collect static stories matching this category
-      const staticStories = [];
-      const { featured, topPicks, staffPicks, categoryFeatures } = historicalStories;
-      if (featured?.category === category) staticStories.push(featured);
-      topPicks?.filter(s => s.category === category).forEach(s => staticStories.push(s));
-      staffPicks?.filter(s => s.category === category).forEach(s => staticStories.push(s));
-      if (categoryFeatures?.[category]) staticStories.push(categoryFeatures[category]);
-
-      const auth = authenticStories;
-      if (auth.featured?.category === category) staticStories.push(auth.featured);
-      auth.topPicks?.filter(s => s.category === category).forEach(s => staticStories.push(s));
-      auth.staffPicks?.filter(s => s.category === category).forEach(s => staticStories.push(s));
-
-      // 2. Fetch published articles from Firestore
-      let firestoreArticles = [];
       try {
-        firestoreArticles = await articleService.getPublishedArticlesByCategory(category, 20);
+        const articles = await articleService.getPublishedArticlesByCategory(category, 20);
+        setStories(articles);
       } catch (err) {
         console.error('Error fetching articles:', err);
+      } finally {
+        setLoading(false);
       }
-
-      // 3. Merge: Firestore articles first (newest), then static stories
-      const all = [...firestoreArticles, ...staticStories];
-
-      // Deduplicate by ID
-      const unique = [];
-      const seen = new Set();
-      for (const s of all) {
-        if (!seen.has(s.id)) {
-          seen.add(s.id);
-          unique.push(s);
-        }
-      }
-
-      setStories(unique);
-      setLoading(false);
     };
-
     loadStories();
   }, [category]);
 
   const getFirstTag = (story) => {
     if (story.tags && story.tags.length > 0) return story.tags[0];
     return config.title.replace('Indic ', '').toUpperCase();
-  };
-
-  const handleStoryClick = (storyId) => {
-    if (typeof storyId === 'string' && storyId.includes('-')) {
-      navigate(`/photo-essay/${storyId}`);
-    } else {
-      navigate(`/article/${storyId}`);
-    }
   };
 
   if (!config) return null;
@@ -99,7 +59,7 @@ const CategoryPage = ({ category }) => {
 
   return (
     <div className="category-page">
-      {/* Minimal Header Bar */}
+      {/* Header Bar */}
       <div className="cp-header-bar">
         <h1 className="cp-header-title">{config.title}</h1>
         <p className="cp-header-sub">{config.subtitle}</p>
@@ -117,7 +77,7 @@ const CategoryPage = ({ category }) => {
         </div>
       ) : stories.length === 0 ? (
         <section className="cp-empty">
-          <h2>No stories yet</h2>
+          <h2>No work published here yet.</h2>
           <p>Be the first to share a story in {config.title}.</p>
           {currentUser && (
             <Link to={`/create-story?category=${category}`} className="cp-create-btn">
@@ -127,9 +87,9 @@ const CategoryPage = ({ category }) => {
         </section>
       ) : (
         <div className="cp-content">
-          {/* Cover Story — Magnum style: big image, centered tag + title below */}
+          {/* Cover Story */}
           {coverStory && (
-            <section className="cp-cover" onClick={() => handleStoryClick(coverStory.id)}>
+            <section className="cp-cover" onClick={() => navigate(`/article/${coverStory.id}`)}>
               <div className="cp-cover-image">
                 <img
                   src={coverStory.featuredImage || config.bgImage}
@@ -143,7 +103,7 @@ const CategoryPage = ({ category }) => {
             </section>
           )}
 
-          {/* Story Grid — 4 columns, Magnum style with left/right arrows feel */}
+          {/* Story Grid */}
           {gridStories.length > 0 && (
             <section className="cp-grid-section">
               <div className="cp-grid">
@@ -151,7 +111,7 @@ const CategoryPage = ({ category }) => {
                   <article
                     key={story.id}
                     className="cp-card"
-                    onClick={() => handleStoryClick(story.id)}
+                    onClick={() => navigate(`/article/${story.id}`)}
                   >
                     <div className="cp-card-image">
                       <img
