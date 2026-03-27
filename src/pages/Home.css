@@ -94,9 +94,7 @@
 
 /* ===== Featured Article ===== */
 .home-featured {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 3rem 4rem;
+  padding: 3rem 6rem;
   cursor: pointer;
   border-bottom: 1px solid #e8e8e8;
 }
@@ -158,9 +156,7 @@
 
 /* ===== Stories Grid ===== */
 .home-stories {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2.5rem 4rem 4rem;
+  padding: 2.5rem 6rem 4rem;
 }
 
 .home-stories-grid {
@@ -225,7 +221,7 @@
 
 /* ===== Empty State ===== */
 .home-empty {
-  padding: 6rem 4rem;
+  padding: 4rem 6rem;
   text-align: center;
   max-width: 600px;
   margin: 0 auto;
@@ -284,14 +280,150 @@
   margin-bottom: 1rem;
 }
 
+/* ===== Picks Scroll Sections ===== */
+.picks-section {
+  padding: 2.5rem 6rem 1rem;
+  border-top: 1px solid #e8e8e8;
+}
+
+.picks-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.picks-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  font-family: 'Crimson Text', serif;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.picks-arrows {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.picks-arrow {
+  width: 36px;
+  height: 36px;
+  border: 1px solid #d0d0d0;
+  border-radius: 50%;
+  background: #fff;
+  color: #1a1a1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.picks-arrow:hover:not(.disabled) {
+  background: #1a1a1a;
+  color: #fff;
+  border-color: #1a1a1a;
+}
+
+.picks-arrow.disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.picks-track {
+  display: flex;
+  gap: 1.5rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding-bottom: 1rem;
+}
+
+.picks-track::-webkit-scrollbar {
+  display: none;
+}
+
+.scroll-card {
+  flex: 0 0 calc((100% - 4.5rem) / 4);
+  scroll-snap-align: start;
+  cursor: pointer;
+}
+
+.scroll-card-image {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  line-height: 0;
+  margin-bottom: 0.7rem;
+}
+
+.scroll-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: opacity 0.3s;
+}
+
+.scroll-card:hover .scroll-card-image img {
+  opacity: 0.85;
+}
+
+.scroll-card-body {
+  padding: 0;
+}
+
+.scroll-card-title {
+  font-size: 1rem;
+  font-weight: 400;
+  color: #1a1a1a;
+  font-family: 'Crimson Text', serif;
+  line-height: 1.35;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  transition: text-decoration-color 0.3s;
+}
+
+.scroll-card:hover .scroll-card-title {
+  text-decoration-color: #1a1a1a;
+}
+
+/* Placeholder cards */
+.scroll-card--placeholder {
+  cursor: default;
+}
+
+.scroll-card--placeholder .scroll-card-title {
+  color: #bbb;
+}
+
+.scroll-card--placeholder:hover .scroll-card-title {
+  text-decoration-color: transparent;
+}
+
+.scroll-card-placeholder-bg {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 50%, #f0f0f0 100%);
+}
+
 /* ===== Explore Categories ===== */
 .explore-section {
-  padding: 5rem 8rem;
+  padding: 3rem 6rem 4rem;
   background: #ffffff;
+  border-top: 1px solid #e8e8e8;
 }
 
 .section-header {
-  margin-bottom: 3rem;
+  margin-bottom: 1.5rem;
 }
 
 .section-title {
@@ -312,8 +444,8 @@
 .category-overlays {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 2rem;
-  margin-top: 3rem;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
 }
 
 .category-overlay {
@@ -415,7 +547,7 @@
 
 /* ===== CTA ===== */
 .cta-section {
-  padding: 6rem 8rem;
+  padding: 6rem 6rem;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   text-align: center;
   color: white;
@@ -493,6 +625,10 @@
     grid-template-columns: repeat(3, 1fr);
   }
 
+  .scroll-card {
+    flex: 0 0 calc((100% - 3rem) / 3);
+  }
+
   .category-overlays {
     grid-template-columns: 1fr;
     gap: 1.5rem;
@@ -530,6 +666,14 @@
     gap: 1.5rem;
   }
 
+  .picks-section {
+    padding: 2rem;
+  }
+
+  .scroll-card {
+    flex: 0 0 calc((100% - 1.5rem) / 2);
+  }
+
   .explore-section,
   .cta-section {
     padding: 3rem 2rem;
@@ -565,6 +709,14 @@
 
   .home-stories-grid {
     grid-template-columns: 1fr;
+  }
+
+  .picks-section {
+    padding: 1.5rem;
+  }
+
+  .scroll-card {
+    flex: 0 0 85%;
   }
 
   .explore-section,

@@ -352,6 +352,60 @@ export const articleService = {
     return await this.updateArticle(articleId, { status });
   },
 
+  // Get top picks (most viewed published articles)
+  async getTopPicks(limitCount = 10) {
+    try {
+      const q = query(
+        collection(db, "articles"),
+        where("status", "==", "published"),
+        orderBy("views", "desc"),
+        limit(limitCount)
+      );
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    } catch (err) {
+      // Fallback: fetch all published, sort client-side
+      console.warn('Top picks query failed (index may be building), using fallback:', err.message);
+      const q = query(
+        collection(db, "articles"),
+        where("status", "==", "published"),
+        orderBy("createdAt", "desc")
+      );
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs
+        .map(doc => ({ id: doc.id, ...doc.data() }))
+        .sort((a, b) => (b.views || 0) - (a.views || 0))
+        .slice(0, limitCount);
+    }
+  },
+
+  // Get staff picks (articles marked as staff pick by admin)
+  async getStaffPicks(limitCount = 10) {
+    try {
+      const q = query(
+        collection(db, "articles"),
+        where("status", "==", "published"),
+        where("staffPick", "==", true),
+        orderBy("createdAt", "desc"),
+        limit(limitCount)
+      );
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    } catch (err) {
+      console.warn('Staff picks query failed (index may be building), using fallback:', err.message);
+      const q = query(
+        collection(db, "articles"),
+        where("status", "==", "published"),
+        orderBy("createdAt", "desc")
+      );
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs
+        .map(doc => ({ id: doc.id, ...doc.data() }))
+        .filter(a => a.staffPick === true)
+        .slice(0, limitCount);
+    }
+  },
+
   // Increment article views
   async incrementViews(articleId) {
     const articleRef = doc(db, "articles", articleId);

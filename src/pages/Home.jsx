@@ -1,27 +1,142 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { articleService } from '../firebase/services';
 import './Home.css';
 
+const PLACEHOLDER_IMAGE = 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?q=80&w=2028';
+
+const PLACEHOLDER_CARDS = Array.from({ length: 4 }, (_, i) => ({
+  id: `placeholder-${i}`,
+  placeholder: true,
+  title: 'Coming Soon',
+  featuredImage: null,
+}));
+
+/* ── Horizontal Scroll Row ── */
+const ScrollRow = ({ title, items, navigate, getCategoryLabel }) => {
+  const trackRef = useRef(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const checkScroll = useCallback(() => {
+    const el = trackRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 2);
+    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 2);
+  }, []);
+
+  useEffect(() => {
+    const el = trackRef.current;
+    if (!el) return;
+    checkScroll();
+    el.addEventListener('scroll', checkScroll, { passive: true });
+    const ro = new ResizeObserver(checkScroll);
+    ro.observe(el);
+    return () => {
+      el.removeEventListener('scroll', checkScroll);
+      ro.disconnect();
+    };
+  }, [checkScroll, items]);
+
+  const scroll = (direction) => {
+    const el = trackRef.current;
+    if (!el) return;
+    const card = el.querySelector('.scroll-card');
+    if (!card) return;
+    const cardWidth = card.offsetWidth + parseInt(getComputedStyle(el).gap || '0');
+    el.scrollBy({ left: direction * cardWidth, behavior: 'smooth' });
+  };
+
+  return (
+    <section className="picks-section">
+      <div className="picks-header">
+        <h2 className="picks-title">{title}</h2>
+        <div className="picks-arrows">
+          <button
+            className={`picks-arrow ${!canScrollLeft ? 'disabled' : ''}`}
+            onClick={() => scroll(-1)}
+            disabled={!canScrollLeft}
+            aria-label="Scroll left"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+          </button>
+          <button
+            className={`picks-arrow ${!canScrollRight ? 'disabled' : ''}`}
+            onClick={() => scroll(1)}
+            disabled={!canScrollRight}
+            aria-label="Scroll right"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div className="picks-track" ref={trackRef}>
+        {items.map((item) => (
+          <article
+            key={item.id}
+            className={`scroll-card ${item.placeholder ? 'scroll-card--placeholder' : ''}`}
+            onClick={() => !item.placeholder && navigate(`/article/${item.id}`)}
+          >
+            <div className="scroll-card-image">
+              {item.placeholder ? (
+                <div className="scroll-card-placeholder-bg" />
+              ) : (
+                <img
+                  src={item.featuredImage || PLACEHOLDER_IMAGE}
+                  alt={item.title}
+                  loading="lazy"
+                />
+              )}
+            </div>
+            <div className="scroll-card-body">
+              {!item.placeholder && (
+                <span className="home-tag">
+                  {item.tags?.[0] || getCategoryLabel(item.category)}
+                </span>
+              )}
+              <h3 className="scroll-card-title">
+                {item.title}
+              </h3>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+};
+
+/* ── Home Page ── */
 const Home = () => {
   const [publishedArticles, setPublishedArticles] = useState([]);
+  const [topPicks, setTopPicks] = useState([]);
+  const [staffPicks, setStaffPicks] = useState([]);
   const [loading, setLoading] = useState(true);
   const { currentUser } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchPublished = async () => {
+    const fetchData = async () => {
       try {
-        const articles = await articleService.getPublishedArticles(12);
+        const [articles, top, staff] = await Promise.all([
+          articleService.getPublishedArticles(12),
+          articleService.getTopPicks(10),
+          articleService.getStaffPicks(10),
+        ]);
         setPublishedArticles(articles);
+        setTopPicks(top);
+        setStaffPicks(staff);
       } catch (err) {
-        console.error('Error fetching published articles:', err);
+        console.error('Error fetching homepage data:', err);
       } finally {
         setLoading(false);
       }
     };
-    fetchPublished();
+    fetchData();
   }, []);
 
   const getCategoryLabel = (category) => {
@@ -35,6 +150,10 @@ const Home = () => {
 
   const featuredArticle = publishedArticles[0];
   const gridArticles = publishedArticles.slice(1);
+
+  // Use real data or placeholders
+  const topPicksDisplay = topPicks.length > 0 ? topPicks : PLACEHOLDER_CARDS;
+  const staffPicksDisplay = staffPicks.length > 0 ? staffPicks : PLACEHOLDER_CARDS;
 
   return (
     <div className="home-container">
@@ -58,7 +177,7 @@ const Home = () => {
         <section className="home-featured" onClick={() => navigate(`/article/${featuredArticle.id}`)}>
           <div className="home-featured-image">
             <img
-              src={featuredArticle.featuredImage || 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?q=80&w=2028'}
+              src={featuredArticle.featuredImage || PLACEHOLDER_IMAGE}
               alt={featuredArticle.title}
             />
           </div>
@@ -83,7 +202,7 @@ const Home = () => {
               >
                 <div className="home-card-image">
                   <img
-                    src={article.featuredImage || 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?q=80&w=2028'}
+                    src={article.featuredImage || PLACEHOLDER_IMAGE}
                     alt={article.title}
                     loading="lazy"
                   />
@@ -118,6 +237,26 @@ const Home = () => {
         </section>
       )}
 
+      {/* Top Picks */}
+      {!loading && (
+        <ScrollRow
+          title="Top Picks"
+          items={topPicksDisplay}
+          navigate={navigate}
+          getCategoryLabel={getCategoryLabel}
+        />
+      )}
+
+      {/* Staff Picks */}
+      {!loading && (
+        <ScrollRow
+          title="Staff Picks"
+          items={staffPicksDisplay}
+          navigate={navigate}
+          getCategoryLabel={getCategoryLabel}
+        />
+      )}
+
       {/* Explore Categories */}
       <section className="explore-section">
         <div className="section-header">
@@ -128,27 +267,27 @@ const Home = () => {
           <Link to="/word" className="category-overlay">
             <div className="category-overlay-bg" style={{ backgroundImage: `url('https://images.unsplash.com/photo-1455390582262-044cdead277a?q=80&w=2073')` }}>
               <div className="category-overlay-content">
-                <div className="category-label"><span className="category-icon">✍️</span><h3>Indic Word</h3></div>
+                <div className="category-label"><span className="category-icon">&#x270D;&#xFE0F;</span><h3>Indic Word</h3></div>
                 <p className="category-description">Written narratives & reportage</p>
-                <span className="explore-link">Explore Word →</span>
+                <span className="explore-link">Explore Word &rarr;</span>
               </div>
             </div>
           </Link>
           <Link to="/lens" className="category-overlay">
             <div className="category-overlay-bg" style={{ backgroundImage: `url('https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?q=80&w=2071')` }}>
               <div className="category-overlay-content">
-                <div className="category-label"><span className="category-icon">📸</span><h3>Indic Lens</h3></div>
+                <div className="category-label"><span className="category-icon">&#x1F4F8;</span><h3>Indic Lens</h3></div>
                 <p className="category-description">Visual stories & photo essays</p>
-                <span className="explore-link">Explore Lens →</span>
+                <span className="explore-link">Explore Lens &rarr;</span>
               </div>
             </div>
           </Link>
           <Link to="/motion" className="category-overlay">
             <div className="category-overlay-bg" style={{ backgroundImage: `url('https://images.unsplash.com/photo-1478720568477-152d9b164e26?q=80&w=2070')` }}>
               <div className="category-overlay-content">
-                <div className="category-label"><span className="category-icon">🎬</span><h3>Indic Motion</h3></div>
+                <div className="category-label"><span className="category-icon">&#x1F3AC;</span><h3>Indic Motion</h3></div>
                 <p className="category-description">Documentaries & films</p>
-                <span className="explore-link">Explore Motion →</span>
+                <span className="explore-link">Explore Motion &rarr;</span>
               </div>
             </div>
           </Link>
