@@ -223,12 +223,34 @@
   color: #3c3c3c;
   line-height: 1.7;
   font-family: 'Crimson Text', serif;
-  white-space: pre-wrap;
   padding: 1rem;
   background: #fafafa;
   border-radius: 4px;
-  max-height: 300px;
+  max-height: 400px;
   overflow-y: auto;
+}
+
+.content-preview p {
+  margin-bottom: 1rem;
+}
+
+.content-preview img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+
+.content-preview blockquote {
+  border-left: 3px solid #ccc;
+  padding-left: 1rem;
+  margin: 1rem 0;
+  font-style: italic;
+}
+
+.content-preview h1,
+.content-preview h2,
+.content-preview h3 {
+  margin: 1rem 0 0.5rem;
 }
 
 .featured-image {

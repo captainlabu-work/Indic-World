@@ -55,25 +55,11 @@ const Article = () => {
   const getReadingTime = (content) => {
     if (!content) return '1 min';
     const wordsPerMinute = 200;
-    const words = content.split(/\s+/).length;
+    // Strip HTML tags before counting words
+    const text = content.replace(/<[^>]*>/g, '');
+    const words = text.split(/\s+/).filter(Boolean).length;
     const minutes = Math.ceil(words / wordsPerMinute);
     return `${minutes} min`;
-  };
-
-  const formatContent = (content) => {
-    if (!content) return '';
-
-    // Convert markdown-style formatting to HTML
-    let formatted = content
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.*?)\*/g, '<em>$1</em>')
-      .replace(/### (.*?)$/gm, '<h3>$1</h3>')
-      .replace(/## (.*?)$/gm, '<h2>$1</h2>')
-      .replace(/# (.*?)$/gm, '<h1>$1</h1>')
-      .replace(/\n\n/g, '</p><p>')
-      .replace(/\n/g, '<br>');
-
-    return `<p>${formatted}</p>`;
   };
 
   if (loading) {
@@ -113,6 +99,12 @@ const Article = () => {
           </div>
         </header>
 
+        {article.featuredImage && (
+          <div className="article-featured-image">
+            <img src={article.featuredImage} alt={article.title} />
+          </div>
+        )}
+
         {article.excerpt && (
           <div className="article-excerpt">
             <p>{article.excerpt}</p>
@@ -120,8 +112,8 @@ const Article = () => {
         )}
 
         <div
-          className="article-body"
-          dangerouslySetInnerHTML={{ __html: formatContent(article.content) }}
+          className="article-body tiptap-content"
+          dangerouslySetInnerHTML={{ __html: article.content || '' }}
         />
 
         <footer className="article-footer">
@@ -129,6 +121,9 @@ const Article = () => {
             {article.category && (
               <span className="article-category">{article.category}</span>
             )}
+            {article.tags && article.tags.map((tag, i) => (
+              <span key={i} className="article-tag">{tag}</span>
+            ))}
           </div>
 
           {currentUser && currentUser.uid === article.authorId && (

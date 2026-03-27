@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { articleService } from '../firebase/services';
 import { historicalStories } from '../data/historicalStories';
 import './Home.css';
 
@@ -10,8 +11,21 @@ const Home = () => {
   const [topPicks] = useState(historicalStories.topPicks);
   const [staffPicks] = useState(historicalStories.staffPicks);
   const [categoryFeatures] = useState(historicalStories.categoryFeatures);
+  const [publishedArticles, setPublishedArticles] = useState([]);
   const { currentUser } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchPublished = async () => {
+      try {
+        const articles = await articleService.getPublishedArticles(6);
+        setPublishedArticles(articles);
+      } catch (err) {
+        console.error('Error fetching published articles:', err);
+      }
+    };
+    fetchPublished();
+  }, []);
 
   const formatDate = (timestamp) => {
     if (!timestamp) return '';
@@ -278,6 +292,44 @@ const Home = () => {
           </div>
         </div>
       </section>
+
+      {/* Published Stories from Community */}
+      {publishedArticles.length > 0 && (
+        <section className="community-stories-section">
+          <div className="section-header">
+            <h2 className="section-title">Fresh from the Community</h2>
+            <p className="section-subtitle">Latest stories published by our writers</p>
+          </div>
+          <div className="stories-grid">
+            {publishedArticles.map((article) => (
+              <article
+                key={article.id}
+                className="story-card"
+                onClick={() => navigate(`/article/${article.id}`)}
+              >
+                <div className="story-image">
+                  <img
+                    src={article.featuredImage || 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?q=80&w=2028'}
+                    alt={article.title}
+                    loading="lazy"
+                  />
+                  <div className="story-category-badge">
+                    {getCategoryIcon(article.category)} {getCategoryLabel(article.category)}
+                  </div>
+                </div>
+                <div className="story-content">
+                  <h3 className="story-title">{article.title}</h3>
+                  <p className="story-excerpt">{article.excerpt}</p>
+                  <div className="story-meta">
+                    <span className="story-author">{article.authorName}</span>
+                    <span className="story-reading-time">{getReadingTime(article)}</span>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Call to Action */}
       <section className="cta-section">

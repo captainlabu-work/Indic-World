@@ -383,7 +383,7 @@ const Admin = () => {
         <div className="review-panel">
           <div className="article-full-content">
             <h4>Full Content:</h4>
-            <div className="content-preview">{article.content}</div>
+            <div className="content-preview tiptap-content" dangerouslySetInnerHTML={{ __html: article.content || '' }} />
             {article.featuredImage && (
               <img src={article.featuredImage} alt={article.title} className="featured-image" loading="lazy" />
             )}
