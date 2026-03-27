@@ -95,6 +95,7 @@ const CategoryPage = ({ category }) => {
                   src={coverStory.featuredImage || config.bgImage}
                   alt={coverStory.title}
                 />
+                {coverStory.publicDomainVerified && <span className="pd-badge">PD</span>}
               </div>
               <div className="cp-cover-info">
                 <span className="cp-tag">{getFirstTag(coverStory)}</span>
@@ -119,6 +120,7 @@ const CategoryPage = ({ category }) => {
                         alt={story.title}
                         loading="lazy"
                       />
+                      {story.publicDomainVerified && <span className="pd-badge">PD</span>}
                     </div>
                     <div className="cp-card-body">
                       <span className="cp-tag">{getFirstTag(story)}</span>

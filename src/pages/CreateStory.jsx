@@ -55,6 +55,7 @@ const CreateStory = () => {
         category: storyData.category || 'word',
         featuredImage: featuredImageUrl,
         thumbnailCaption: storyData.thumbnailCaption || '',
+        sourceText: storyData.sourceText || '',
         tags: storyData.tags || [],
         authorId: currentUser.uid,
         authorName: storyData.authorName || userData?.displayName || currentUser.email,

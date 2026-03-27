@@ -234,6 +234,16 @@ const Admin = () => {
     }
   };
 
+  const handleTogglePublicDomain = async (articleId, currentValue, e) => {
+    e.stopPropagation();
+    try {
+      await articleService.updateArticle(articleId, { publicDomainVerified: !currentValue });
+      success(!currentValue ? 'Marked as Public Domain' : 'Public Domain removed');
+    } catch (err) {
+      showError('Failed to update');
+    }
+  };
+
   const filterArticles = (articles) => {
     if (!searchTerm) return articles;
     return articles.filter(a =>
@@ -279,6 +289,14 @@ const Admin = () => {
         )}
         {article.status === 'published' && (
           <button className="ac-btn ac-unpublish" onClick={(e) => handleUnpublish(article.id, e)} disabled={actionLoading}>Unpublish</button>
+        )}
+        {(article.status === 'pending' || article.status === 'published') && (
+          <button
+            className={`ac-btn ${article.publicDomainVerified ? 'ac-pd-active' : 'ac-pd'}`}
+            onClick={(e) => handleTogglePublicDomain(article.id, !!article.publicDomainVerified, e)}
+          >
+            {article.publicDomainVerified ? 'PD Verified' : 'Mark PD'}
+          </button>
         )}
         {article.status === 'archived' && (
           <button className="ac-btn ac-restore" onClick={(e) => handleUnarchive(article.id, e)} disabled={actionLoading}>Unarchive</button>

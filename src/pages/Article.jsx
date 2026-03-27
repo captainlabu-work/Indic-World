@@ -214,6 +214,11 @@ const Article = () => {
             <span className="meta-separator">&bull;</span>
             <span className="reading-time">{getReadingTime(article.content)} read</span>
           </div>
+          {article.sourceText && (
+            <div className="article-source">
+              Source: {article.sourceText}
+            </div>
+          )}
         </header>
 
         {/* Excerpt */}

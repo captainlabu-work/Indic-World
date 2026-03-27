@@ -97,6 +97,7 @@
 }
 
 .cp-cover-image {
+  position: relative;
   width: 100%;
   overflow: hidden;
   line-height: 0;
@@ -153,6 +154,7 @@
 }
 
 .cp-card-image {
+  position: relative;
   width: 100%;
   aspect-ratio: 4 / 3;
   overflow: hidden;

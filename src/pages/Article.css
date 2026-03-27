@@ -77,6 +77,14 @@
   font-style: italic;
 }
 
+.article-source {
+  margin-top: 0.6rem;
+  font-size: 0.85rem;
+  color: #888;
+  font-family: 'Crimson Text', serif;
+  font-style: italic;
+}
+
 /* Excerpt */
 .article-excerpt {
   font-size: 1.15rem;

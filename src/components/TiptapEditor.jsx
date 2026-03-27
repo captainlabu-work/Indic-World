@@ -86,6 +86,7 @@ const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', initialData = 
   const [thumbnail, setThumbnail] = useState(initialData?.thumbnail || initialData?.featuredImage || null);
   const [thumbnailFile, setThumbnailFile] = useState(null);
   const [thumbnailCaption, setThumbnailCaption] = useState(initialData?.thumbnailCaption || '');
+  const [sourceText, setSourceText] = useState(initialData?.sourceText || '');
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Ref that always holds the latest field values for the debounced save
@@ -259,6 +260,7 @@ const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', initialData = 
     coverImage: '',
     thumbnailFile,
     thumbnailCaption,
+    sourceText,
     status,
   });
 
@@ -631,6 +633,19 @@ const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', initialData = 
               placeholder="Image caption (optional)"
               value={thumbnailCaption}
               onChange={(e) => setThumbnailCaption(e.target.value)}
+            />
+          </div>
+
+          {/* Source */}
+          <div className="te-sidebar-field">
+            <label className="te-sidebar-label">Source</label>
+            <p className="te-sidebar-desc">Credit the original source of this work.</p>
+            <input
+              type="text"
+              className="te-sidebar-input"
+              placeholder='e.g. "War and Peace" by Leo Tolstoy'
+              value={sourceText}
+              onChange={(e) => setSourceText(e.target.value)}
             />
           </div>
         </div>

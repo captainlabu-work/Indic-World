@@ -343,6 +343,18 @@
   color: #374151;
 }
 
+.ac-pd {
+  background: #f3f4f6;
+  color: #6b7280;
+  border: 1px dashed #9ca3af;
+}
+
+.ac-pd-active {
+  background: #dbeafe;
+  color: #1d4ed8;
+  border: 1px solid #93c5fd;
+}
+
 /* ===== Feedback Modal ===== */
 .admin-modal-overlay {
   position: fixed;

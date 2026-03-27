@@ -180,6 +180,7 @@ const Home = () => {
               src={featuredArticle.featuredImage || PLACEHOLDER_IMAGE}
               alt={featuredArticle.title}
             />
+            {featuredArticle.publicDomainVerified && <span className="pd-badge">PD</span>}
           </div>
           <div className="home-featured-info">
             <span className="home-tag">{featuredArticle.tags?.[0] || getCategoryLabel(featuredArticle.category)}</span>
@@ -206,6 +207,7 @@ const Home = () => {
                     alt={article.title}
                     loading="lazy"
                   />
+                  {article.publicDomainVerified && <span className="pd-badge">PD</span>}
                 </div>
                 <div className="home-card-body">
                   <span className="home-tag">{article.tags?.[0] || getCategoryLabel(article.category)}</span>

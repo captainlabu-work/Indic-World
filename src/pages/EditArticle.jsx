@@ -72,6 +72,7 @@ const EditArticle = () => {
         category: storyData.category || article.category || 'word',
         featuredImage: featuredImageUrl,
         thumbnailCaption: storyData.thumbnailCaption || '',
+        sourceText: storyData.sourceText || '',
         tags: storyData.tags || article.tags || [],
         status: storyData.status,
         isVisualStory: true,

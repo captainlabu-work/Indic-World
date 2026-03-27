@@ -100,6 +100,7 @@
 }
 
 .home-featured-image {
+  position: relative;
   width: 100%;
   line-height: 0;
   overflow: hidden;
@@ -170,6 +171,7 @@
 }
 
 .home-card-image {
+  position: relative;
   width: 100%;
   aspect-ratio: 4 / 3;
   overflow: hidden;
