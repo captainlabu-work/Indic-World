@@ -1,17 +1,24 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { doc, getDoc, updateDoc, increment } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { useAuth } from '../contexts/AuthContext';
+import { articleService } from '../firebase/services';
 import { formatTimestamp } from '../utils/formatters';
+import { useNotification } from '../components/common/NotificationSystem';
 import './Article.css';
 
 const Article = () => {
   const { id } = useParams();
-  const { currentUser } = useAuth();
+  const navigate = useNavigate();
+  const { currentUser, isAdmin } = useAuth();
+  const { success, error: showError } = useNotification();
   const [article, setArticle] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [feedbackText, setFeedbackText] = useState('');
 
   useEffect(() => {
     const fetchArticle = async () => {
@@ -24,8 +31,9 @@ const Article = () => {
             ...articleDoc.data()
           };
 
-          // Only show published articles to non-authors
+          // Allow: published articles (everyone), own articles (author), any article (admin)
           if (articleData.status !== 'published' &&
+              !isAdmin &&
               (!currentUser || currentUser.uid !== articleData.authorId)) {
             setError('Article not found');
             setLoading(false);
@@ -34,10 +42,13 @@ const Article = () => {
 
           setArticle(articleData);
 
-          // Increment view count
-          await updateDoc(doc(db, 'articles', id), {
-            views: increment(1)
-          });
+          // Only increment views for published articles viewed by non-authors
+          if (articleData.status === 'published' &&
+              (!currentUser || currentUser.uid !== articleData.authorId)) {
+            await updateDoc(doc(db, 'articles', id), {
+              views: increment(1)
+            });
+          }
         } else {
           setError('Article not found');
         }
@@ -50,16 +61,60 @@ const Article = () => {
     };
 
     fetchArticle();
-  }, [id, currentUser]);
+  }, [id, currentUser, isAdmin]);
 
   const getReadingTime = (content) => {
     if (!content) return '1 min';
     const wordsPerMinute = 200;
-    // Strip HTML tags before counting words
     const text = content.replace(/<[^>]*>/g, '');
     const words = text.split(/\s+/).filter(Boolean).length;
     const minutes = Math.ceil(words / wordsPerMinute);
     return `${minutes} min`;
+  };
+
+  const handleApprove = async () => {
+    setActionLoading(true);
+    try {
+      await articleService.approveArticle(id);
+      setArticle(prev => ({ ...prev, status: 'published' }));
+      success('Article approved and published!');
+    } catch (err) {
+      showError('Failed to approve article');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleRequestChanges = async () => {
+    if (!feedbackText.trim()) { showError('Please provide feedback'); return; }
+    setActionLoading(true);
+    try {
+      await articleService.requestChanges(id, feedbackText);
+      setShowFeedback(false);
+      setFeedbackText('');
+      success('Sent back for revision');
+      navigate('/admin');
+    } catch (err) {
+      showError('Failed to request changes');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleReject = async () => {
+    if (!feedbackText.trim()) { showError('Please provide a reason'); return; }
+    setActionLoading(true);
+    try {
+      await articleService.rejectArticle(id, feedbackText);
+      setShowFeedback(false);
+      setFeedbackText('');
+      success('Article rejected');
+      navigate('/admin');
+    } catch (err) {
+      showError('Failed to reject');
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   if (loading) {
@@ -81,8 +136,75 @@ const Article = () => {
     );
   }
 
+  const isPending = article.status === 'pending' || article.status === 'needs-revision';
+  const showAdminBar = isAdmin && article.status !== 'published';
+
   return (
     <div className="article-container">
+      {/* Admin action bar */}
+      {showAdminBar && (
+        <div className="admin-review-bar">
+          <div className="admin-review-status">
+            <span className={`review-badge status-${article.status}`}>
+              {article.status === 'needs-revision' ? 'Needs Revision' : article.status}
+            </span>
+            <span className="review-label">Admin Review</span>
+          </div>
+          {isPending && (
+            <div className="admin-review-actions">
+              <button
+                className="review-btn review-approve"
+                onClick={handleApprove}
+                disabled={actionLoading}
+              >
+                {actionLoading ? 'Approving...' : 'Approve & Publish'}
+              </button>
+              <button
+                className="review-btn review-feedback"
+                onClick={() => setShowFeedback(!showFeedback)}
+                disabled={actionLoading}
+              >
+                Feedback
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Feedback panel */}
+      {showFeedback && (
+        <div className="admin-feedback-panel">
+          <textarea
+            placeholder="Write feedback for the author..."
+            value={feedbackText}
+            onChange={(e) => setFeedbackText(e.target.value)}
+            className="feedback-textarea"
+          />
+          <div className="feedback-actions">
+            <button
+              className="review-btn review-feedback"
+              onClick={handleRequestChanges}
+              disabled={actionLoading}
+            >
+              {actionLoading ? 'Sending...' : 'Request Changes'}
+            </button>
+            <button
+              className="review-btn review-reject"
+              onClick={handleReject}
+              disabled={actionLoading}
+            >
+              {actionLoading ? 'Rejecting...' : 'Reject Permanently'}
+            </button>
+            <button
+              className="review-btn review-cancel"
+              onClick={() => { setShowFeedback(false); setFeedbackText(''); }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
       <article className="article-content">
         <header className="article-header">
           <h1 className="article-title">{article.title}</h1>
@@ -90,11 +212,11 @@ const Article = () => {
             <span className="author-info">
               By <span className="author-name">{article.authorName}</span>
             </span>
-            <span className="meta-separator">•</span>
+            <span className="meta-separator">&bull;</span>
             <span className="publish-date">
               {formatTimestamp(article.publishedAt || article.createdAt, false)}
             </span>
-            <span className="meta-separator">•</span>
+            <span className="meta-separator">&bull;</span>
             <span className="reading-time">{getReadingTime(article.content)} read</span>
           </div>
         </header>
@@ -156,7 +278,7 @@ const Article = () => {
         </div>
 
         <div className="back-navigation">
-          <Link to="/" className="back-link">← Back to Stories</Link>
+          <Link to="/" className="back-link">&larr; Back to Stories</Link>
         </div>
       </aside>
     </div>
