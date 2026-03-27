@@ -232,6 +232,8 @@ const EditArticle = () => {
     category: article.category || 'word',
     tags: article.tags || [],
     featuredImage: article.featuredImage || null,
+    thumbnailCaption: article.thumbnailCaption || '',
+    sourceText: article.sourceText || '',
   };
 
   return (
