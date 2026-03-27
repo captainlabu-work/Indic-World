@@ -10,7 +10,6 @@ const Home = () => {
   const [featuredStory] = useState(historicalStories.featured);
   const [topPicks] = useState(historicalStories.topPicks);
   const [staffPicks] = useState(historicalStories.staffPicks);
-  const [categoryFeatures] = useState(historicalStories.categoryFeatures);
   const [publishedArticles, setPublishedArticles] = useState([]);
   const { currentUser } = useAuth();
   const navigate = useNavigate();
@@ -196,16 +195,11 @@ const Home = () => {
         </div>
         <div className="category-overlays">
           {/* Indic Word */}
-          <div
-            className="category-overlay"
-            onClick={() => categoryFeatures.word && handleStoryClick(categoryFeatures.word.id)}
-          >
+          <Link to="/word" className="category-overlay">
             <div
               className="category-overlay-bg"
               style={{
-                backgroundImage: categoryFeatures.word?.featuredImage
-                  ? `url(${categoryFeatures.word.featuredImage})`
-                  : `url('https://images.unsplash.com/photo-1455390582262-044cdead277a?q=80&w=2073')`
+                backgroundImage: `url('https://images.unsplash.com/photo-1455390582262-044cdead277a?q=80&w=2073')`
               }}
             >
               <div className="category-overlay-content">
@@ -214,30 +208,17 @@ const Home = () => {
                   <h3>Indic Word</h3>
                 </div>
                 <p className="category-description">Written narratives & reportage</p>
-                {categoryFeatures.word && (
-                  <div className="category-featured">
-                    <h4>{categoryFeatures.word.title}</h4>
-                    <p>{categoryFeatures.word.excerpt}</p>
-                  </div>
-                )}
-                <Link to="/word" className="explore-link" onClick={(e) => e.stopPropagation()}>
-                  Explore Word →
-                </Link>
+                <span className="explore-link">Explore Word →</span>
               </div>
             </div>
-          </div>
+          </Link>
 
           {/* Indic Lens */}
-          <div
-            className="category-overlay"
-            onClick={() => categoryFeatures.lens && handleStoryClick(categoryFeatures.lens.id)}
-          >
+          <Link to="/lens" className="category-overlay">
             <div
               className="category-overlay-bg"
               style={{
-                backgroundImage: categoryFeatures.lens?.featuredImage
-                  ? `url(${categoryFeatures.lens.featuredImage})`
-                  : `url('https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?q=80&w=2071')`
+                backgroundImage: `url('https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?q=80&w=2071')`
               }}
             >
               <div className="category-overlay-content">
@@ -246,30 +227,17 @@ const Home = () => {
                   <h3>Indic Lens</h3>
                 </div>
                 <p className="category-description">Visual stories & photo essays</p>
-                {categoryFeatures.lens && (
-                  <div className="category-featured">
-                    <h4>{categoryFeatures.lens.title}</h4>
-                    <p>{categoryFeatures.lens.excerpt}</p>
-                  </div>
-                )}
-                <Link to="/lens" className="explore-link" onClick={(e) => e.stopPropagation()}>
-                  Explore Lens →
-                </Link>
+                <span className="explore-link">Explore Lens →</span>
               </div>
             </div>
-          </div>
+          </Link>
 
           {/* Indic Motion */}
-          <div
-            className="category-overlay"
-            onClick={() => categoryFeatures.motion && handleStoryClick(categoryFeatures.motion.id)}
-          >
+          <Link to="/motion" className="category-overlay">
             <div
               className="category-overlay-bg"
               style={{
-                backgroundImage: categoryFeatures.motion?.featuredImage
-                  ? `url(${categoryFeatures.motion.featuredImage})`
-                  : `url('https://images.unsplash.com/photo-1478720568477-152d9b164e26?q=80&w=2070')`
+                backgroundImage: `url('https://images.unsplash.com/photo-1478720568477-152d9b164e26?q=80&w=2070')`
               }}
             >
               <div className="category-overlay-content">
@@ -278,18 +246,10 @@ const Home = () => {
                   <h3>Indic Motion</h3>
                 </div>
                 <p className="category-description">Documentaries & films</p>
-                {categoryFeatures.motion && (
-                  <div className="category-featured">
-                    <h4>{categoryFeatures.motion.title}</h4>
-                    <p>{categoryFeatures.motion.excerpt}</p>
-                  </div>
-                )}
-                <Link to="/motion" className="explore-link" onClick={(e) => e.stopPropagation()}>
-                  Explore Motion →
-                </Link>
+                <span className="explore-link">Explore Motion →</span>
               </div>
             </div>
-          </div>
+          </Link>
         </div>
       </section>
 

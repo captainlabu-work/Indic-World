@@ -318,6 +318,9 @@
   overflow: hidden;
   cursor: pointer;
   transition: all 0.4s ease;
+  text-decoration: none;
+  color: inherit;
+  display: block;
 }
 
 .category-overlay:hover {
@@ -387,32 +390,6 @@
   font-size: 1rem;
   opacity: 0.9;
   margin-bottom: 1.5rem;
-}
-
-.category-featured {
-  margin-bottom: 1.5rem;
-  padding-top: 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.category-featured h4 {
-  font-size: 1.3rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  font-family: 'Crimson Text', serif;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.category-featured p {
-  font-size: 0.95rem;
-  opacity: 0.9;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
 }
 
 .explore-link {

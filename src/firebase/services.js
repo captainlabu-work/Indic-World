@@ -243,6 +243,19 @@ export const articleService = {
     return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   },
 
+  // Get published articles by category
+  async getPublishedArticlesByCategory(category, limitCount = 20) {
+    const q = query(
+      collection(db, "articles"),
+      where("status", "==", "published"),
+      where("category", "==", category),
+      orderBy("createdAt", "desc"),
+      limit(limitCount)
+    );
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  },
+
   // Get pending articles (for admin)
   async getPendingArticles() {
     const q = query(
