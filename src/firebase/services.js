@@ -155,11 +155,11 @@ export const articleService = {
   // Create new article
   async createArticle(articleData) {
     return await addDoc(collection(db, "articles"), {
+      status: "draft",
+      views: 0,
       ...articleData,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
-      status: "draft",
-      views: 0
     });
   },
 

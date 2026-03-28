@@ -7,7 +7,7 @@
 }
 
 body {
-  font-family: 'Crimson Text', serif;
+  font-family: 'Crimson Text', 'Noto Serif Devanagari', serif;
   background: #fafafa;
   color: #262626;
   line-height: 1.6;
@@ -21,7 +21,7 @@ body {
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Crimson Text', serif;
+  font-family: 'Crimson Text', 'Noto Serif Devanagari', serif;
   font-weight: 600;
 }
 

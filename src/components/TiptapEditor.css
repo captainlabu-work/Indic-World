@@ -2,8 +2,8 @@
 
 /* ===== Font Variables ===== */
 :root {
-  --te-font-serif: 'Source Serif 4', 'Crimson Text', Georgia, 'Times New Roman', serif;
-  --te-font-ui: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+  --te-font-serif: 'Source Serif 4', 'Crimson Text', 'Noto Serif Devanagari', Georgia, 'Times New Roman', serif;
+  --te-font-ui: 'Inter', 'Noto Sans Devanagari', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
   --te-color-text: #2c2c2c;
   --te-color-text-light: #6b6b6b;
   --te-color-text-muted: #9a9a9a;
