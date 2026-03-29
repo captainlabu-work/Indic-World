@@ -168,21 +168,6 @@ const Home = () => {
 
   return (
     <div className="home-container">
-      {/* Hero Banner */}
-      <section className="home-hero">
-        <div className="home-hero-bg">
-          <div className="home-hero-content">
-            <h1 className="home-hero-title">Indic</h1>
-            <p className="home-hero-sub">Stories that matter. Voices that resonate.</p>
-            {currentUser ? (
-              <Link to="/create-story" className="home-hero-btn">Start Writing</Link>
-            ) : (
-              <Link to="/auth" className="home-hero-btn">Join Indic</Link>
-            )}
-          </div>
-        </div>
-      </section>
-
       {/* Featured Article */}
       {!loading && featuredArticle && (
         <section className="home-featured" onClick={() => navigate(`/article/${featuredArticle.id}`)}>
