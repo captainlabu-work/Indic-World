@@ -203,33 +203,14 @@ const Home = () => {
         </section>
       )}
 
-      {/* Stories Grid */}
+      {/* The Latest */}
       {!loading && gridArticles.length > 0 && (
-        <section className="home-stories">
-          <div className="home-stories-grid">
-            {gridArticles.map((article) => (
-              <article
-                key={article.id}
-                className="home-card"
-                onClick={() => navigate(`/article/${article.id}`)}
-              >
-                <div className="home-card-image">
-                  <img
-                    src={article.featuredImage || PLACEHOLDER_IMAGE}
-                    alt={article.title}
-                    loading="lazy"
-                  />
-                  {article.publicDomainVerified && <span className="pd-badge">PD</span>}
-                </div>
-                <div className="home-card-body">
-                  <span className="home-tag">{article.tags?.[0] || getCategoryLabel(article.category)}</span>
-                  <h3 className="home-card-title">{article.title}</h3>
-                  <span className="home-card-author">{article.authorName}</span>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
+        <ScrollRow
+          title="The Latest"
+          items={gridArticles}
+          navigate={navigate}
+          getCategoryLabel={getCategoryLabel}
+        />
       )}
 
       {/* Empty state when no published articles */}
