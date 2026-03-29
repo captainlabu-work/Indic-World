@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { articleService, userService } from '../firebase/services';
-import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, orderBy, doc as firestoreDoc } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { formatRelativeTime } from '../utils/formatters';
 import { useNotification } from '../components/common/NotificationSystem';
@@ -33,6 +33,8 @@ const Admin = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [editingUserId, setEditingUserId] = useState(null);
   const [selectedRole, setSelectedRole] = useState('');
+  const [coverStoryId, setCoverStoryId] = useState(null);
+  const [focalEdit, setFocalEdit] = useState(null); // { articleId, x, y, image }
 
   useEffect(() => {
     setLoading(true);
@@ -99,9 +101,21 @@ const Admin = () => {
       (error) => { console.error('Error fetching stats:', error); setLoading(false); }
     );
 
+    // Listen for cover story setting
+    const unsubscribeCover = onSnapshot(
+      firestoreDoc(db, 'siteSettings', 'homepage'),
+      (snap) => {
+        if (snap.exists()) {
+          setCoverStoryId(snap.data().coverStoryId || null);
+        }
+      },
+      () => {} // silently ignore if doc doesn't exist yet
+    );
+
     return () => {
       unsubscribePending(); unsubscribePublished(); unsubscribeRejected();
       unsubscribeArchived(); unsubscribeDeleted(); unsubscribeUsers(); unsubscribeStats();
+      unsubscribeCover();
     };
   }, []);
 
@@ -271,6 +285,48 @@ const Admin = () => {
     }
   };
 
+  const handleSetCoverStory = async (articleId, e) => {
+    e.stopPropagation();
+    try {
+      await articleService.setCoverStory(articleId);
+      success('Set as homepage cover story!');
+    } catch (err) {
+      showError('Failed to set cover story');
+    }
+  };
+
+  const handleClearCoverStory = async (e) => {
+    e.stopPropagation();
+    try {
+      await articleService.clearCoverStory();
+      success('Cover story removed — homepage will use latest');
+    } catch (err) {
+      showError('Failed to clear cover story');
+    }
+  };
+
+  const handleOpenFocalEdit = (article, e) => {
+    e.stopPropagation();
+    setFocalEdit({
+      articleId: article.id,
+      x: 50,
+      y: 50,
+      image: article.featuredImage,
+      title: article.title,
+    });
+  };
+
+  const handleSaveFocal = async () => {
+    if (!focalEdit) return;
+    try {
+      await articleService.setCoverStory(focalEdit.articleId, focalEdit.x, focalEdit.y);
+      success('Focal point saved!');
+      setFocalEdit(null);
+    } catch (err) {
+      showError('Failed to save focal point');
+    }
+  };
+
   const filterArticles = (articles) => {
     if (!searchTerm) return articles;
     return articles.filter(a =>
@@ -315,7 +371,17 @@ const Admin = () => {
           </>
         )}
         {article.status === 'published' && (
-          <button className="ac-btn ac-unpublish" onClick={(e) => handleUnpublish(article.id, e)} disabled={actionLoading}>Unpublish</button>
+          <>
+            <button className="ac-btn ac-unpublish" onClick={(e) => handleUnpublish(article.id, e)} disabled={actionLoading}>Unpublish</button>
+            {coverStoryId === article.id ? (
+              <>
+                <button className="ac-btn ac-cover-active" onClick={(e) => handleClearCoverStory(e)}>Cover Story</button>
+                <button className="ac-btn ac-focal" onClick={(e) => handleOpenFocalEdit(article, e)} title="Adjust image focal point">Focal</button>
+              </>
+            ) : (
+              <button className="ac-btn ac-cover" onClick={(e) => handleSetCoverStory(article.id, e)}>Set Cover</button>
+            )}
+          </>
         )}
         {(article.status === 'pending' || article.status === 'published') && (
           <>
@@ -435,6 +501,40 @@ const Admin = () => {
                 {actionLoading ? 'Rejecting...' : 'Reject Permanently'}
               </button>
               <button className="ac-btn ac-cancel" onClick={() => { setActionArticle(null); setRejectionReason(''); }}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Focal point editor modal */}
+      {focalEdit && (
+        <div className="admin-modal-overlay" onClick={() => setFocalEdit(null)}>
+          <div className="admin-modal focal-modal" onClick={(e) => e.stopPropagation()}>
+            <h3>Adjust Cover Focal Point</h3>
+            <p className="focal-hint">Move the sliders to position the image focus. The crosshair shows where the image will be centered in the hero section.</p>
+            <div className="focal-preview">
+              <img
+                src={focalEdit.image}
+                alt={focalEdit.title}
+                style={{ objectPosition: `${focalEdit.x}% ${focalEdit.y}%` }}
+              />
+              <div className="focal-crosshair" style={{ left: `${focalEdit.x}%`, top: `${focalEdit.y}%` }} />
+            </div>
+            <div className="focal-controls">
+              <label>
+                <span>Horizontal: {focalEdit.x}%</span>
+                <input type="range" min="0" max="100" value={focalEdit.x}
+                  onChange={(e) => setFocalEdit(prev => ({ ...prev, x: parseInt(e.target.value) }))} />
+              </label>
+              <label>
+                <span>Vertical: {focalEdit.y}%</span>
+                <input type="range" min="0" max="100" value={focalEdit.y}
+                  onChange={(e) => setFocalEdit(prev => ({ ...prev, y: parseInt(e.target.value) }))} />
+              </label>
+            </div>
+            <div className="admin-modal-actions">
+              <button className="ac-btn ac-approve" onClick={handleSaveFocal}>Save Focal Point</button>
+              <button className="ac-btn ac-cancel" onClick={() => setFocalEdit(null)}>Cancel</button>
             </div>
           </div>
         </div>

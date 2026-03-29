@@ -384,6 +384,86 @@
   border-color: #f59e0b;
 }
 
+/* ===== Cover Story Buttons ===== */
+.ac-cover {
+  background: #f3f4f6;
+  color: #6b7280;
+  border: 1px dashed #9ca3af;
+}
+
+.ac-cover-active {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #86efac;
+}
+
+.ac-focal {
+  background: #f0f9ff;
+  color: #0369a1;
+  border: 1px solid #7dd3fc;
+}
+
+/* ===== Focal Point Modal ===== */
+.focal-modal {
+  max-width: 600px;
+}
+
+.focal-hint {
+  font-size: 0.85rem;
+  color: #888;
+  margin-bottom: 1rem;
+  font-family: 'Crimson Text', serif;
+}
+
+.focal-preview {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 6px;
+  border: 1px solid #e0e0e0;
+  margin-bottom: 1rem;
+}
+
+.focal-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.focal-crosshair {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.5);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.focal-controls {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.focal-controls label {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-family: 'Crimson Text', serif;
+  font-size: 0.85rem;
+  color: #555;
+}
+
+.focal-controls input[type="range"] {
+  width: 100%;
+  accent-color: #262626;
+}
+
 /* ===== Feedback Modal ===== */
 .admin-modal-overlay {
   position: fixed;

@@ -423,6 +423,60 @@ export const articleService = {
     }
   },
 
+  // Get the admin-selected cover story for the homepage
+  async getCoverStory() {
+    try {
+      const settingsRef = doc(db, "siteSettings", "homepage");
+      const settingsSnap = await getDoc(settingsRef);
+      if (settingsSnap.exists()) {
+        const { coverStoryId, coverFocalX, coverFocalY } = settingsSnap.data();
+        if (coverStoryId) {
+          const article = await this.getArticle(coverStoryId);
+          if (article && article.status === 'published') {
+            return { ...article, coverFocalX: coverFocalX ?? 50, coverFocalY: coverFocalY ?? 50 };
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('Failed to fetch cover story setting:', err.message);
+    }
+    return null;
+  },
+
+  // Set the homepage cover story (admin only)
+  async setCoverStory(articleId, focalX = 50, focalY = 50) {
+    const { setDoc } = await import("firebase/firestore");
+    const settingsRef = doc(db, "siteSettings", "homepage");
+    return await setDoc(settingsRef, {
+      coverStoryId: articleId,
+      coverFocalX: focalX,
+      coverFocalY: focalY,
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+  },
+
+  // Update just the focal point of the current cover story
+  async updateCoverFocal(focalX, focalY) {
+    const settingsRef = doc(db, "siteSettings", "homepage");
+    return await updateDoc(settingsRef, {
+      coverFocalX: focalX,
+      coverFocalY: focalY,
+      updatedAt: serverTimestamp()
+    });
+  },
+
+  // Remove the cover story (falls back to latest)
+  async clearCoverStory() {
+    const { setDoc } = await import("firebase/firestore");
+    const settingsRef = doc(db, "siteSettings", "homepage");
+    return await setDoc(settingsRef, {
+      coverStoryId: null,
+      coverFocalX: 50,
+      coverFocalY: 50,
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+  },
+
   // Increment article views
   async incrementViews(articleId) {
     const articleRef = doc(db, "articles", articleId);

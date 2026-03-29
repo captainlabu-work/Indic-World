@@ -115,6 +115,7 @@ const Home = () => {
   const [publishedArticles, setPublishedArticles] = useState([]);
   const [topPicks, setTopPicks] = useState([]);
   const [staffPicks, setStaffPicks] = useState([]);
+  const [coverStory, setCoverStory] = useState(null);
   const [loading, setLoading] = useState(true);
   const { currentUser } = useAuth();
   const navigate = useNavigate();
@@ -122,14 +123,16 @@ const Home = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [articles, top, staff] = await Promise.all([
+        const [articles, top, staff, cover] = await Promise.all([
           articleService.getPublishedArticles(12),
           articleService.getTopPicks(10),
           articleService.getStaffPicks(10),
+          articleService.getCoverStory(),
         ]);
         setPublishedArticles(articles);
         setTopPicks(top);
         setStaffPicks(staff);
+        setCoverStory(cover);
       } catch (err) {
         console.error('Error fetching homepage data:', err);
       } finally {
@@ -148,8 +151,12 @@ const Home = () => {
     }
   };
 
-  const featuredArticle = publishedArticles[0];
-  const gridArticles = publishedArticles.slice(1);
+  // Cover story: use admin-selected, or fallback to latest published
+  const featuredArticle = coverStory || publishedArticles[0] || null;
+  const featuredFocalX = coverStory?.coverFocalX ?? 50;
+  const featuredFocalY = coverStory?.coverFocalY ?? 50;
+  // Grid: exclude the featured article from the list
+  const gridArticles = publishedArticles.filter(a => a.id !== featuredArticle?.id);
 
   // Top Picks: show placeholders if empty
   const topPicksDisplay = topPicks.length > 0 ? topPicks : PLACEHOLDER_CARDS;
@@ -183,6 +190,7 @@ const Home = () => {
             <img
               src={featuredArticle.featuredImage || PLACEHOLDER_IMAGE}
               alt={featuredArticle.title}
+              style={{ objectPosition: `${featuredFocalX}% ${featuredFocalY}%` }}
             />
             {featuredArticle.publicDomainVerified && <span className="pd-badge">PD</span>}
           </div>
