@@ -68,6 +68,7 @@ const EditArticle = () => {
       const updateData = {
         title: storyData.title || 'Untitled Story',
         excerpt: storyData.subtitle || '',
+        authorName: storyData.authorName || article.authorName || '',
         content: storyData.content || '',
         category: storyData.category || article.category || 'word',
         featuredImage: featuredImageUrl,
