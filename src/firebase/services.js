@@ -488,6 +488,100 @@ export const articleService = {
   }
 };
 
+// ==================== Subscriber Services ====================
+
+export const subscriberService = {
+  // Subscribe to an author
+  async subscribe(subscriberId, authorId) {
+    // Prevent self-subscribe
+    if (subscriberId === authorId) throw new Error("Cannot subscribe to yourself");
+
+    // Check if already subscribed
+    const q = query(
+      collection(db, "subscriptions"),
+      where("subscriberId", "==", subscriberId),
+      where("authorId", "==", authorId)
+    );
+    const existing = await getDocs(q);
+    if (!existing.empty) return existing.docs[0].id;
+
+    const docRef = await addDoc(collection(db, "subscriptions"), {
+      subscriberId,
+      authorId,
+      subscribedAt: serverTimestamp()
+    });
+    return docRef.id;
+  },
+
+  // Unsubscribe from an author
+  async unsubscribe(subscriberId, authorId) {
+    const q = query(
+      collection(db, "subscriptions"),
+      where("subscriberId", "==", subscriberId),
+      where("authorId", "==", authorId)
+    );
+    const snapshot = await getDocs(q);
+    for (const d of snapshot.docs) {
+      await deleteDoc(doc(db, "subscriptions", d.id));
+    }
+  },
+
+  // Check if user is subscribed to an author
+  async isSubscribed(subscriberId, authorId) {
+    const q = query(
+      collection(db, "subscriptions"),
+      where("subscriberId", "==", subscriberId),
+      where("authorId", "==", authorId)
+    );
+    const snapshot = await getDocs(q);
+    return !snapshot.empty;
+  },
+
+  // Get subscribers of an author (people who subscribed to them)
+  async getSubscribers(authorId) {
+    const q = query(
+      collection(db, "subscriptions"),
+      where("authorId", "==", authorId),
+      orderBy("subscribedAt", "desc")
+    );
+    const snapshot = await getDocs(q);
+    const subs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    // Enrich with user data
+    const enriched = [];
+    for (const sub of subs) {
+      const userData = await userService.getUserData(sub.subscriberId);
+      enriched.push({
+        ...sub,
+        displayName: userData?.displayName || "Unknown User",
+        photoURL: userData?.photoURL || "",
+        email: userData?.email || ""
+      });
+    }
+    return enriched;
+  },
+
+  // Get subscriptions count (authors the user is subscribed to)
+  async getSubscriptionsCount(subscriberId) {
+    const q = query(
+      collection(db, "subscriptions"),
+      where("subscriberId", "==", subscriberId)
+    );
+    const snapshot = await getDocs(q);
+    return snapshot.size;
+  },
+
+  // Get subscriber count for an author
+  async getSubscriberCount(authorId) {
+    const q = query(
+      collection(db, "subscriptions"),
+      where("authorId", "==", authorId)
+    );
+    const snapshot = await getDocs(q);
+    return snapshot.size;
+  }
+};
+
 // ==================== Storage Services ====================
 
 export const storageService = {
