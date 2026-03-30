@@ -20,6 +20,7 @@ const EditArticle = lazy(() => import('./pages/EditArticle'));
 const Article = lazy(() => import('./pages/Article'));
 const CategoryPage = lazy(() => import('./pages/CategoryPage'));
 const Subscribers = lazy(() => import('./pages/Subscribers'));
+const AuthorProfile = lazy(() => import('./pages/AuthorProfile'));
 const Privacy = lazy(() => import('./pages/Privacy'));
 const Terms = lazy(() => import('./pages/Terms'));
 
@@ -101,6 +102,9 @@ function App() {
 
                 {/* Article View */}
                 <Route path="/article/:id" element={<Article />} />
+
+                {/* Public Author Profile */}
+                <Route path="/author/:uid" element={<AuthorProfile />} />
 
                 {/* Category Pages */}
                 <Route path="/word" element={<CategoryPage category="word" />} />

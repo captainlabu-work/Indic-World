@@ -153,6 +153,14 @@
   font-size: 0.85rem;
   color: #999;
   font-family: 'Crimson Text', serif;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.home-featured-author:hover {
+  color: #1a1a1a;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 /* ===== Stories Grid ===== */

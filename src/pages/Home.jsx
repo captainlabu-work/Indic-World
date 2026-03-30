@@ -183,7 +183,7 @@ const Home = () => {
             <span className="home-tag">{featuredArticle.tags?.[0] || getCategoryLabel(featuredArticle.category)}</span>
             <h2 className="home-featured-title">{featuredArticle.title}</h2>
             {featuredArticle.excerpt && <p className="home-featured-excerpt">{featuredArticle.excerpt}</p>}
-            <span className="home-featured-author">{featuredArticle.authorName}</span>
+            <span className="home-featured-author" onClick={(e) => { e.stopPropagation(); navigate(`/author/${featuredArticle.authorId}`); }}>{featuredArticle.authorName}</span>
           </div>
         </section>
       )}

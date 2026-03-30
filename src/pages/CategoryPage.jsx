@@ -125,7 +125,7 @@ const CategoryPage = ({ category }) => {
                     <div className="cp-card-body">
                       <span className="cp-tag">{getFirstTag(story)}</span>
                       <h3 className="cp-card-title">{story.title}</h3>
-                      <span className="cp-card-author">{story.authorName}</span>
+                      <span className="cp-card-author" onClick={(e) => { e.stopPropagation(); navigate(`/author/${story.authorId}`); }}>{story.authorName}</span>
                     </div>
                   </article>
                 ))}

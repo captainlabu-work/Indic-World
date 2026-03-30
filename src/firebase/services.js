@@ -231,6 +231,33 @@ export const articleService = {
     return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   },
 
+  // Get published articles by a specific author
+  async getPublishedArticlesByAuthor(authorId, limitCount = 50) {
+    try {
+      const q = query(
+        collection(db, "articles"),
+        where("status", "==", "published"),
+        where("authorId", "==", authorId),
+        orderBy("createdAt", "desc"),
+        limit(limitCount)
+      );
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    } catch (err) {
+      console.warn('Compound query failed, using fallback:', err.message);
+      const q = query(
+        collection(db, "articles"),
+        where("status", "==", "published"),
+        orderBy("createdAt", "desc")
+      );
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs
+        .map(doc => ({ id: doc.id, ...doc.data() }))
+        .filter(a => a.authorId === authorId)
+        .slice(0, limitCount);
+    }
+  },
+
   // Get published articles
   async getPublishedArticles(limitCount = 20) {
     const q = query(
@@ -579,6 +606,39 @@ export const subscriberService = {
     );
     const snapshot = await getDocs(q);
     return snapshot.size;
+  }
+};
+
+// ==================== Search Services ====================
+
+export const searchService = {
+  // Search articles by title (client-side filter on published articles)
+  async searchArticles(searchTerm, limitCount = 20) {
+    const q = query(
+      collection(db, "articles"),
+      where("status", "==", "published"),
+      orderBy("createdAt", "desc"),
+      limit(100)
+    );
+    const snapshot = await getDocs(q);
+    const term = searchTerm.toLowerCase();
+    return snapshot.docs
+      .map(d => ({ id: d.id, ...d.data() }))
+      .filter(a =>
+        a.title?.toLowerCase().includes(term) ||
+        a.authorName?.toLowerCase().includes(term)
+      )
+      .slice(0, limitCount);
+  },
+
+  // Search users by display name
+  async searchUsers(searchTerm, limitCount = 10) {
+    const snapshot = await getDocs(collection(db, "users"));
+    const term = searchTerm.toLowerCase();
+    return snapshot.docs
+      .map(d => ({ id: d.id, ...d.data() }))
+      .filter(u => u.displayName?.toLowerCase().includes(term))
+      .slice(0, limitCount);
   }
 };
 

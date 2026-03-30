@@ -202,6 +202,14 @@
   font-size: 0.8rem;
   color: #888;
   font-family: 'Crimson Text', serif;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.cp-card-author:hover {
+  color: #1a1a1a;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 /* ===== Empty State ===== */

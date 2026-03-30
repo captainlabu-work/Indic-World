@@ -69,6 +69,18 @@
   font-weight: 600;
 }
 
+.author-link {
+  text-decoration: none;
+  color: #1a1a1a;
+  transition: color 0.2s;
+}
+
+.author-link:hover {
+  color: #555;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .meta-separator {
   color: #ccc;
 }
@@ -272,11 +284,54 @@
   margin: 0 0 0.2rem;
 }
 
+.endmatter-name-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.endmatter-name-link:hover .endmatter-name {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .endmatter-bio {
   font-size: 0.9rem;
   color: #888;
   font-family: 'Crimson Text', serif;
   margin: 0;
+}
+
+.article-subscribe-btn {
+  display: inline-block;
+  margin-top: 1rem;
+  padding: 0.5rem 1.8rem;
+  background: #1a1a1a;
+  color: white;
+  border: 2px solid #1a1a1a;
+  border-radius: 4px;
+  font-family: 'Crimson Text', serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.article-subscribe-btn:hover:not(:disabled) {
+  background: #333;
+}
+
+.article-subscribe-btn.subscribed {
+  background: transparent;
+  color: #1a1a1a;
+}
+
+.article-subscribe-btn.subscribed:hover:not(:disabled) {
+  background: #f5f5f5;
+}
+
+.article-subscribe-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .endmatter-actions {

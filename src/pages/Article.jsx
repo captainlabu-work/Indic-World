@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { doc, getDoc, updateDoc, increment } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { useAuth } from '../contexts/AuthContext';
-import { articleService } from '../firebase/services';
+import { articleService, subscriberService } from '../firebase/services';
 import { formatTimestamp } from '../utils/formatters';
 import { useNotification } from '../components/common/NotificationSystem';
 import './Article.css';
@@ -20,6 +20,8 @@ const Article = () => {
   const [showFeedback, setShowFeedback] = useState(false);
   const [feedbackText, setFeedbackText] = useState('');
   const [copied, setCopied] = useState(false);
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [subLoading, setSubLoading] = useState(false);
 
   useEffect(() => {
     const fetchArticle = async () => {
@@ -61,6 +63,33 @@ const Article = () => {
 
     fetchArticle();
   }, [id, currentUser, isAdmin]);
+
+  // Check subscription status
+  useEffect(() => {
+    if (currentUser && article?.authorId && currentUser.uid !== article.authorId) {
+      subscriberService.isSubscribed(currentUser.uid, article.authorId)
+        .then(setIsSubscribed)
+        .catch(() => {});
+    }
+  }, [currentUser, article?.authorId]);
+
+  const handleSubscribe = async () => {
+    if (!currentUser) { navigate('/auth'); return; }
+    setSubLoading(true);
+    try {
+      if (isSubscribed) {
+        await subscriberService.unsubscribe(currentUser.uid, article.authorId);
+        setIsSubscribed(false);
+      } else {
+        await subscriberService.subscribe(currentUser.uid, article.authorId);
+        setIsSubscribed(true);
+      }
+    } catch (err) {
+      console.error('Subscribe error:', err);
+    } finally {
+      setSubLoading(false);
+    }
+  };
 
   const getReadingTime = (content) => {
     if (!content) return '1 min';
@@ -205,7 +234,7 @@ const Article = () => {
           <h1 className="article-title">{article.title}</h1>
           <div className="article-meta">
             <span className="author-info">
-              By <span className="author-name">{article.authorName}</span>
+              By <Link to={`/author/${article.authorId}`} className="author-name author-link">{article.authorName}</Link>
             </span>
             <span className="meta-separator">&bull;</span>
             <span className="publish-date">
@@ -252,8 +281,19 @@ const Article = () => {
         <div className="endmatter-author">
           <div className="endmatter-author-info">
             <span className="endmatter-written-by">Written by</span>
-            <h3 className="endmatter-name">{article.authorName}</h3>
+            <Link to={`/author/${article.authorId}`} className="endmatter-name-link">
+              <h3 className="endmatter-name">{article.authorName}</h3>
+            </Link>
             <p className="endmatter-bio">Storyteller at Indic</p>
+            {currentUser?.uid !== article.authorId && (
+              <button
+                className={`article-subscribe-btn ${isSubscribed ? 'subscribed' : ''}`}
+                onClick={handleSubscribe}
+                disabled={subLoading}
+              >
+                {subLoading ? '...' : isSubscribed ? 'Subscribed' : 'Subscribe'}
+              </button>
+            )}
           </div>
         </div>
 
