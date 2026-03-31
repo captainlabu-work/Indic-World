@@ -5,11 +5,18 @@ import { authService } from '../../firebase/services';
 import SearchOverlay from './SearchOverlay';
 import './Navbar.css';
 
+const CATEGORIES = [
+  { path: '/word', label: 'Word' },
+  { path: '/lens', label: 'Lens' },
+  { path: '/motion', label: 'Motion' },
+];
+
 const Navbar = () => {
   const { currentUser, userData, isAdmin } = useAuth();
   const location = useLocation();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleSignOut = async () => {
     try {
@@ -33,25 +40,57 @@ const Navbar = () => {
   return (
     <nav className="navbar">
       <div className="nav-container">
-        <Link to="/" className="nav-logo">
-          <span className="nav-logo-text">Indic</span>
-          <div className="nav-divider"></div>
-          <img src="/Indic 2.png" alt="Indic Logo" className="nav-logo-img" />
-        </Link>
+        <div className="nav-left">
+          <Link to="/" className="nav-logo">
+            <span className="nav-logo-text">Indic</span>
+            <div className="nav-divider"></div>
+            <img src="/Indic 2.png" alt="Indic Logo" className="nav-logo-img" />
+          </Link>
+          <ul className="nav-categories">
+            {CATEGORIES.map(({ path, label }) => (
+              <li key={path}>
+                <Link to={path} className={location.pathname === path ? 'active' : ''}>
+                  {label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
 
-        <ul className="nav-links">
+        {/* Hamburger for mobile */}
+        <button
+          className={`nav-hamburger ${mobileMenuOpen ? 'open' : ''}`}
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-label="Toggle menu"
+        >
+          <span /><span /><span />
+        </button>
+
+        <ul className={`nav-links ${mobileMenuOpen ? 'nav-links--open' : ''}`}>
+          {/* Category links visible only in mobile menu */}
+          {CATEGORIES.map(({ path, label }) => (
+            <li key={path} className="nav-mobile-category">
+              <Link
+                to={path}
+                className={location.pathname === path ? 'active' : ''}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                {label}
+              </Link>
+            </li>
+          ))}
           <li>
-            <Link to="/" className={location.pathname === '/' ? 'active' : ''}>
+            <Link to="/" className={location.pathname === '/' ? 'active' : ''} onClick={() => setMobileMenuOpen(false)}>
               Home
             </Link>
           </li>
           <li>
-            <Link to="/about" className={location.pathname === '/about' ? 'active' : ''}>
+            <Link to="/about" className={location.pathname === '/about' ? 'active' : ''} onClick={() => setMobileMenuOpen(false)}>
               About
             </Link>
           </li>
           <li>
-            <Link to="/contact" className={location.pathname === '/contact' ? 'active' : ''}>
+            <Link to="/contact" className={location.pathname === '/contact' ? 'active' : ''} onClick={() => setMobileMenuOpen(false)}>
               Contact
             </Link>
           </li>
