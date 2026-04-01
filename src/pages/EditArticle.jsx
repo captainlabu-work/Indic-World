@@ -65,11 +65,17 @@ const EditArticle = () => {
         );
       }
 
+      // Upload inline base64 images to Storage before Firestore write
+      const { html: cleanContent, json: cleanJSON } = await storageService.uploadContentImages(
+        storyData.content || '',
+        storyData.contentJSON || null
+      );
+
       const updateData = {
         title: storyData.title || 'Untitled Story',
         excerpt: storyData.subtitle || '',
         authorName: storyData.authorName || article.authorName || '',
-        content: storyData.content || '',
+        content: cleanContent,
         category: storyData.category || article.category || 'word',
         featuredImage: featuredImageUrl,
         thumbnailCaption: storyData.thumbnailCaption || '',
@@ -78,8 +84,8 @@ const EditArticle = () => {
         status: storyData.status,
         isVisualStory: true,
       };
-      if (storyData.contentJSON) {
-        updateData.contentJSON = JSON.stringify(storyData.contentJSON);
+      if (cleanJSON) {
+        updateData.contentJSON = typeof cleanJSON === 'string' ? cleanJSON : JSON.stringify(cleanJSON);
       }
       if (article.status === 'needs-revision' && storyData.status === 'pending') {
         updateData.isRevised = true;

@@ -25,6 +25,7 @@ import {
 import {
   ref,
   uploadBytes,
+  uploadString,
   getDownloadURL,
   deleteObject
 } from "firebase/storage";
@@ -674,5 +675,62 @@ export const storageService = {
   // Upload user avatar
   async uploadAvatar(file, userId) {
     return await this.uploadImage(file, `avatars/${userId}`);
+  },
+
+  // Upload a base64 data URL to Storage, returns download URL
+  async uploadDataUrl(dataUrl, path) {
+    try {
+      const storageRef = ref(storage, path);
+      const snapshot = await uploadString(storageRef, dataUrl, 'data_url');
+      return await getDownloadURL(snapshot.ref);
+    } catch (error) {
+      console.error('Data URL upload error:', error);
+      throw new Error(`Failed to upload image: ${error.message}`);
+    }
+  },
+
+  // Extract base64 data URLs from content, upload to Storage, return cleaned content
+  async uploadContentImages(htmlContent, contentJSON) {
+    // Find all base64 data URLs in HTML
+    const dataUrlRegex = /data:image\/[^;]+;base64,[A-Za-z0-9+/=]+/g;
+    const dataUrls = [...new Set(htmlContent.match(dataUrlRegex) || [])];
+
+    if (dataUrls.length === 0) {
+      return { html: htmlContent, json: contentJSON };
+    }
+
+    // Upload each unique data URL and build a replacement map
+    const urlMap = new Map();
+    const uploads = dataUrls.map(async (dataUrl, i) => {
+      const ext = dataUrl.startsWith('data:image/png') ? 'png' : 'jpg';
+      const path = `articles/content/${Date.now()}_${i}.${ext}`;
+      try {
+        const downloadUrl = await this.uploadDataUrl(dataUrl, path);
+        urlMap.set(dataUrl, downloadUrl);
+      } catch (err) {
+        console.error(`Failed to upload inline image ${i}:`, err);
+        throw err;
+      }
+    });
+
+    await Promise.all(uploads);
+
+    // Replace data URLs in HTML
+    let cleanedHtml = htmlContent;
+    for (const [dataUrl, storageUrl] of urlMap) {
+      cleanedHtml = cleanedHtml.split(dataUrl).join(storageUrl);
+    }
+
+    // Replace data URLs in JSON
+    let cleanedJson = contentJSON;
+    if (contentJSON) {
+      let jsonStr = typeof contentJSON === 'string' ? contentJSON : JSON.stringify(contentJSON);
+      for (const [dataUrl, storageUrl] of urlMap) {
+        jsonStr = jsonStr.split(dataUrl).join(storageUrl);
+      }
+      cleanedJson = typeof contentJSON === 'string' ? jsonStr : JSON.parse(jsonStr);
+    }
+
+    return { html: cleanedHtml, json: cleanedJson };
   }
 };

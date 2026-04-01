@@ -48,10 +48,16 @@ const CreateStory = () => {
         );
       }
 
+      // Upload inline base64 images to Storage before Firestore write
+      const { html: cleanContent, json: cleanJSON } = await storageService.uploadContentImages(
+        storyData.content || '',
+        storyData.contentJSON || null
+      );
+
       const articleData = {
         title: storyData.title || 'Untitled Story',
         excerpt: storyData.subtitle || '',
-        content: storyData.content || '',
+        content: cleanContent,
         category: storyData.category || 'word',
         featuredImage: featuredImageUrl,
         thumbnailCaption: storyData.thumbnailCaption || '',
@@ -64,8 +70,8 @@ const CreateStory = () => {
         isVisualStory: true
       };
 
-      if (storyData.contentJSON) {
-        articleData.contentJSON = JSON.stringify(storyData.contentJSON);
+      if (cleanJSON) {
+        articleData.contentJSON = typeof cleanJSON === 'string' ? cleanJSON : JSON.stringify(cleanJSON);
       }
 
       await articleService.createArticle(articleData);
