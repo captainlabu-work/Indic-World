@@ -3,7 +3,7 @@ import { NodeViewWrapper, ReactNodeViewRenderer } from '@tiptap/react';
 import { useCallback, useRef, useState } from 'react';
 
 // React component for the resizable image node view
-const ImageNodeView = ({ node, updateAttributes, selected }) => {
+const ImageNodeView = ({ node, updateAttributes, selected, deleteNode }) => {
   const { src, alt, width, layout, caption } = node.attrs;
   const containerRef = useRef(null);
   const [resizing, setResizing] = useState(false);
@@ -52,6 +52,16 @@ const ImageNodeView = ({ node, updateAttributes, selected }) => {
       ref={containerRef}
     >
       <img src={src} alt={alt || ''} draggable={false} />
+
+      {/* Delete button — visible on hover */}
+      <button
+        type="button"
+        className="te-image-delete"
+        onClick={deleteNode}
+        title="Remove image"
+      >
+        &times;
+      </button>
 
       {/* Caption input — always visible under image */}
       <input

@@ -124,7 +124,7 @@ const GridCell = ({ img, index, onFile, onCaption, onRemove, onResize }) => {
   );
 };
 
-const GridNodeView = ({ node, updateAttributes, selected }) => {
+const GridNodeView = ({ node, updateAttributes, selected, deleteNode }) => {
   const { columns, images } = node.attrs;
 
   const handleFile = useCallback((e, index) => {
@@ -160,10 +160,20 @@ const GridNodeView = ({ node, updateAttributes, selected }) => {
   }, [images, updateAttributes]);
 
   const removeImage = useCallback((index) => {
-    const updated = [...images];
-    updated[index] = { src: '', alt: '', caption: '', height: '' };
-    updateAttributes({ images: updated });
-  }, [images, updateAttributes]);
+    const remaining = images.filter((_, i) => i !== index);
+    const filledCount = remaining.filter(img => img.src).length;
+
+    if (filledCount === 0) {
+      // All images removed — delete the entire grid node
+      deleteNode();
+    } else if (remaining.length <= 1) {
+      // Down to 1 column — delete grid, it's not needed
+      deleteNode();
+    } else {
+      // Collapse: e.g. 3-col → 2-col
+      updateAttributes({ columns: remaining.length, images: remaining });
+    }
+  }, [images, updateAttributes, deleteNode]);
 
   const handleResize = useCallback((index, height) => {
     const updated = [...images];
