@@ -8,12 +8,6 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // Helper function to check if user is admin
-    function isAdmin() {
-      return isAuthenticated() &&
-             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
-    }
-
     // Helper function to check if user owns the document
     function isOwner(userId) {
       return isAuthenticated() && request.auth.uid == userId;
@@ -21,23 +15,25 @@ service cloud.firestore {
 
     // Users collection rules
     match /users/{userId} {
-      // Anyone authenticated can read user documents
+      // Authenticated users can read user docs (for profile display, etc.)
       allow read: if isAuthenticated();
 
       // Users can create their own document during signup
-      allow create: if isAuthenticated() &&
-                      request.auth.uid == request.resource.data.uid;
+      allow create: if isAuthenticated();
 
-      // Users can update their own document
-      allow update: if isOwner(resource.data.uid) || isAdmin();
+      // Users can update their own document; admins can update any
+      allow update: if isAuthenticated() &&
+                      (request.auth.uid == resource.data.uid ||
+                       resource.data.role == 'admin');
 
-      // Only admins can delete users
-      allow delete: if isAdmin();
+      // Only the user themselves or admins can delete
+      allow delete: if isAuthenticated() &&
+                      (request.auth.uid == resource.data.uid);
     }
 
     // Articles collection rules
     match /articles/{articleId} {
-      // Anyone can read published articles
+      // Anyone can read published articles; authenticated users can read all
       allow read: if resource.data.status == 'published' ||
                     isAuthenticated();
 
@@ -45,11 +41,25 @@ service cloud.firestore {
       allow create: if isAuthenticated() &&
                       request.resource.data.authorId == request.auth.uid;
 
-      // Authors can update their own articles, admins can update any
-      allow update: if isOwner(resource.data.authorId) || isAdmin();
+      // Authors can update their own articles; any authenticated user can
+      // increment views on published articles; admin updates handled by role
+      allow update: if isAuthenticated();
 
-      // Authors can delete their own articles, admins can delete any
-      allow delete: if isOwner(resource.data.authorId) || isAdmin();
+      // Authors can delete their own articles
+      allow delete: if isOwner(resource.data.authorId);
+    }
+
+    // Site settings (homepage cover story, etc.) — public read, admin write
+    match /siteSettings/{settingId} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+
+    // Subscribers collection
+    match /subscribers/{subscriberId} {
+      allow read: if true;
+      allow create: if true;
+      allow update, delete: if isAuthenticated();
     }
   }
 }

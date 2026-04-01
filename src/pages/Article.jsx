@@ -46,9 +46,13 @@ const Article = () => {
 
           if (articleData.status === 'published' &&
               (!currentUser || currentUser.uid !== articleData.authorId)) {
-            await updateDoc(doc(db, 'articles', id), {
-              views: increment(1)
-            });
+            try {
+              await updateDoc(doc(db, 'articles', id), {
+                views: increment(1)
+              });
+            } catch {
+              // View increment may fail for anonymous users — non-critical
+            }
           }
         } else {
           setError('Article not found');
