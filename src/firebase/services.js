@@ -689,29 +689,26 @@ export const storageService = {
     }
   },
 
-  // Walk a Tiptap JSON tree, collect all base64 src values, return {dataUrls, nodes}
-  _collectBase64FromJSON(node) {
-    const results = [];
-    if (!node) return results;
+  // Deep-walk any object/array, find all string values starting with "data:image/"
+  // Returns array of { obj, key } refs that can be mutated in place
+  _collectBase64Refs(value, results = []) {
+    if (!value || typeof value !== 'object') return results;
 
-    // Single image node (resizableImage)
-    if (node.attrs?.src && typeof node.attrs.src === 'string' && node.attrs.src.startsWith('data:image/')) {
-      results.push({ ref: node.attrs, key: 'src' });
-    }
-
-    // Grid image node (imageGrid) — images array with src fields
-    if (Array.isArray(node.attrs?.images)) {
-      for (const img of node.attrs.images) {
-        if (img.src && typeof img.src === 'string' && img.src.startsWith('data:image/')) {
-          results.push({ ref: img, key: 'src' });
+    if (Array.isArray(value)) {
+      for (let i = 0; i < value.length; i++) {
+        if (typeof value[i] === 'string' && value[i].startsWith('data:image/')) {
+          results.push({ obj: value, key: i });
+        } else if (typeof value[i] === 'object') {
+          this._collectBase64Refs(value[i], results);
         }
       }
-    }
-
-    // Recurse into children
-    if (Array.isArray(node.content)) {
-      for (const child of node.content) {
-        results.push(...this._collectBase64FromJSON(child));
+    } else {
+      for (const k of Object.keys(value)) {
+        if (typeof value[k] === 'string' && value[k].startsWith('data:image/')) {
+          results.push({ obj: value, key: k });
+        } else if (typeof value[k] === 'object') {
+          this._collectBase64Refs(value[k], results);
+        }
       }
     }
 
@@ -726,38 +723,74 @@ export const storageService = {
       try { jsonObj = JSON.parse(contentJSON); } catch { jsonObj = null; }
     }
 
-    // Collect all base64 data URLs from the JSON tree
-    const base64Refs = jsonObj ? this._collectBase64FromJSON(jsonObj) : [];
+    // Deep-walk the entire JSON tree to find every base64 data URL string
+    const base64Refs = jsonObj ? this._collectBase64Refs(jsonObj) : [];
+
+    console.log(`[uploadContentImages] Found ${base64Refs.length} base64 image(s) in content JSON`);
 
     if (base64Refs.length === 0) {
       return { html: htmlContent, json: contentJSON };
     }
 
-    // Deduplicate: same data URL may appear multiple times
-    const uniqueUrls = [...new Set(base64Refs.map(r => r.ref[r.key]))];
+    // Deduplicate: same data URL may appear in multiple places
+    const uniqueUrls = [...new Set(base64Refs.map(r => r.obj[r.key]))];
     const urlMap = new Map();
     const ts = Date.now();
+
+    console.log(`[uploadContentImages] Uploading ${uniqueUrls.length} unique image(s) to Storage...`);
 
     // Upload all unique base64 images in parallel
     const uploads = uniqueUrls.map(async (dataUrl, i) => {
       const ext = dataUrl.startsWith('data:image/png') ? 'png' : 'jpg';
       const path = `articles/content/${ts}_${i}.${ext}`;
-      const downloadUrl = await this.uploadDataUrl(dataUrl, path);
-      urlMap.set(dataUrl, downloadUrl);
+      try {
+        const downloadUrl = await this.uploadDataUrl(dataUrl, path);
+        urlMap.set(dataUrl, downloadUrl);
+        console.log(`[uploadContentImages] Uploaded image ${i + 1}/${uniqueUrls.length}`);
+      } catch (err) {
+        console.error(`[uploadContentImages] Failed to upload image ${i}:`, err.message);
+        throw new Error(`Image upload failed (image ${i + 1}): ${err.message}`);
+      }
     });
 
     await Promise.all(uploads);
 
     // Replace base64 refs in JSON tree (mutates in place)
-    for (const { ref: obj, key } of base64Refs) {
+    let replaced = 0;
+    for (const { obj, key } of base64Refs) {
       const replacement = urlMap.get(obj[key]);
-      if (replacement) obj[key] = replacement;
+      if (replacement) {
+        obj[key] = replacement;
+        replaced++;
+      }
     }
+    console.log(`[uploadContentImages] Replaced ${replaced}/${base64Refs.length} refs in JSON`);
 
-    // Replace in HTML string
+    // Replace base64 in HTML: both inline img src and data-images attributes
     let cleanedHtml = htmlContent;
     for (const [dataUrl, storageUrl] of urlMap) {
       cleanedHtml = cleanedHtml.split(dataUrl).join(storageUrl);
+    }
+
+    // Rebuild data-images attributes from cleaned JSON for imageGrid nodes
+    if (jsonObj?.content) {
+      for (const node of jsonObj.content) {
+        if (node.type === 'imageGrid' && Array.isArray(node.attrs?.images)) {
+          const cleanImagesJson = JSON.stringify(node.attrs.images);
+          // Find existing data-images="..." in HTML and replace with cleaned version
+          cleanedHtml = cleanedHtml.replace(
+            /(<div[^>]*data-type="image-grid"[^>]*data-images=")([^"]*?)(")/g,
+            (_match, pre, _oldVal, post) => pre + cleanImagesJson.replace(/"/g, '&quot;') + post
+          );
+        }
+      }
+    }
+
+    // Validate: ensure no base64 remains in JSON
+    const jsonStr = JSON.stringify(jsonObj);
+    if (jsonStr.includes('data:image/')) {
+      const remaining = (jsonStr.match(/data:image\//g) || []).length;
+      console.error(`[uploadContentImages] WARNING: ${remaining} base64 image(s) still in JSON after upload`);
     }
 
     // Return JSON in same format as received
