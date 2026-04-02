@@ -152,6 +152,80 @@ export const userService = {
 
 // ==================== Article Services ====================
 
+// ==================== Payload Validation ====================
+
+// Recursively scan an object for Firestore-invalid values.
+// Returns array of { path, issue } for every problem found.
+export function validateFirestorePayload(obj, path = 'root', issues = []) {
+  if (obj === undefined) {
+    issues.push({ path, issue: 'undefined value' });
+    return issues;
+  }
+  if (obj === null || typeof obj === 'boolean' || typeof obj === 'number') {
+    return issues;
+  }
+  if (typeof obj === 'string') {
+    if (obj.startsWith('data:image/')) {
+      issues.push({ path, issue: `base64 data URL (${obj.length} chars)` });
+    } else if (obj.startsWith('blob:')) {
+      issues.push({ path, issue: 'blob: URL' });
+    }
+    return issues;
+  }
+  if (typeof obj === 'function') {
+    issues.push({ path, issue: 'function' });
+    return issues;
+  }
+  if (obj instanceof File) {
+    issues.push({ path, issue: `File object (${obj.name})` });
+    return issues;
+  }
+  if (obj instanceof Blob) {
+    issues.push({ path, issue: `Blob object (${obj.size} bytes)` });
+    return issues;
+  }
+  if (Array.isArray(obj)) {
+    for (let i = 0; i < obj.length; i++) {
+      validateFirestorePayload(obj[i], `${path}[${i}]`, issues);
+    }
+    return issues;
+  }
+  if (typeof obj === 'object') {
+    // Skip Firestore sentinel values (serverTimestamp, etc.)
+    if (obj.constructor && obj.constructor.name !== 'Object') {
+      return issues;
+    }
+    for (const key of Object.keys(obj)) {
+      validateFirestorePayload(obj[key], `${path}.${key}`, issues);
+    }
+  }
+  return issues;
+}
+
+// Sanitize a payload: remove undefined values, File/Blob objects, functions
+export function sanitizePayload(obj) {
+  if (obj === null || obj === undefined || typeof obj !== 'object') return obj;
+  if (obj instanceof File || obj instanceof Blob) return null;
+  if (typeof obj === 'function') return null;
+
+  if (Array.isArray(obj)) {
+    return obj.map(item => sanitizePayload(item));
+  }
+
+  const cleaned = {};
+  for (const [key, val] of Object.entries(obj)) {
+    if (val === undefined) continue;
+    if (val instanceof File || val instanceof Blob) continue;
+    if (typeof val === 'function') continue;
+    if (typeof val === 'object' && val !== null && !(val.constructor && val.constructor.name !== 'Object')) {
+      cleaned[key] = sanitizePayload(val);
+    } else {
+      cleaned[key] = val;
+    }
+  }
+  return cleaned;
+}
+
 export const articleService = {
   // Create new article
   async createArticle(articleData) {

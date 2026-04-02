@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { articleService, storageService } from '../firebase/services';
+import { articleService, storageService, validateFirestorePayload, sanitizePayload } from '../firebase/services';
 import { useNotification } from '../components/common/NotificationSystem';
 import TiptapEditor from '../components/TiptapEditor';
 import './CreateStory.css';
@@ -74,7 +74,41 @@ const CreateStory = () => {
         articleData.contentJSON = typeof cleanJSON === 'string' ? cleanJSON : JSON.stringify(cleanJSON);
       }
 
-      await articleService.createArticle(articleData);
+      // Sanitize: remove File/Blob/undefined before Firestore write
+      const sanitized = sanitizePayload(articleData);
+
+      // Validate: check for remaining invalid values
+      const issues = validateFirestorePayload(sanitized);
+      if (issues.length > 0) {
+        console.error('[CreateStory] Payload validation issues:', issues);
+        // Also validate the contentJSON string by parsing it
+        if (sanitized.contentJSON) {
+          try {
+            const parsed = JSON.parse(sanitized.contentJSON);
+            const jsonIssues = validateFirestorePayload(parsed, 'contentJSON(parsed)');
+            if (jsonIssues.length > 0) {
+              console.error('[CreateStory] contentJSON internal issues:', jsonIssues);
+            }
+          } catch (e) {
+            console.error('[CreateStory] contentJSON is not valid JSON:', e.message);
+          }
+        }
+        // Log base64/blob counts
+        const jsonStr = sanitized.contentJSON || '';
+        const base64Count = (jsonStr.match(/data:image\//g) || []).length;
+        const blobCount = (jsonStr.match(/blob:/g) || []).length;
+        console.error(`[CreateStory] contentJSON still has ${base64Count} base64, ${blobCount} blob URLs`);
+
+        // Block save if base64 still present (would exceed Firestore limit)
+        if (base64Count > 0) {
+          showError(`Save blocked: ${base64Count} image(s) failed to upload. Please try again.`);
+          return;
+        }
+      }
+
+      console.log('[CreateStory] Final payload size:', JSON.stringify(sanitized).length, 'bytes');
+
+      await articleService.createArticle(sanitized);
 
       if (status === 'pending') {
         success('Your story has been submitted for review. You\'ll be notified once it\'s published.');

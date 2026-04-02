@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { articleService, storageService } from '../firebase/services';
+import { articleService, storageService, validateFirestorePayload, sanitizePayload } from '../firebase/services';
 import { useNotification } from '../components/common/NotificationSystem';
 import TiptapEditor from '../components/TiptapEditor';
 import './CreateStory.css';
@@ -91,7 +91,36 @@ const EditArticle = () => {
         updateData.isRevised = true;
         updateData.revisionNote = '';
       }
-      await articleService.updateArticle(id, updateData);
+
+      // Sanitize: remove File/Blob/undefined before Firestore write
+      const sanitized = sanitizePayload(updateData);
+
+      // Validate: check for remaining invalid values
+      const issues = validateFirestorePayload(sanitized);
+      if (issues.length > 0) {
+        console.error('[EditArticle] Payload validation issues:', issues);
+        if (sanitized.contentJSON) {
+          try {
+            const parsed = JSON.parse(sanitized.contentJSON);
+            const jsonIssues = validateFirestorePayload(parsed, 'contentJSON(parsed)');
+            if (jsonIssues.length > 0) {
+              console.error('[EditArticle] contentJSON internal issues:', jsonIssues);
+            }
+          } catch (e) {
+            console.error('[EditArticle] contentJSON is not valid JSON:', e.message);
+          }
+        }
+        const jsonStr = sanitized.contentJSON || '';
+        const base64Count = (jsonStr.match(/data:image\//g) || []).length;
+        if (base64Count > 0) {
+          showError(`Save blocked: ${base64Count} image(s) failed to upload. Please try again.`);
+          return;
+        }
+      }
+
+      console.log('[EditArticle] Final payload size:', JSON.stringify(sanitized).length, 'bytes');
+
+      await articleService.updateArticle(id, sanitized);
       if (storyData.status === 'pending') {
         success('Story submitted for review!');
       } else {
