@@ -85,8 +85,8 @@ const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', initialData = 
   const [tags, setTags] = useState(initialData?.tags || draft.current?.tags || []);
   const [thumbnail, setThumbnail] = useState(initialData?.thumbnail || initialData?.featuredImage || null);
   const [thumbnailFile, setThumbnailFile] = useState(null);
-  const [thumbnailCaption, setThumbnailCaption] = useState(initialData?.thumbnailCaption || '');
-  const [sourceText, setSourceText] = useState(initialData?.sourceText || '');
+  const [thumbnailCaption, setThumbnailCaption] = useState(initialData?.thumbnailCaption || draft.current?.thumbnailCaption || '');
+  const [sourceText, setSourceText] = useState(initialData?.sourceText || draft.current?.sourceText || '');
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Ref that always holds the latest field values for the debounced save
@@ -129,12 +129,14 @@ const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', initialData = 
 
   // --- Autosave logic (only for new stories, not edit mode) ---
   const saveDraftToStorage = useCallback(() => {
-    if (!editor || isEditMode) return;
+    if (!editor || isEditMode || draftCleared.current) return;
     const data = {
       ...fieldsRef.current,
       contentJSON: editor.getJSON(),
       category,
       tags,
+      thumbnailCaption,
+      sourceText,
       savedAt: Date.now(),
     };
     try {
@@ -142,7 +144,7 @@ const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', initialData = 
     } catch {
       // localStorage quota exceeded — silently ignore
     }
-  }, [editor, category, tags, isEditMode]);
+  }, [editor, category, tags, thumbnailCaption, sourceText, isEditMode]);
 
   const scheduleSave = useCallback(() => {
     if (isEditMode) return;
@@ -161,20 +163,23 @@ const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', initialData = 
   // Save on field change
   useEffect(() => {
     if (!isEditMode) scheduleSave();
-  }, [title, subtitle, authorName, scheduleSave, isEditMode]);
+  }, [title, subtitle, authorName, thumbnailCaption, sourceText, scheduleSave, isEditMode]);
 
-  // Cleanup timer on unmount — flush final save
+  // Cleanup timer on unmount — flush final save only if draft wasn't cleared
   useEffect(() => {
     return () => {
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
       if (isEditMode) return;
-      // Final save on unmount
+      if (draftCleared.current) return; // Don't re-save after discard/save/submit
+      // Final save on unmount (preserves work during navigation/refresh)
       if (editor && !editor.isDestroyed) {
         const data = {
           ...fieldsRef.current,
           contentJSON: editor.getJSON(),
           category,
           tags,
+          thumbnailCaption,
+          sourceText,
           savedAt: Date.now(),
         };
         try {
@@ -182,9 +187,13 @@ const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', initialData = 
         } catch {}
       }
     };
-  }, [editor, category, tags, isEditMode]);
+  }, [editor, category, tags, thumbnailCaption, sourceText, isEditMode]);
+
+  // Flag: when true, unmount should NOT re-save to localStorage
+  const draftCleared = useRef(false);
 
   const clearDraft = useCallback(() => {
+    draftCleared.current = true;
     localStorage.removeItem(DRAFT_KEY);
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
   }, []);
