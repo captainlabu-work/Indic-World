@@ -689,47 +689,79 @@ export const storageService = {
     }
   },
 
-  // Extract base64 data URLs from content, upload to Storage, return cleaned content
-  async uploadContentImages(htmlContent, contentJSON) {
-    // Find all base64 data URLs in HTML
-    const dataUrlRegex = /data:image\/[^;]+;base64,[A-Za-z0-9+/=]+/g;
-    const dataUrls = [...new Set(htmlContent.match(dataUrlRegex) || [])];
+  // Walk a Tiptap JSON tree, collect all base64 src values, return {dataUrls, nodes}
+  _collectBase64FromJSON(node) {
+    const results = [];
+    if (!node) return results;
 
-    if (dataUrls.length === 0) {
+    // Single image node (resizableImage)
+    if (node.attrs?.src && typeof node.attrs.src === 'string' && node.attrs.src.startsWith('data:image/')) {
+      results.push({ ref: node.attrs, key: 'src' });
+    }
+
+    // Grid image node (imageGrid) — images array with src fields
+    if (Array.isArray(node.attrs?.images)) {
+      for (const img of node.attrs.images) {
+        if (img.src && typeof img.src === 'string' && img.src.startsWith('data:image/')) {
+          results.push({ ref: img, key: 'src' });
+        }
+      }
+    }
+
+    // Recurse into children
+    if (Array.isArray(node.content)) {
+      for (const child of node.content) {
+        results.push(...this._collectBase64FromJSON(child));
+      }
+    }
+
+    return results;
+  },
+
+  // Upload all base64 images in editor content to Storage, return cleaned content
+  async uploadContentImages(htmlContent, contentJSON) {
+    // Parse JSON if needed
+    let jsonObj = contentJSON;
+    if (typeof contentJSON === 'string') {
+      try { jsonObj = JSON.parse(contentJSON); } catch { jsonObj = null; }
+    }
+
+    // Collect all base64 data URLs from the JSON tree
+    const base64Refs = jsonObj ? this._collectBase64FromJSON(jsonObj) : [];
+
+    if (base64Refs.length === 0) {
       return { html: htmlContent, json: contentJSON };
     }
 
-    // Upload each unique data URL and build a replacement map
+    // Deduplicate: same data URL may appear multiple times
+    const uniqueUrls = [...new Set(base64Refs.map(r => r.ref[r.key]))];
     const urlMap = new Map();
-    const uploads = dataUrls.map(async (dataUrl, i) => {
+    const ts = Date.now();
+
+    // Upload all unique base64 images in parallel
+    const uploads = uniqueUrls.map(async (dataUrl, i) => {
       const ext = dataUrl.startsWith('data:image/png') ? 'png' : 'jpg';
-      const path = `articles/content/${Date.now()}_${i}.${ext}`;
-      try {
-        const downloadUrl = await this.uploadDataUrl(dataUrl, path);
-        urlMap.set(dataUrl, downloadUrl);
-      } catch (err) {
-        console.error(`Failed to upload inline image ${i}:`, err);
-        throw err;
-      }
+      const path = `articles/content/${ts}_${i}.${ext}`;
+      const downloadUrl = await this.uploadDataUrl(dataUrl, path);
+      urlMap.set(dataUrl, downloadUrl);
     });
 
     await Promise.all(uploads);
 
-    // Replace data URLs in HTML
+    // Replace base64 refs in JSON tree (mutates in place)
+    for (const { ref: obj, key } of base64Refs) {
+      const replacement = urlMap.get(obj[key]);
+      if (replacement) obj[key] = replacement;
+    }
+
+    // Replace in HTML string
     let cleanedHtml = htmlContent;
     for (const [dataUrl, storageUrl] of urlMap) {
       cleanedHtml = cleanedHtml.split(dataUrl).join(storageUrl);
     }
 
-    // Replace data URLs in JSON
-    let cleanedJson = contentJSON;
-    if (contentJSON) {
-      let jsonStr = typeof contentJSON === 'string' ? contentJSON : JSON.stringify(contentJSON);
-      for (const [dataUrl, storageUrl] of urlMap) {
-        jsonStr = jsonStr.split(dataUrl).join(storageUrl);
-      }
-      cleanedJson = typeof contentJSON === 'string' ? jsonStr : JSON.parse(jsonStr);
-    }
+    // Return JSON in same format as received
+    const cleanedJson = typeof contentJSON === 'string' ? JSON.stringify(jsonObj) : jsonObj;
 
     return { html: cleanedHtml, json: cleanedJson };
   }
