@@ -231,7 +231,7 @@ const ImageGrid = Node.create({
   },
 
   renderHTML({ HTMLAttributes }) {
-    return ['div', { 'data-type': 'image-grid', ...HTMLAttributes }, 0];
+    return ['div', { 'data-type': 'image-grid', ...HTMLAttributes }];
   },
 
   addNodeView() {
