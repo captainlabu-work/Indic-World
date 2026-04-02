@@ -180,6 +180,56 @@
   transform: translateX(-50%);
 }
 
+/* Image Grid — rendered from imageGrid nodes */
+.article-body.tiptap-content .image-grid {
+  display: grid;
+  gap: 1rem;
+  max-width: min(900px, calc(100vw - 3rem));
+  margin: 2rem auto;
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.article-body.tiptap-content .image-grid.cols-2 {
+  grid-template-columns: 1fr 1fr;
+}
+
+.article-body.tiptap-content .image-grid.cols-3 {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+.article-body.tiptap-content .image-grid .grid-cell {
+  margin: 0;
+  overflow: hidden;
+}
+
+.article-body.tiptap-content .image-grid .grid-cell img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 2px;
+  margin: 0;
+  left: auto;
+  transform: none;
+  max-width: 100%;
+}
+
+.article-body.tiptap-content .image-grid .grid-cell figcaption {
+  font-size: 0.8rem;
+  color: #888;
+  font-family: 'Crimson Text', 'Noto Serif Devanagari', serif;
+  font-style: italic;
+  margin-top: 0.4rem;
+  text-align: center;
+}
+
+@media (max-width: 480px) {
+  .article-body.tiptap-content .image-grid.cols-3 {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
 .article-body.tiptap-content ul,
 .article-body.tiptap-content ol {
   padding-left: 1.5rem;

@@ -230,8 +230,32 @@ const ImageGrid = Node.create({
     return [{ tag: 'div[data-type="image-grid"]' }];
   },
 
-  renderHTML({ HTMLAttributes }) {
-    return ['div', { 'data-type': 'image-grid', ...HTMLAttributes }];
+  renderHTML({ node }) {
+    const { columns, images } = node.attrs;
+    const imgElements = images.slice(0, columns).map((img) => {
+      const children = [];
+      if (img.src) {
+        const imgAttrs = { src: img.src, alt: img.alt || '' };
+        if (img.height) {
+          imgAttrs.style = `height:${img.height};object-fit:cover;`;
+        }
+        children.push(['img', imgAttrs]);
+      }
+      if (img.caption) {
+        children.push(['figcaption', {}, img.caption]);
+      }
+      return ['figure', { class: 'grid-cell' }, ...children];
+    });
+
+    return [
+      'div',
+      {
+        'data-type': 'image-grid',
+        'data-images': JSON.stringify(images),
+        class: `image-grid cols-${columns}`,
+      },
+      ...imgElements,
+    ];
   },
 
   addNodeView() {
