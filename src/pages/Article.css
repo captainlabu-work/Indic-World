@@ -9,7 +9,7 @@
 
 /* ===== Hero / Featured Image (wide media container) ===== */
 .article-hero {
-  max-width: 1225px;
+  max-width: 1190px;
   margin: 0 auto;
   padding: 2rem 1.5rem 0;
   line-height: 0;
@@ -34,7 +34,7 @@
 
 /* ===== Article Content (text column) ===== */
 .article-content {
-  max-width: 745px;
+  max-width: 725px;
   margin: 0 auto;
   padding: 2rem 1.5rem 0;
   overflow: visible;
@@ -178,7 +178,7 @@
 .article-body.tiptap-content img {
   display: block;
   width: calc(100vw - 3rem);
-  max-width: 1225px;
+  max-width: 1190px;
   height: auto;
   margin: 3rem 0;
   position: relative;
@@ -191,7 +191,7 @@
 .article-body.tiptap-content img + figcaption {
   display: block;
   width: calc(100vw - 3rem);
-  max-width: 1225px;
+  max-width: 1190px;
   margin: -2.25rem 0 3rem;
   padding-top: 0.5rem;
   position: relative;
@@ -214,7 +214,7 @@
   display: grid;
   gap: 24px;
   width: calc(100vw - 3rem);
-  max-width: 1225px;
+  max-width: 1190px;
   margin: 3rem 0;
   position: relative;
   left: 50%;
@@ -339,7 +339,7 @@
 
 /* ===== End Matter (replaces sidebar) ===== */
 .article-endmatter {
-  max-width: 745px;
+  max-width: 725px;
   margin: 0 auto;
   padding: 0 1.5rem 3rem;
 }
@@ -488,7 +488,7 @@
 }
 
 .admin-review-inner {
-  max-width: 1225px;
+  max-width: 1190px;
   margin: 0 auto;
   display: flex;
   align-items: center;
@@ -550,7 +550,7 @@
 .review-cancel { background: #e5e7eb; color: #374151; }
 
 .admin-feedback-panel {
-  max-width: 1225px;
+  max-width: 1190px;
   margin: 0.75rem auto 0;
   padding-top: 0.75rem;
   border-top: 1px solid #eab30844;
