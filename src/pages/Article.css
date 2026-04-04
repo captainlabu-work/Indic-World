@@ -286,18 +286,20 @@
   margin: 0;
 }
 
-/* Image frame — controls height, clips image.
-   When inline height is set (from editor resize), it takes precedence.
-   When no inline height, aspect-ratio provides a sensible default. */
+/* Image frame — strict equal-height via aspect-ratio.
+   Inline height from editor is ignored in final render —
+   aspect-ratio controls the frame at all viewport widths. */
 .media-container .image-grid .image-frame {
   width: 100%;
   overflow: hidden;
   position: relative;
-  aspect-ratio: 4 / 3; /* default fallback when no height set */
+  aspect-ratio: 4 / 3;
 }
 
-/* Inline style height overrides aspect-ratio automatically in CSS —
-   when style="height:Npx" is present, aspect-ratio is ignored. */
+/* Override any inline height from editor — frame ratio is the source of truth */
+.media-container .image-grid .image-frame[style] {
+  height: auto !important;
+}
 
 .media-container .image-grid .image-frame img {
   width: 100%;
