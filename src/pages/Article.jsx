@@ -113,6 +113,38 @@ const Article = () => {
     fetchArticle();
   }, [id, currentUser, isAdmin]);
 
+  // Detect image orientation and add portrait/landscape classes
+  useEffect(() => {
+    if (!article?.content) return;
+    // Wait for next frame so dangerouslySetInnerHTML has rendered
+    const timer = setTimeout(() => {
+      const bodyEl = document.querySelector('.article-body-flow');
+      if (!bodyEl) return;
+      const imgs = bodyEl.querySelectorAll('img');
+      imgs.forEach((img) => {
+        const classify = () => {
+          const isPortrait = img.naturalHeight > img.naturalWidth;
+          const cls = isPortrait ? 'is-portrait' : 'is-landscape';
+          // Add to parent figure
+          const figure = img.closest('figure');
+          if (figure) figure.classList.add(cls);
+          // Add to parent grid-cell
+          const cell = img.closest('.grid-cell');
+          if (cell) cell.classList.add(cls);
+          // Also check if any grid has a portrait — mark the grid
+          const grid = img.closest('.image-grid');
+          if (grid && isPortrait) grid.classList.add('has-portrait');
+        };
+        if (img.complete && img.naturalWidth) {
+          classify();
+        } else {
+          img.addEventListener('load', classify, { once: true });
+        }
+      });
+    }, 50);
+    return () => clearTimeout(timer);
+  }, [article?.content]);
+
   // Check subscription status
   useEffect(() => {
     if (currentUser && article?.authorId && currentUser.uid !== article.authorId) {

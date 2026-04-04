@@ -209,10 +209,10 @@
   display: block;
 }
 
-/* Large portrait override — contain, don't chop */
-.media-container .article-image.img-large img[data-portrait],
-.media-container .article-image.img-large img.portrait {
+/* Large portrait — preserve composition, no crop */
+.media-container .article-image.img-large.is-portrait img {
   aspect-ratio: auto;
+  height: auto;
   max-height: 80vh;
   object-fit: contain;
 }
@@ -230,10 +230,10 @@
   display: block;
 }
 
-/* Half portrait override */
-.media-container .article-image.img-half img[data-portrait],
-.media-container .article-image.img-half img.portrait {
+/* Half portrait — preserve composition, no crop */
+.media-container .article-image.img-half.is-portrait img {
   aspect-ratio: auto;
+  height: auto;
   max-height: 70vh;
   object-fit: contain;
 }
@@ -286,12 +286,19 @@
   margin: 0;
 }
 
-/* Image wrapper — enforced equal height via aspect ratio */
+/* Image — equal height via aspect ratio (landscape default) */
 .media-container .image-grid .grid-cell img {
   width: 100%;
   aspect-ratio: 4 / 3;
   object-fit: cover;
   display: block;
+}
+
+/* Grid with ANY portrait image — remove forced ratio, use natural height */
+.media-container .image-grid.has-portrait .grid-cell img {
+  aspect-ratio: auto;
+  height: auto;
+  object-fit: contain;
 }
 
 /* Caption — outside image box, does not affect image height */
