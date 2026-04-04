@@ -592,35 +592,77 @@
 /* Responsive Design */
 @media (max-width: 768px) {
   .settings-container {
-    padding: 2rem 1rem;
+    max-width: 100%;
+    padding: 1rem 1rem;
+    box-sizing: border-box;
+  }
+
+  .settings-header {
+    margin-bottom: 1.5rem;
+  }
+
+  .settings-header h1 {
+    font-size: 1.8rem;
   }
 
   .settings-card {
-    padding: 1.5rem;
+    width: 100%;
+    padding: 1.25rem;
+    border-radius: 6px;
+    box-sizing: border-box;
+  }
+
+  .settings-card h2 {
+    font-size: 1.2rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
   }
 
   .profile-photo-section {
     flex-direction: column;
     text-align: center;
+    gap: 1rem;
+  }
+
+  .profile-avatar-large {
+    width: 90px;
+    height: 90px;
+  }
+
+  .form-group input {
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .button-group {
     flex-direction: column;
+    gap: 0.75rem;
   }
 
   .cancel-btn,
   .save-btn {
     width: 100%;
+    padding: 0.75rem;
+    font-size: 1rem;
   }
 
   .setting-item {
     flex-direction: column;
-    text-align: center;
-    gap: 1rem;
+    text-align: left;
+    gap: 0.75rem;
+    padding: 1rem 0;
   }
 
   .setting-action,
   .danger-btn {
     width: 100%;
+    padding: 0.75rem;
+    font-size: 0.95rem;
+    text-align: center;
+  }
+
+  .menu-panel {
+    width: 85vw;
+    max-width: 320px;
   }
 }

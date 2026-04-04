@@ -952,7 +952,7 @@
 
 @media (max-width: 768px) {
   .exposure-nav {
-    padding: 1rem 1.5rem;
+    padding: 1rem 1rem;
   }
 
   .nav-left .nav-link {
@@ -965,27 +965,47 @@
   }
 
   .profile-section {
-    padding: 4rem 2rem 2.5rem;
+    padding: 3.5rem 1rem 2rem;
+  }
+
+  .profile-icon {
+    width: 120px;
+    height: 120px;
   }
 
   .profile-name {
-    font-size: 2.5rem;
+    font-size: 2rem;
+  }
+
+  .stories-container {
+    max-width: 100%;
+    padding: 2rem 1rem;
+    box-sizing: border-box;
   }
 
   .stories-grid {
     grid-template-columns: 1fr;
-    gap: 2rem;
+    gap: 1.5rem;
   }
 
   .story-image,
   .story-placeholder {
-    height: 350px;
+    height: 280px;
+  }
+
+  .empty-stories {
+    padding: 3rem 1rem;
   }
 }
 
 @media (max-width: 480px) {
   .profile-section {
-    padding: 3rem 1.5rem 2rem;
+    padding: 3rem 1rem 1.5rem;
+  }
+
+  .profile-icon {
+    width: 90px;
+    height: 90px;
   }
 
   .profile-icon svg {
@@ -994,19 +1014,19 @@
   }
 
   .profile-name {
-    font-size: 2rem;
+    font-size: 1.6rem;
   }
 
   .stories-container {
-    padding: 2.5rem 1.5rem;
+    padding: 1.5rem 0.75rem;
   }
 
   .story-title {
-    font-size: 1.6rem;
+    font-size: 1.4rem;
   }
 
   .story-image,
   .story-placeholder {
-    height: 300px;
+    height: 240px;
   }
 }
