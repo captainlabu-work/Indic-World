@@ -7,6 +7,12 @@ const ImageNodeView = ({ node, updateAttributes, selected, deleteNode }) => {
   const { src, alt, width, layout, caption } = node.attrs;
   const containerRef = useRef(null);
   const [resizing, setResizing] = useState(false);
+  const [lockMsg, setLockMsg] = useState(false);
+
+  const showLockMessage = useCallback(() => {
+    setLockMsg(true);
+    setTimeout(() => setLockMsg(false), 2000);
+  }, []);
 
   const handleResize = useCallback((e) => {
     e.preventDefault();
@@ -84,6 +90,11 @@ const ImageNodeView = ({ node, updateAttributes, selected, deleteNode }) => {
       {/* Resize handle */}
       <div className="te-resize-handle te-resize-right" onMouseDown={handleResize} />
 
+      {/* Lock message toast */}
+      {lockMsg && (
+        <div className="te-lock-toast">Temporarily disabled for layout consistency.</div>
+      )}
+
       {/* Size toolbar (shows on select) */}
       {selected && (
         <div className="te-image-toolbar">
@@ -117,19 +128,20 @@ const ImageNodeView = ({ node, updateAttributes, selected, deleteNode }) => {
           <div className="te-image-toolbar-group">
             <button
               type="button"
-              className={`te-img-btn ${layout === 'left' ? 'active' : ''}`}
-              onClick={() => setLayout('left')}
-              title="Align left"
+              className="te-img-btn te-img-locked"
+              onClick={showLockMessage}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="18" y2="18"/>
+              </svg>
+              <svg className="te-lock-icon" width="8" height="8" viewBox="0 0 24 24" fill="currentColor">
+                <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4" fill="none" stroke="currentColor" strokeWidth="2"/>
               </svg>
             </button>
             <button
               type="button"
               className={`te-img-btn ${!layout || layout === 'center' ? 'active' : ''}`}
               onClick={() => setLayout('center')}
-              title="Center"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/>
@@ -137,12 +149,14 @@ const ImageNodeView = ({ node, updateAttributes, selected, deleteNode }) => {
             </button>
             <button
               type="button"
-              className={`te-img-btn ${layout === 'right' ? 'active' : ''}`}
-              onClick={() => setLayout('right')}
-              title="Align right"
+              className="te-img-btn te-img-locked"
+              onClick={showLockMessage}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <line x1="3" y1="6" x2="21" y2="6"/><line x1="9" y1="12" x2="21" y2="12"/><line x1="6" y1="18" x2="21" y2="18"/>
+              </svg>
+              <svg className="te-lock-icon" width="8" height="8" viewBox="0 0 24 24" fill="currentColor">
+                <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4" fill="none" stroke="currentColor" strokeWidth="2"/>
               </svg>
             </button>
           </div>

@@ -576,6 +576,50 @@
   background: rgba(255,255,255,0.1);
 }
 
+/* Locked alignment buttons */
+.te-img-btn.te-img-locked {
+  color: #666;
+  cursor: pointer;
+  position: relative;
+  opacity: 0.5;
+}
+
+.te-img-btn.te-img-locked:hover {
+  color: #888;
+  background: rgba(255,255,255,0.05);
+}
+
+.te-lock-icon {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  color: #999;
+}
+
+/* Lock message toast */
+.te-lock-toast {
+  position: absolute;
+  bottom: -80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1a1a1a;
+  color: #ccc;
+  font-size: 0.72rem;
+  font-family: var(--te-font-ui);
+  padding: 6px 14px;
+  border-radius: 6px;
+  white-space: nowrap;
+  z-index: 70;
+  animation: lockToastIn 0.2s ease-out;
+  pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+}
+
+@keyframes lockToastIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(4px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
 .te-img-btn.active {
   color: #fff;
   background: rgba(255,255,255,0.2);
