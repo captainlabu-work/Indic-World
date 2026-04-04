@@ -113,14 +113,14 @@ const Article = () => {
     fetchArticle();
   }, [id, currentUser, isAdmin]);
 
-  // Detect single image orientation for portrait/landscape handling
+  // Detect image orientation for single images and grid rows
   useEffect(() => {
     if (!article?.content) return;
     const timer = setTimeout(() => {
       const bodyEl = document.querySelector('.article-body-flow');
       if (!bodyEl) return;
-      // Only classify single images (figures outside grids)
-      // Grid images use the editor's stored height — no guessing needed
+
+      // 1. Single images — add is-portrait/is-landscape to figure
       bodyEl.querySelectorAll('figure.article-image img').forEach((img) => {
         const classify = () => {
           const figure = img.closest('figure');
@@ -130,6 +130,36 @@ const Article = () => {
         };
         if (img.complete && img.naturalWidth) classify();
         else img.addEventListener('load', classify, { once: true });
+      });
+
+      // 2. Grid rows — detect portrait/mixed and set row class
+      //    Only if no manual frameRatio was saved (no data-ratio attr)
+      bodyEl.querySelectorAll('.image-grid').forEach((grid) => {
+        const frames = Array.from(grid.querySelectorAll('.image-frame'));
+        const hasManualRatio = frames.some((f) => f.getAttribute('data-ratio'));
+        if (hasManualRatio) return; // user manually resized — respect their choice
+
+        const imgs = Array.from(grid.querySelectorAll('.image-frame img'));
+        if (imgs.length === 0) return;
+
+        let loaded = 0;
+        const onAllLoaded = () => {
+          const orientations = imgs.map((img) =>
+            img.naturalHeight > img.naturalWidth ? 'portrait' : 'landscape'
+          );
+          const hasPortrait = orientations.some((o) => o === 'portrait');
+          if (hasPortrait) {
+            // Both portrait OR mixed → use portrait frame (3:4)
+            grid.classList.add('portrait-row');
+          }
+          // All landscape → no class needed, default 4:3 applies
+        };
+
+        imgs.forEach((img) => {
+          const check = () => { if (++loaded === imgs.length) onAllLoaded(); };
+          if (img.complete && img.naturalWidth) check();
+          else img.addEventListener('load', check, { once: true });
+        });
       });
     }, 50);
     return () => clearTimeout(timer);

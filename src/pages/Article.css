@@ -301,7 +301,13 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center;
   display: block;
+}
+
+/* Portrait/mixed rows — taller 3:4 frame (detected at runtime) */
+.media-container .image-grid.portrait-row .image-frame {
+  aspect-ratio: 3 / 4;
 }
 
 /* Caption — outside frame, does NOT affect image height */
