@@ -235,11 +235,8 @@ const ImageGrid = Node.create({
     const imgElements = images.slice(0, columns).map((img) => {
       const children = [];
       if (img.src) {
-        const imgAttrs = { src: img.src, alt: img.alt || '' };
-        if (img.height) {
-          imgAttrs.style = `height:${img.height};object-fit:cover;`;
-        }
-        children.push(['img', imgAttrs]);
+        // Wrap img in .image-frame so the frame controls height
+        children.push(['div', { class: 'image-frame' }, ['img', { src: img.src, alt: img.alt || '' }]]);
       }
       if (img.caption) {
         children.push(['figcaption', {}, img.caption]);

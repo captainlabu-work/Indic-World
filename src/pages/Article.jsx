@@ -113,33 +113,46 @@ const Article = () => {
     fetchArticle();
   }, [id, currentUser, isAdmin]);
 
-  // Detect image orientation and add portrait/landscape classes
+  // Detect image orientation and classify figures + grid rows
   useEffect(() => {
     if (!article?.content) return;
-    // Wait for next frame so dangerouslySetInnerHTML has rendered
     const timer = setTimeout(() => {
       const bodyEl = document.querySelector('.article-body-flow');
       if (!bodyEl) return;
-      const imgs = bodyEl.querySelectorAll('img');
-      imgs.forEach((img) => {
+
+      // 1. Classify single images (figures outside grids)
+      bodyEl.querySelectorAll('figure.article-image img').forEach((img) => {
         const classify = () => {
-          const isPortrait = img.naturalHeight > img.naturalWidth;
-          const cls = isPortrait ? 'is-portrait' : 'is-landscape';
-          // Add to parent figure
           const figure = img.closest('figure');
-          if (figure) figure.classList.add(cls);
-          // Add to parent grid-cell
-          const cell = img.closest('.grid-cell');
-          if (cell) cell.classList.add(cls);
-          // Also check if any grid has a portrait — mark the grid
-          const grid = img.closest('.image-grid');
-          if (grid && isPortrait) grid.classList.add('has-portrait');
+          if (figure) {
+            figure.classList.add(img.naturalHeight > img.naturalWidth ? 'is-portrait' : 'is-landscape');
+          }
         };
-        if (img.complete && img.naturalWidth) {
-          classify();
-        } else {
-          img.addEventListener('load', classify, { once: true });
-        }
+        if (img.complete && img.naturalWidth) classify();
+        else img.addEventListener('load', classify, { once: true });
+      });
+
+      // 2. Classify grid rows — wait for ALL images in each grid to load
+      bodyEl.querySelectorAll('.image-grid').forEach((grid) => {
+        const imgs = Array.from(grid.querySelectorAll('img'));
+        if (imgs.length === 0) return;
+
+        let loaded = 0;
+        const onAllLoaded = () => {
+          const orientations = imgs.map((img) => img.naturalHeight > img.naturalWidth ? 'portrait' : 'landscape');
+          const allPortrait = orientations.every((o) => o === 'portrait');
+          const allLandscape = orientations.every((o) => o === 'landscape');
+
+          if (allPortrait) grid.classList.add('portrait-row');
+          else if (allLandscape) grid.classList.add('landscape-row');
+          else grid.classList.add('mixed-row'); // fallback to landscape treatment
+        };
+
+        imgs.forEach((img) => {
+          const check = () => { if (++loaded === imgs.length) onAllLoaded(); };
+          if (img.complete && img.naturalWidth) check();
+          else img.addEventListener('load', check, { once: true });
+        });
       });
     }, 50);
     return () => clearTimeout(timer);

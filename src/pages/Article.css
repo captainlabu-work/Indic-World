@@ -262,8 +262,8 @@
 }
 
 /* =========================================================
-   IMAGE GRID — 2-col side-by-side rows
-   Equal width, equal height, no bottom mismatch.
+   IMAGE GRID — side-by-side rows with equal-height frames
+   Frame controls height. Caption sits outside frame.
    ========================================================= */
 
 .media-container .image-grid {
@@ -279,29 +279,48 @@
   grid-template-columns: 1fr 1fr 1fr;
 }
 
-/* Each cell: image wrapper + caption (caption outside fixed ratio) */
+/* Each cell: frame + caption stacked vertically */
 .media-container .image-grid .grid-cell {
   display: flex;
   flex-direction: column;
   margin: 0;
 }
 
-/* Image — equal height via aspect ratio (landscape default) */
-.media-container .image-grid .grid-cell img {
+/* Image frame — controls height, clips image */
+.media-container .image-grid .image-frame {
   width: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Default: landscape row (4:3) — before JS classifies */
+.media-container .image-grid .image-frame {
   aspect-ratio: 4 / 3;
+}
+
+.media-container .image-grid .image-frame img {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
   display: block;
 }
 
-/* Grid with ANY portrait image — remove forced ratio, use natural height */
-.media-container .image-grid.has-portrait .grid-cell img {
-  aspect-ratio: auto;
-  height: auto;
-  object-fit: contain;
+/* Landscape row — 4:3 */
+.media-container .image-grid.landscape-row .image-frame {
+  aspect-ratio: 4 / 3;
 }
 
-/* Caption — outside image box, does not affect image height */
+/* Portrait row — 3:4 */
+.media-container .image-grid.portrait-row .image-frame {
+  aspect-ratio: 3 / 4;
+}
+
+/* Mixed row — fallback to 4:3, crop is acceptable */
+.media-container .image-grid.mixed-row .image-frame {
+  aspect-ratio: 4 / 3;
+}
+
+/* Caption — outside frame, does NOT affect image height */
 .media-container .image-grid .grid-cell figcaption {
   font-size: 0.82rem;
   color: #999;
