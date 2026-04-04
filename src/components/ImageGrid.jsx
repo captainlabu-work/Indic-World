@@ -6,6 +6,7 @@ import { useCallback, useRef, useState } from 'react';
 const GridCell = ({ img, index, onFile, onCaption, onRemove, onResize }) => {
   const fileRef = useRef(null);
   const imgRef = useRef(null);
+  const wrapRef = useRef(null);
   const [resizing, setResizing] = useState(false);
 
   const handleResizeY = useCallback((e) => {
@@ -18,7 +19,10 @@ const GridCell = ({ img, index, onFile, onCaption, onRemove, onResize }) => {
     const onMouseMove = (moveEvent) => {
       const diff = moveEvent.clientY - startY;
       const newH = Math.max(80, startH + diff);
-      onResize(index, `${newH}px`);
+      // Capture width to compute frame aspect ratio
+      const w = wrapRef.current?.offsetWidth || imgRef.current?.offsetWidth || 300;
+      const ratio = +(w / newH).toFixed(3);
+      onResize(index, `${newH}px`, ratio);
     };
 
     const onMouseUp = () => {
@@ -66,7 +70,7 @@ const GridCell = ({ img, index, onFile, onCaption, onRemove, onResize }) => {
         onChange={(e) => onFile(e, index)}
         hidden
       />
-      <div className="te-grid-img-wrap">
+      <div className="te-grid-img-wrap" ref={wrapRef}>
         <img
           ref={imgRef}
           src={img.src}
@@ -175,9 +179,9 @@ const GridNodeView = ({ node, updateAttributes, selected, deleteNode }) => {
     }
   }, [images, updateAttributes, deleteNode]);
 
-  const handleResize = useCallback((index, height) => {
+  const handleResize = useCallback((index, height, ratio) => {
     const updated = [...images];
-    updated[index] = { ...updated[index], height };
+    updated[index] = { ...updated[index], height, frameRatio: ratio || null };
     updateAttributes({ images: updated });
   }, [images, updateAttributes]);
 
@@ -233,18 +237,20 @@ const ImageGrid = Node.create({
   renderHTML({ node }) {
     const { columns, images } = node.attrs;
 
-    // Find the max height across all images to use as the shared row height
-    const heights = images.slice(0, columns).map((img) => img.height).filter(Boolean);
-    const rowHeight = heights.length > 0 ? Math.max(...heights.map(h => parseInt(h))) + 'px' : null;
+    // Find the shared frame ratio for the row:
+    // Use the first manually-set ratio, or default to 4/3
+    const ratios = images.slice(0, columns).map((img) => img.frameRatio).filter(Boolean);
+    const rowRatio = ratios.length > 0 ? Math.min(...ratios) : null;
 
     const imgElements = images.slice(0, columns).map((img) => {
       const children = [];
       if (img.src) {
-        // Use per-image height if set, otherwise use row height, otherwise no constraint
-        const frameHeight = img.height || rowHeight;
+        const ratio = img.frameRatio || rowRatio;
         const frameAttrs = { class: 'image-frame' };
-        if (frameHeight) {
-          frameAttrs.style = `height:${frameHeight};`;
+        if (ratio) {
+          // Store as CSS custom property — CSS uses it for aspect-ratio
+          frameAttrs.style = `--frame-ratio:${ratio};`;
+          frameAttrs['data-ratio'] = String(ratio);
         }
         children.push(['div', frameAttrs, ['img', { src: img.src, alt: img.alt || '' }]]);
       }
