@@ -1,4 +1,4 @@
-import { Node, mergeAttributes } from '@tiptap/core';
+import { Node } from '@tiptap/core';
 import { NodeViewWrapper, ReactNodeViewRenderer } from '@tiptap/react';
 import { useCallback, useRef, useState } from 'react';
 
@@ -37,7 +37,7 @@ const ImageNodeView = ({ node, updateAttributes, selected, deleteNode }) => {
   }, [updateAttributes]);
 
   const setSize = useCallback((size) => {
-    const sizes = { full: '100%', large: '75%', half: '50%', third: '33%' };
+    const sizes = { full: '100%', large: '75%', half: '50%' };
     updateAttributes({ width: sizes[size] || '100%' });
   }, [updateAttributes]);
 
@@ -112,14 +112,6 @@ const ImageNodeView = ({ node, updateAttributes, selected, deleteNode }) => {
             >
               Half
             </button>
-            <button
-              type="button"
-              className={`te-img-btn ${width === '33%' ? 'active' : ''}`}
-              onClick={() => setSize('third')}
-              title="33% — use three in a row"
-            >
-              Third
-            </button>
           </div>
           <span className="te-img-divider" />
           <div className="te-image-toolbar-group">
@@ -179,11 +171,50 @@ const ResizableImage = Node.create({
   },
 
   parseHTML() {
-    return [{ tag: 'img[src]' }];
+    return [
+      {
+        tag: 'figure[data-type="image"]',
+        getAttrs: (el) => {
+          const img = el.querySelector('img');
+          if (!img) return false;
+          return {
+            src: img.getAttribute('src'),
+            alt: img.getAttribute('alt') || '',
+            width: el.getAttribute('data-width') || '100%',
+            layout: el.getAttribute('data-layout') || 'center',
+            caption: el.querySelector('figcaption')?.textContent || '',
+          };
+        },
+      },
+      // Fallback: bare <img> tags (legacy content)
+      { tag: 'img[src]' },
+    ];
   },
 
-  renderHTML({ HTMLAttributes }) {
-    return ['img', mergeAttributes(HTMLAttributes)];
+  renderHTML({ node }) {
+    const { src, alt, width, layout, caption } = node.attrs;
+    // Map width % to size class
+    let sizeClass = 'img-full';
+    if (width === '75%') sizeClass = 'img-large';
+    else if (width === '50%') sizeClass = 'img-half';
+
+    const children = [
+      ['img', { src, alt: alt || '' }],
+    ];
+    if (caption) {
+      children.push(['figcaption', {}, caption]);
+    }
+
+    return [
+      'figure',
+      {
+        'data-type': 'image',
+        'data-width': width || '100%',
+        'data-layout': layout || 'center',
+        class: `article-image ${sizeClass} layout-${layout || 'center'}`,
+      },
+      ...children,
+    ];
   },
 
   addNodeView() {

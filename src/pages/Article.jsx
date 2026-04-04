@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { doc, getDoc, updateDoc, increment } from 'firebase/firestore';
 import { db } from '../firebase/config';
@@ -7,6 +7,45 @@ import { articleService, subscriberService } from '../firebase/services';
 import { formatTimestamp } from '../utils/formatters';
 import { useNotification } from '../components/common/NotificationSystem';
 import './Article.css';
+
+// Media node tags/selectors — these get media-container treatment
+const MEDIA_TAGS = new Set(['FIGURE', 'IMG']);
+const isMediaNode = (el) => {
+  if (MEDIA_TAGS.has(el.tagName)) return true;
+  if (el.tagName === 'DIV' && el.getAttribute('data-type') === 'image-grid') return true;
+  return false;
+};
+
+// Split flat HTML into alternating text-container / media-container blocks
+function buildArticleBlocks(htmlString) {
+  if (!htmlString) return [];
+
+  const parser = new DOMParser();
+  const dom = parser.parseFromString(htmlString, 'text/html');
+  const children = Array.from(dom.body.childNodes);
+
+  const blocks = [];
+  let textBuffer = '';
+
+  const flushText = () => {
+    if (textBuffer.trim()) {
+      blocks.push({ type: 'text', html: textBuffer });
+    }
+    textBuffer = '';
+  };
+
+  for (const node of children) {
+    if (node.nodeType === Node.ELEMENT_NODE && isMediaNode(node)) {
+      flushText();
+      blocks.push({ type: 'media', html: node.outerHTML });
+    } else if (node.nodeType === Node.ELEMENT_NODE || node.nodeType === Node.TEXT_NODE) {
+      textBuffer += node.outerHTML || node.textContent;
+    }
+  }
+  flushText();
+
+  return blocks;
+}
 
 const Article = () => {
   const { id } = useParams();
@@ -22,6 +61,12 @@ const Article = () => {
   const [copied, setCopied] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [subLoading, setSubLoading] = useState(false);
+
+  // Split article HTML into alternating text/media blocks
+  const articleBlocks = useMemo(
+    () => buildArticleBlocks(article?.content),
+    [article?.content]
+  );
 
   useEffect(() => {
     const fetchArticle = async () => {
@@ -232,8 +277,8 @@ const Article = () => {
         </div>
       )}
 
-      <article className="article-content">
-        {/* Header */}
+      {/* Header + Excerpt — text container */}
+      <div className="text-container">
         <header className="article-header">
           <h1 className="article-title">{article.title}</h1>
           <div className="article-meta">
@@ -254,20 +299,26 @@ const Article = () => {
           )}
         </header>
 
-        {/* Excerpt */}
         {article.excerpt && (
           <div className="article-excerpt">
             <p>{article.excerpt}</p>
           </div>
         )}
+      </div>
 
-        {/* Body */}
-        <div
-          className="article-body tiptap-content"
-          dangerouslySetInnerHTML={{ __html: article.content || '' }}
-        />
+      {/* Body — alternating text-container / media-container */}
+      <article className="article-body-flow">
+        {articleBlocks.map((block, i) =>
+          block.type === 'media' ? (
+            <div key={i} className="media-container" dangerouslySetInnerHTML={{ __html: block.html }} />
+          ) : (
+            <div key={i} className="text-container article-prose" dangerouslySetInnerHTML={{ __html: block.html }} />
+          )
+        )}
+      </article>
 
-        {/* Tags */}
+      {/* Tags — text container */}
+      <div className="text-container">
         <div className="article-tags">
           {article.category && (
             <span className="article-category">{article.category}</span>
@@ -276,7 +327,7 @@ const Article = () => {
             <span key={i} className="article-tag">{tag}</span>
           ))}
         </div>
-      </article>
+      </div>
 
       {/* End matter — author, share, nav */}
       <footer className="article-endmatter">
