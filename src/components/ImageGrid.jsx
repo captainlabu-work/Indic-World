@@ -232,11 +232,21 @@ const ImageGrid = Node.create({
 
   renderHTML({ node }) {
     const { columns, images } = node.attrs;
+
+    // Find the max height across all images to use as the shared row height
+    const heights = images.slice(0, columns).map((img) => img.height).filter(Boolean);
+    const rowHeight = heights.length > 0 ? Math.max(...heights.map(h => parseInt(h))) + 'px' : null;
+
     const imgElements = images.slice(0, columns).map((img) => {
       const children = [];
       if (img.src) {
-        // Wrap img in .image-frame so the frame controls height
-        children.push(['div', { class: 'image-frame' }, ['img', { src: img.src, alt: img.alt || '' }]]);
+        // Use per-image height if set, otherwise use row height, otherwise no constraint
+        const frameHeight = img.height || rowHeight;
+        const frameAttrs = { class: 'image-frame' };
+        if (frameHeight) {
+          frameAttrs.style = `height:${frameHeight};`;
+        }
+        children.push(['div', frameAttrs, ['img', { src: img.src, alt: img.alt || '' }]]);
       }
       if (img.caption) {
         children.push(['figcaption', {}, img.caption]);

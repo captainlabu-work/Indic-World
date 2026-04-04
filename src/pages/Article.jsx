@@ -113,14 +113,14 @@ const Article = () => {
     fetchArticle();
   }, [id, currentUser, isAdmin]);
 
-  // Detect image orientation and classify figures + grid rows
+  // Detect single image orientation for portrait/landscape handling
   useEffect(() => {
     if (!article?.content) return;
     const timer = setTimeout(() => {
       const bodyEl = document.querySelector('.article-body-flow');
       if (!bodyEl) return;
-
-      // 1. Classify single images (figures outside grids)
+      // Only classify single images (figures outside grids)
+      // Grid images use the editor's stored height — no guessing needed
       bodyEl.querySelectorAll('figure.article-image img').forEach((img) => {
         const classify = () => {
           const figure = img.closest('figure');
@@ -130,29 +130,6 @@ const Article = () => {
         };
         if (img.complete && img.naturalWidth) classify();
         else img.addEventListener('load', classify, { once: true });
-      });
-
-      // 2. Classify grid rows — wait for ALL images in each grid to load
-      bodyEl.querySelectorAll('.image-grid').forEach((grid) => {
-        const imgs = Array.from(grid.querySelectorAll('img'));
-        if (imgs.length === 0) return;
-
-        let loaded = 0;
-        const onAllLoaded = () => {
-          const orientations = imgs.map((img) => img.naturalHeight > img.naturalWidth ? 'portrait' : 'landscape');
-          const allPortrait = orientations.every((o) => o === 'portrait');
-          const allLandscape = orientations.every((o) => o === 'landscape');
-
-          if (allPortrait) grid.classList.add('portrait-row');
-          else if (allLandscape) grid.classList.add('landscape-row');
-          else grid.classList.add('mixed-row'); // fallback to landscape treatment
-        };
-
-        imgs.forEach((img) => {
-          const check = () => { if (++loaded === imgs.length) onAllLoaded(); };
-          if (img.complete && img.naturalWidth) check();
-          else img.addEventListener('load', check, { once: true });
-        });
       });
     }, 50);
     return () => clearTimeout(timer);
