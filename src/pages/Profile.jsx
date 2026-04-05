@@ -126,6 +126,12 @@ const Profile = () => {
             <Link to="/" className="logo-link">
               <img src="/Indic.png" alt="INDIC" className="site-logo" />
             </Link>
+            <Link to="/settings" className="nav-link nav-link-settings-mobile" title="Settings">
+              <svg className="icon" viewBox="0 0 20 20" width="20" height="20">
+                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" fill="currentColor"/>
+                <path d="M17.5 10c0-.5.1-1 .1-1.5l1.4-1.1c.1-.1.2-.3.1-.5l-1.3-2.2c-.1-.2-.3-.2-.5-.2l-1.7.7c-.5-.4-1.1-.7-1.7-.9l-.4-1.8c0-.2-.2-.3-.4-.3h-2.6c-.2 0-.3.1-.4.3l-.4 1.8c-.6.2-1.2.5-1.7.9l-1.7-.7c-.2 0-.4.1-.5.2L4.5 6.9c-.1.2 0 .4.1.5l1.4 1.1c0 .5.1 1 .1 1.5s-.1 1-.1 1.5l-1.4 1.1c-.1.1-.2.3-.1.5l1.3 2.2c.1.2.3.2.5.2l1.7-.7c.5.4 1.1.7 1.7.9l.4 1.8c0 .2.2.3.4.3h2.6c.2 0 .3-.1.4-.3l.4-1.8c.6-.2 1.2-.5 1.7-.9l1.7.7c.2 0 .4-.1.5-.2l1.3-2.2c.1-.2 0-.4-.1-.5l-1.4-1.1c0-.5-.1-1-.1-1.5z" fill="currentColor"/>
+              </svg>
+            </Link>
             <Link to="/" className="nav-link">
               <svg className="icon" viewBox="0 0 20 20" width="20" height="20">
                 <path d="M10 2L2 8v11h6v-7h4v7h6V8z" fill="currentColor"/>

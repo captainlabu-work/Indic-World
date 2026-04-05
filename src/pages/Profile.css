@@ -93,6 +93,11 @@
   width: auto;
 }
 
+/* Mobile-only settings gear — hidden on desktop */
+.nav-link-settings-mobile {
+  display: none !important;
+}
+
 .logo-link {
   display: flex;
   align-items: center;
@@ -953,9 +958,11 @@
 
 @media (max-width: 768px) {
   .exposure-nav {
-    padding: 1rem 1rem;
+    padding: 0.75rem 1rem;
+    gap: 0;
   }
 
+  /* Hide desktop text nav links */
   .nav-left .nav-link {
     display: none;
   }
@@ -963,6 +970,44 @@
   .nav-left .logo-link,
   .nav-left .menu-toggle {
     display: flex;
+  }
+
+  /* Compact logo on mobile */
+  .nav-left .logo-link {
+    margin-right: 0.5rem;
+  }
+
+  .nav-left .site-logo {
+    height: 40px;
+  }
+
+  .nav-left .menu-toggle {
+    margin-right: 0.75rem;
+  }
+
+  /* Show settings gear icon inline on mobile nav-left */
+  .nav-left .nav-link-settings-mobile {
+    display: flex;
+  }
+
+  /* Right side: only compact sign out */
+  .nav-right .bookmarks-button {
+    display: none;
+  }
+
+  .nav-right .start-story-button {
+    display: none;
+  }
+
+  .nav-right .signout-button {
+    padding: 0.4rem 0.8rem;
+    font-size: 10px;
+    letter-spacing: 0.04em;
+    border-radius: 3px;
+  }
+
+  .nav-right {
+    gap: 0.5rem;
   }
 
   .profile-section {
