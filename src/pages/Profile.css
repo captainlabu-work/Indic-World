@@ -994,25 +994,31 @@
     height: 2px;
   }
 
-  /* Logo: 30px height, visually dominant */
+  /* Logo: prominent, no text */
   .nav-left .logo-link {
     margin-right: 0;
   }
 
   .nav-left .site-logo {
-    height: 30px;
+    height: 48px;
   }
 
-  /* Gear icon: 20px, same weight as hamburger */
+  /* Gear icon: clean outline style, 22px */
   .nav-left .nav-link-settings-mobile {
     display: flex !important;
-    padding: 4px;
+    align-items: center;
+    padding: 2px;
     gap: 0;
+    color: #555;
   }
 
-  .nav-left .nav-link-settings-mobile .icon {
-    width: 20px !important;
-    height: 20px !important;
+  .nav-left .nav-link-settings-mobile:hover {
+    color: #1a1a1a;
+  }
+
+  .nav-left .nav-link-settings-mobile svg {
+    width: 22px;
+    height: 22px;
   }
 
   /* Right group: only sign out */
