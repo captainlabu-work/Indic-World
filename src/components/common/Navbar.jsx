@@ -115,7 +115,7 @@ const Navbar = () => {
 
           {/* Account header */}
           {currentUser && (
-            <div className="mobile-account">
+            <Link to="/profile" className="mobile-account" onClick={closeMenu}>
               <div className="mobile-account-avatar">
                 {userData?.photoURL || currentUser?.photoURL ? (
                   <img src={userData?.photoURL || currentUser?.photoURL} alt="" className="profile-avatar-img" />
@@ -123,7 +123,7 @@ const Navbar = () => {
               </div>
               <span className="mobile-account-label">SIGNED IN AS</span>
               <span className="mobile-account-name">{userData?.displayName || currentUser?.displayName || currentUser?.email}</span>
-            </div>
+            </Link>
           )}
 
           {/* Links */}
@@ -138,7 +138,6 @@ const Navbar = () => {
             {currentUser && (
               <>
                 <div className="mobile-divider" />
-                <Link to="/profile" onClick={closeMenu}>Dashboard</Link>
                 <Link to="/settings" onClick={closeMenu}>Settings</Link>
                 {isAdmin && <Link to="/admin" onClick={closeMenu}>Admin</Link>}
               </>
@@ -148,7 +147,10 @@ const Navbar = () => {
           {/* Footer */}
           <div className="mobile-footer">
             {currentUser ? (
-              <button className="mobile-signout" onClick={handleSignOut}>Sign Out</button>
+              <>
+                <Link to="/create-story" className="mobile-cta" onClick={closeMenu}>Create Story</Link>
+                <button className="mobile-signout" onClick={handleSignOut}>Sign Out</button>
+              </>
             ) : (
               <Link to="/auth" className="mobile-cta" onClick={closeMenu}>Get Started</Link>
             )}
