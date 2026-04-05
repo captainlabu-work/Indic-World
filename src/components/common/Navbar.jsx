@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { authService } from '../../firebase/services';
@@ -14,28 +14,35 @@ const CATEGORIES = [
 const Navbar = () => {
   const { currentUser, userData, isAdmin } = useAuth();
   const location = useLocation();
-  const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Lock body scroll when mobile menu is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [mobileMenuOpen]);
 
   const handleSignOut = async () => {
     try {
       await authService.signOut();
-      setShowProfileMenu(false);
+      setMobileMenuOpen(false);
     } catch (error) {
       console.error('Error signing out:', error);
     }
   };
 
   const getInitials = () => {
-    if (userData?.displayName) {
-      return userData.displayName.charAt(0).toUpperCase();
-    }
-    if (currentUser?.email) {
-      return currentUser.email.charAt(0).toUpperCase();
-    }
+    if (userData?.displayName) return userData.displayName.charAt(0).toUpperCase();
+    if (currentUser?.email) return currentUser.email.charAt(0).toUpperCase();
     return 'U';
   };
+
+  const closeMenu = () => setMobileMenuOpen(false);
 
   return (
     <nav className="navbar">
@@ -49,15 +56,13 @@ const Navbar = () => {
           <ul className="nav-categories">
             {CATEGORIES.map(({ path, label }) => (
               <li key={path}>
-                <Link to={path} className={location.pathname === path ? 'active' : ''}>
-                  {label}
-                </Link>
+                <Link to={path} className={location.pathname === path ? 'active' : ''}>{label}</Link>
               </li>
             ))}
           </ul>
         </div>
 
-        {/* Hamburger for mobile */}
+        {/* Hamburger — mobile only */}
         <button
           className={`nav-hamburger ${mobileMenuOpen ? 'open' : ''}`}
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -66,153 +71,89 @@ const Navbar = () => {
           <span /><span /><span />
         </button>
 
-        <ul className={`nav-links ${mobileMenuOpen ? 'nav-links--open' : ''}`}>
-          {/* Category links visible only in mobile menu */}
-          {CATEGORIES.map(({ path, label }) => (
-            <li key={path} className="nav-mobile-category">
-              <Link
-                to={path}
-                className={location.pathname === path ? 'active' : ''}
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                {label}
-              </Link>
-            </li>
-          ))}
-          <li>
-            <Link to="/" className={location.pathname === '/' ? 'active' : ''} onClick={() => setMobileMenuOpen(false)}>
-              Home
-            </Link>
-          </li>
-          <li>
-            <Link to="/about" className={location.pathname === '/about' ? 'active' : ''} onClick={() => setMobileMenuOpen(false)}>
-              About
-            </Link>
-          </li>
-          <li>
-            <Link to="/contact" className={location.pathname === '/contact' ? 'active' : ''} onClick={() => setMobileMenuOpen(false)}>
-              Contact
-            </Link>
-          </li>
-
+        {/* ===== Desktop nav links (hidden on mobile) ===== */}
+        <ul className="nav-links">
+          <li><Link to="/" className={location.pathname === '/' ? 'active' : ''}>Home</Link></li>
+          <li><Link to="/about" className={location.pathname === '/about' ? 'active' : ''}>About</Link></li>
+          <li><Link to="/contact" className={location.pathname === '/contact' ? 'active' : ''}>Contact</Link></li>
           <li>
             <button className="nav-search-btn" onClick={() => setShowSearch(true)} aria-label="Search">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="11" cy="11" r="8" />
-                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
               </svg>
             </button>
           </li>
-
           {currentUser ? (
             <>
               {isAdmin && (
-                <li>
-                  <Link to="/admin" className={location.pathname === '/admin' ? 'active' : ''}>
-                    Admin
-                  </Link>
-                </li>
+                <li><Link to="/admin" className={location.pathname === '/admin' ? 'active' : ''}>Admin</Link></li>
               )}
-              <li className="profile-menu-container">
-                <Link
-                  to="/profile"
-                  className="profile-button"
-                >
+              <li>
+                <Link to="/profile" className="profile-button">
                   <div className="profile-avatar">
                     {userData?.photoURL || currentUser?.photoURL ? (
-                      <img
-                        src={userData?.photoURL || currentUser?.photoURL}
-                        alt={userData?.displayName || currentUser?.email}
-                        className="profile-avatar-img"
-                      />
-                    ) : (
-                      getInitials()
-                    )}
+                      <img src={userData?.photoURL || currentUser?.photoURL} alt="" className="profile-avatar-img" />
+                    ) : getInitials()}
                   </div>
                 </Link>
-
-                {showProfileMenu && (
-                  <>
-                    <div
-                      className="profile-menu-overlay"
-                      onClick={() => setShowProfileMenu(false)}
-                    />
-                    <div className="profile-dropdown">
-                      <div className="profile-dropdown-header">
-                        <div className="profile-avatar-large">
-                          {userData?.photoURL || currentUser?.photoURL ? (
-                            <img
-                              src={userData?.photoURL || currentUser?.photoURL}
-                              alt={userData?.displayName || currentUser?.email}
-                              className="profile-avatar-img"
-                            />
-                          ) : (
-                            getInitials()
-                          )}
-                        </div>
-                        <div className="profile-info">
-                          <div className="profile-name">
-                            {userData?.displayName || currentUser?.displayName || currentUser?.email}
-                          </div>
-                          <div className="profile-email">
-                            {currentUser?.email}
-                          </div>
-                          {isAdmin && (
-                            <span className="admin-badge">Admin</span>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="profile-dropdown-divider" />
-
-                      <Link
-                        to="/profile"
-                        className="profile-dropdown-item"
-                        onClick={() => setShowProfileMenu(false)}
-                      >
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                          <circle cx="12" cy="7" r="4"/>
-                        </svg>
-                        View Profile
-                      </Link>
-
-                      <Link
-                        to="/settings"
-                        className="profile-dropdown-item"
-                        onClick={() => setShowProfileMenu(false)}
-                      >
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/>
-                          <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/>
-                        </svg>
-                        Settings
-                      </Link>
-
-                      <button
-                        className="profile-dropdown-item sign-out"
-                        onClick={handleSignOut}
-                      >
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-                          <polyline points="16 17 21 12 16 7"/>
-                          <line x1="21" y1="12" x2="9" y2="12"/>
-                        </svg>
-                        Sign Out
-                      </button>
-                    </div>
-                  </>
-                )}
               </li>
             </>
           ) : (
-            <li>
-              <Link to="/auth" className="nav-cta">
-                Get Started
-              </Link>
-            </li>
+            <li><Link to="/auth" className="nav-cta">Get Started</Link></li>
           )}
         </ul>
+
+        {/* ===== Mobile full-screen menu ===== */}
+        {mobileMenuOpen && <div className="mobile-overlay" onClick={closeMenu} />}
+        <div className={`mobile-menu ${mobileMenuOpen ? 'mobile-menu--open' : ''}`}>
+          {/* Close */}
+          <button className="mobile-menu-close" onClick={closeMenu} aria-label="Close menu">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+
+          {/* Account header */}
+          {currentUser && (
+            <div className="mobile-account">
+              <div className="mobile-account-avatar">
+                {userData?.photoURL || currentUser?.photoURL ? (
+                  <img src={userData?.photoURL || currentUser?.photoURL} alt="" className="profile-avatar-img" />
+                ) : getInitials()}
+              </div>
+              <span className="mobile-account-label">SIGNED IN AS</span>
+              <span className="mobile-account-name">{userData?.displayName || currentUser?.displayName || currentUser?.email}</span>
+            </div>
+          )}
+
+          {/* Links */}
+          <nav className="mobile-nav">
+            {CATEGORIES.map(({ path, label }) => (
+              <Link key={path} to={path} className={location.pathname === path ? 'active' : ''} onClick={closeMenu}>{label}</Link>
+            ))}
+            <div className="mobile-divider" />
+            <Link to="/" className={location.pathname === '/' ? 'active' : ''} onClick={closeMenu}>Home</Link>
+            <Link to="/about" className={location.pathname === '/about' ? 'active' : ''} onClick={closeMenu}>About</Link>
+            <Link to="/contact" className={location.pathname === '/contact' ? 'active' : ''} onClick={closeMenu}>Contact</Link>
+            {currentUser && (
+              <>
+                <div className="mobile-divider" />
+                <Link to="/profile" onClick={closeMenu}>Dashboard</Link>
+                <Link to="/settings" onClick={closeMenu}>Settings</Link>
+                {isAdmin && <Link to="/admin" onClick={closeMenu}>Admin</Link>}
+              </>
+            )}
+          </nav>
+
+          {/* Footer */}
+          <div className="mobile-footer">
+            {currentUser ? (
+              <button className="mobile-signout" onClick={handleSignOut}>Sign Out</button>
+            ) : (
+              <Link to="/auth" className="mobile-cta" onClick={closeMenu}>Get Started</Link>
+            )}
+          </div>
+        </div>
       </div>
 
       <SearchOverlay isOpen={showSearch} onClose={() => setShowSearch(false)} />
