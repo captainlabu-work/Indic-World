@@ -20,6 +20,7 @@ const EditArticle = lazy(() => import('./pages/EditArticle'));
 const Article = lazy(() => import('./pages/Article'));
 const CategoryPage = lazy(() => import('./pages/CategoryPage'));
 const Subscribers = lazy(() => import('./pages/Subscribers'));
+const Stats = lazy(() => import('./pages/Stats'));
 const AuthorProfile = lazy(() => import('./pages/AuthorProfile'));
 const Privacy = lazy(() => import('./pages/Privacy'));
 const CookiePolicy = lazy(() => import('./pages/CookiePolicy'));
@@ -69,6 +70,14 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <Settings />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/stats"
+                  element={
+                    <ProtectedRoute>
+                      <Stats />
                     </ProtectedRoute>
                   }
                 />

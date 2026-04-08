@@ -83,6 +83,7 @@ const Subscribers = () => {
               <img src="/Indic.png" alt="INDIC" className="site-logo" />
             </Link>
             <Link to="/profile" className="nav-link">PROFILE</Link>
+            <Link to="/stats" className="nav-link">STATS</Link>
             <Link to="/subscribers" className="nav-link active">SUBSCRIBERS</Link>
             <Link to="/settings" className="nav-link">SETTINGS</Link>
           </div>
