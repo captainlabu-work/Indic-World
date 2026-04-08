@@ -26,6 +26,8 @@ const CookiePolicy = lazy(() => import('./pages/CookiePolicy'));
 const Terms = lazy(() => import('./pages/Terms'));
 const Disclaimer = lazy(() => import('./pages/Disclaimer'));
 const HelpCenter = lazy(() => import('./pages/HelpCenter'));
+const FAQ = lazy(() => import('./pages/FAQ'));
+const CommunityGuidelines = lazy(() => import('./pages/CommunityGuidelines'));
 
 function App() {
   return (
@@ -120,6 +122,8 @@ function App() {
                 <Route path="/terms" element={<Terms />} />
                 <Route path="/disclaimer" element={<Disclaimer />} />
                 <Route path="/help" element={<HelpCenter />} />
+                <Route path="/faq" element={<FAQ />} />
+                <Route path="/guidelines" element={<CommunityGuidelines />} />
               </Routes>
               </Suspense>
             </main>
