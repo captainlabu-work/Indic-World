@@ -56,7 +56,7 @@ const Footer = () => {
               <li><Link to="/help">Help Center</Link></li>
               <li><Link to="/faq">FAQ</Link></li>
               <li><Link to="/guidelines">Community Guidelines</Link></li>
-              <li><a href="mailto:support@indic.com">support@indic.com</a></li>
+              <li><a href="mailto:Indicsocials@gmail.com">Indicsocials@gmail.com</a></li>
             </ul>
           </div>
         </div>

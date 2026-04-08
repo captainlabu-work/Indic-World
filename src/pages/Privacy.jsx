@@ -2,130 +2,99 @@ import { useEffect } from 'react';
 import './LegalPages.css';
 
 const Privacy = () => {
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
+  useEffect(() => { window.scrollTo(0, 0); }, []);
 
   return (
     <div className="legal-container">
       <div className="legal-header">
         <h1>Privacy Policy</h1>
-        <p className="legal-updated">Last updated: {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+        <p className="legal-updated">Last updated: April 8, 2026</p>
       </div>
 
       <div className="legal-content">
         <section className="legal-section">
           <h2>1. Introduction</h2>
           <p>
-            Welcome to Indic ("we," "our," or "us"). We are committed to protecting your personal information and your right to privacy.
-            This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our platform.
+            Indic is a storytelling platform where people publish written stories, photo essays, and films.
+            This policy explains how we handle your data — simply and honestly.
           </p>
         </section>
 
         <section className="legal-section">
           <h2>2. Information We Collect</h2>
-          <h3>2.1 Personal Information</h3>
-          <p>We collect personal information that you provide to us, including but not limited to:</p>
-          <ul>
-            <li>Name and email address when you create an account</li>
-            <li>Profile information you choose to provide</li>
-            <li>Content you create, upload, or share on our platform</li>
-            <li>Communications you send to us</li>
-          </ul>
+          <p><strong>Account Information</strong></p>
+          <p>When you sign up, we collect your name, email address, and profile details you choose to provide.</p>
 
-          <h3>2.2 Automatically Collected Information</h3>
-          <p>When you use our platform, we automatically collect certain information:</p>
-          <ul>
-            <li>Log and usage data (IP address, browser type, pages visited)</li>
-            <li>Device information (device type, operating system, unique device identifiers)</li>
-            <li>Cookies and similar tracking technologies</li>
-          </ul>
+          <p><strong>User Content</strong></p>
+          <p>Stories, images, videos, captions, and any other content you publish on Indic.</p>
+
+          <p><strong>Usage Data</strong></p>
+          <p>Basic information like pages you visit, how you interact with the platform, and general usage patterns. This helps us understand how Indic is being used.</p>
         </section>
 
         <section className="legal-section">
           <h2>3. How We Use Your Information</h2>
-          <p>We use the collected information for various purposes:</p>
           <ul>
-            <li>To provide, maintain, and improve our services</li>
-            <li>To authenticate users and ensure security</li>
-            <li>To communicate with you about updates, announcements, and support</li>
-            <li>To personalize your experience on our platform</li>
-            <li>To analyze usage patterns and optimize performance</li>
-            <li>To comply with legal obligations and enforce our terms</li>
+            <li>To operate and maintain the platform</li>
+            <li>To display and manage your published content</li>
+            <li>To improve your experience on Indic</li>
+            <li>To communicate with you when needed (account updates, support)</li>
           </ul>
+          <p>We do not sell your data. We do not use your content for advertising.</p>
         </section>
 
         <section className="legal-section">
-          <h2>4. Sharing Your Information</h2>
-          <p>We do not sell, trade, or rent your personal information. We may share your information in the following situations:</p>
+          <h2>4. Third-Party Services</h2>
+          <p>
+            We use trusted third-party services to help run the platform:
+          </p>
           <ul>
-            <li>With your consent or at your direction</li>
-            <li>To comply with legal obligations or respond to legal requests</li>
-            <li>To protect our rights, privacy, safety, or property</li>
-            <li>With service providers who assist us in operating our platform</li>
-            <li>In connection with a merger, sale, or acquisition of our business</li>
+            <li>Firebase — for authentication, database, and file storage</li>
+            <li>Google — if you use Google Sign-In</li>
+            <li>Basic analytics tools to understand usage patterns</li>
           </ul>
+          <p>These services have their own privacy policies. We only share the minimum data needed for them to function.</p>
         </section>
 
         <section className="legal-section">
           <h2>5. Data Security</h2>
           <p>
-            We implement appropriate technical and organizational security measures to protect your personal information.
-            However, no method of transmission over the Internet or electronic storage is 100% secure, and we cannot guarantee absolute security.
+            We take reasonable steps to protect your data, including secure connections and access controls.
+            That said, no system is 100% secure — we're honest about that.
           </p>
         </section>
 
         <section className="legal-section">
-          <h2>6. Your Rights and Choices</h2>
-          <p>You have certain rights regarding your personal information:</p>
+          <h2>6. Your Content & Responsibility</h2>
           <ul>
-            <li>Access and receive a copy of your personal information</li>
-            <li>Update or correct inaccurate information</li>
-            <li>Delete your account and personal information</li>
-            <li>Object to or restrict certain processing of your information</li>
-            <li>Opt-out of marketing communications</li>
+            <li>You own the content you publish on Indic</li>
+            <li>You are responsible for what you publish</li>
+            <li>We may remove content that violates our community guidelines</li>
           </ul>
         </section>
 
         <section className="legal-section">
-          <h2>7. Cookies and Tracking</h2>
-          <p>
-            We use cookies and similar tracking technologies to track activity on our platform and store certain information.
-            You can instruct your browser to refuse all cookies or to indicate when a cookie is being sent.
-          </p>
-        </section>
-
-        <section className="legal-section">
-          <h2>8. Children's Privacy</h2>
-          <p>
-            Our platform is not intended for children under 13 years of age. We do not knowingly collect personal information from children under 13.
-            If we become aware that we have collected personal information from a child under 13, we will take steps to delete such information.
-          </p>
-        </section>
-
-        <section className="legal-section">
-          <h2>9. International Data Transfers</h2>
-          <p>
-            Your information may be transferred to and maintained on servers located outside of your jurisdiction.
-            By using our platform, you consent to such transfers.
-          </p>
-        </section>
-
-        <section className="legal-section">
-          <h2>10. Changes to This Policy</h2>
-          <p>
-            We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page
-            and updating the "Last updated" date.
-          </p>
-        </section>
-
-        <section className="legal-section">
-          <h2>11. Contact Us</h2>
-          <p>If you have any questions about this Privacy Policy, please contact us:</p>
+          <h2>7. Your Rights</h2>
           <ul>
-            <li>Email: privacy@indic.com</li>
-            <li>Address: Indic Platform, India</li>
+            <li>You can update your profile information at any time</li>
+            <li>You can request deletion of your account and data</li>
+            <li>You can contact us with any questions about your data</li>
           </ul>
+        </section>
+
+        <section className="legal-section">
+          <h2>8. Changes to This Policy</h2>
+          <p>
+            We may update this policy as Indic grows. When we do, we'll update the date at the top of this page.
+          </p>
+        </section>
+
+        <section className="legal-section">
+          <h2>9. Contact</h2>
+          <p>
+            If you have any questions about this Privacy Policy, reach out to us at{' '}
+            <a href="mailto:Indicsocials@gmail.com">Indicsocials@gmail.com</a>
+          </p>
         </section>
       </div>
     </div>

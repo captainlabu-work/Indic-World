@@ -22,6 +22,7 @@ const CategoryPage = lazy(() => import('./pages/CategoryPage'));
 const Subscribers = lazy(() => import('./pages/Subscribers'));
 const AuthorProfile = lazy(() => import('./pages/AuthorProfile'));
 const Privacy = lazy(() => import('./pages/Privacy'));
+const CookiePolicy = lazy(() => import('./pages/CookiePolicy'));
 const Terms = lazy(() => import('./pages/Terms'));
 
 function App() {
@@ -113,6 +114,7 @@ function App() {
 
                 {/* Legal Pages */}
                 <Route path="/privacy-policy" element={<Privacy />} />
+                <Route path="/cookie-policy" element={<CookiePolicy />} />
                 <Route path="/terms" element={<Terms />} />
               </Routes>
               </Suspense>
