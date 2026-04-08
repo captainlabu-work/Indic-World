@@ -239,38 +239,40 @@ const Home = () => {
 
       {/* Explore Categories */}
       <section className="explore-section">
-        <div className="section-header">
-          <h2 className="section-title">Explore</h2>
-          <p className="section-subtitle">Discover stories across different mediums</p>
-        </div>
-        <div className="category-overlays">
-          <Link to="/word" className="category-overlay">
-            <div className="category-overlay-bg" style={{ backgroundImage: `url('https://images.unsplash.com/photo-1455390582262-044cdead277a?q=80&w=2073')` }}>
-              <div className="category-overlay-content">
-                <div className="category-label"><span className="category-icon">&#x270D;&#xFE0F;</span><h3>Indic Word</h3></div>
-                <p className="category-description">Written narratives & reportage</p>
-                <span className="explore-link">Explore Word &rarr;</span>
+        <div className="explore-inner">
+          <div className="section-header">
+            <h2 className="section-title">Explore</h2>
+            <p className="section-subtitle">Discover stories across different mediums</p>
+          </div>
+          <div className="category-overlays">
+            <Link to="/word" className="category-overlay">
+              <div className="category-overlay-bg" style={{ backgroundImage: `url('/kyrie-isaac-b5yyiiRflis-unsplash.jpg')` }}>
+                <div className="category-overlay-content">
+                  <div className="category-label"><span className="category-icon">&#x270D;&#xFE0F;</span><h3>Indic Word</h3></div>
+                  <p className="category-description">Written narratives & reportage</p>
+                  <span className="explore-link">Explore Word &rarr;</span>
+                </div>
               </div>
-            </div>
-          </Link>
-          <Link to="/lens" className="category-overlay">
-            <div className="category-overlay-bg" style={{ backgroundImage: `url('https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?q=80&w=2071')` }}>
-              <div className="category-overlay-content">
-                <div className="category-label"><span className="category-icon">&#x1F4F8;</span><h3>Indic Lens</h3></div>
-                <p className="category-description">Visual stories & photo essays</p>
-                <span className="explore-link">Explore Lens &rarr;</span>
+            </Link>
+            <Link to="/lens" className="category-overlay">
+              <div className="category-overlay-bg" style={{ backgroundImage: `url('/saajithan-thayaparan-wBFu6IpuKRI-unsplash.jpg')` }}>
+                <div className="category-overlay-content">
+                  <div className="category-label"><span className="category-icon">&#x1F4F8;</span><h3>Indic Lens</h3></div>
+                  <p className="category-description">Visual stories & photo essays</p>
+                  <span className="explore-link">Explore Lens &rarr;</span>
+                </div>
               </div>
-            </div>
-          </Link>
-          <Link to="/motion" className="category-overlay">
-            <div className="category-overlay-bg" style={{ backgroundImage: `url('https://images.unsplash.com/photo-1478720568477-152d9b164e26?q=80&w=2070')` }}>
-              <div className="category-overlay-content">
-                <div className="category-label"><span className="category-icon">&#x1F3AC;</span><h3>Indic Motion</h3></div>
-                <p className="category-description">Documentaries & films</p>
-                <span className="explore-link">Explore Motion &rarr;</span>
+            </Link>
+            <Link to="/motion" className="category-overlay">
+              <div className="category-overlay-bg" style={{ backgroundImage: `url('/vasiko-gorkovoy-OkBBRDHoxNw-unsplash.jpg')` }}>
+                <div className="category-overlay-content">
+                  <div className="category-label"><span className="category-icon">&#x1F3AC;</span><h3>Indic Motion</h3></div>
+                  <p className="category-description">Documentaries & films</p>
+                  <span className="explore-link">Explore Motion &rarr;</span>
+                </div>
               </div>
-            </div>
-          </Link>
+            </Link>
+          </div>
         </div>
       </section>
 

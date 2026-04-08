@@ -427,20 +427,26 @@
 
 /* ===== Explore Categories ===== */
 .explore-section {
-  padding: 3rem 6rem 4rem;
+  padding: 3rem 2rem 4rem;
   background: #ffffff;
   border-top: 1px solid #e8e8e8;
 }
 
+.explore-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
 .section-header {
-  margin-bottom: 1.5rem;
+  text-align: center;
+  margin-bottom: 2rem;
 }
 
 .section-title {
   font-size: 2.5rem;
   font-weight: 700;
   color: #262626;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.4rem;
   font-family: 'Crimson Text', serif;
   letter-spacing: -0.02em;
 }
@@ -454,8 +460,7 @@
 .category-overlays {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem;
-  margin-top: 1.5rem;
+  gap: 1.25rem;
 }
 
 .category-overlay {
