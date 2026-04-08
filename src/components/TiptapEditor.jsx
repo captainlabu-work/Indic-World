@@ -9,6 +9,8 @@ import { useRef, useCallback, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plugin, PluginKey } from '@tiptap/pm/state';
 import { Extension } from '@tiptap/core';
+import { articleService } from '../firebase/services';
+import { useNotification } from './common/NotificationSystem';
 import './TiptapEditor.css';
 
 const DRAFT_KEY = 'indic-editor-draft';
@@ -67,13 +69,29 @@ const TAG_OPTIONS = [
   'Philosophy & Religion',
 ];
 
-const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', initialData = null, category: categoryProp = 'word', authorName: initialAuthor = '' }) => {
+const DARK_MODE_KEY = 'te-dark-mode';
+
+const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', initialData = null, category: categoryProp = 'word', authorName: initialAuthor = '', currentUser = null }) => {
   const fileInputRef = useRef(null);
   const thumbnailInputRef = useRef(null);
   const saveTimerRef = useRef(null);
   const isEditMode = !!initialData;
   const draft = useRef(isEditMode ? null : loadDraft());
   const navigate = useNavigate();
+
+  // Dark mode
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem(DARK_MODE_KEY) === 'true');
+  useEffect(() => { localStorage.setItem(DARK_MODE_KEY, darkMode); }, [darkMode]);
+
+  // Dirty tracking for leave protection
+  const [isDirty, setIsDirty] = useState(false);
+
+  // Firestore auto-draft state
+  const [firestoreDraftId, setFirestoreDraftId] = useState(null);
+  const [saveStatus, setSaveStatus] = useState('idle'); // idle | saving | saved | error
+  const autoSaveTimerRef = useRef(null);
+  const isSavingRef = useRef(false);
+  const { showConfirmation } = useNotification();
 
   // Controlled state for title/subtitle/author (restorable from draft or initialData)
   const [title, setTitle] = useState(initialData?.title || draft.current?.title || '');
@@ -152,18 +170,26 @@ const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', initialData = 
     saveTimerRef.current = setTimeout(saveDraftToStorage, 2000);
   }, [saveDraftToStorage, isEditMode]);
 
-  // Save on editor content change
+  // Save on editor content change + mark dirty
   useEffect(() => {
     if (!editor || isEditMode) return;
-    const handler = () => scheduleSave();
+    const handler = () => { setIsDirty(true); scheduleSave(); };
     editor.on('update', handler);
     return () => editor.off('update', handler);
   }, [editor, scheduleSave, isEditMode]);
 
-  // Save on field change
+  // Save on field change + mark dirty
   useEffect(() => {
-    if (!isEditMode) scheduleSave();
+    if (!isEditMode) { setIsDirty(true); scheduleSave(); }
   }, [title, subtitle, authorName, thumbnailCaption, sourceText, scheduleSave, isEditMode]);
+
+  // beforeunload protection when dirty
+  useEffect(() => {
+    if (!isDirty) return;
+    const handler = (e) => { e.preventDefault(); e.returnValue = ''; };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [isDirty]);
 
   // Cleanup timer on unmount — flush final save only if draft wasn't cleared
   useEffect(() => {
@@ -194,8 +220,100 @@ const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', initialData = 
 
   const clearDraft = useCallback(() => {
     draftCleared.current = true;
+    setIsDirty(false);
     localStorage.removeItem(DRAFT_KEY);
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+  }, []);
+
+  // --- Firestore auto-draft logic ---
+  // Check if content is meaningful enough to auto-save
+  const hasMeaningfulContent = useCallback(() => {
+    if (!editor) return false;
+    if (fieldsRef.current.title.trim().length > 0) return true;
+    if (editor.getText().length > 100) return true;
+    // Check for images
+    const json = editor.getJSON();
+    const hasMedia = (node) => {
+      if (node.type === 'resizableImage' || node.type === 'imageGrid') return true;
+      return node.content?.some(hasMedia) || false;
+    };
+    return hasMedia(json);
+  }, [editor]);
+
+  // Auto-save to Firestore (debounced, only for new stories with meaningful content)
+  const autoSaveToFirestore = useCallback(async () => {
+    if (isEditMode || !currentUser || !editor || draftCleared.current || isSavingRef.current) return;
+    if (!hasMeaningfulContent()) return;
+
+    isSavingRef.current = true;
+    setSaveStatus('saving');
+
+    try {
+      const jsonContent = editor.getJSON();
+      const draftData = {
+        title: fieldsRef.current.title || 'Untitled Draft',
+        excerpt: fieldsRef.current.subtitle || '',
+        authorName: fieldsRef.current.authorName || '',
+        content: '', // skip HTML for auto-draft (saves space, avoids atom node crash)
+        contentJSON: JSON.stringify(jsonContent),
+        category,
+        tags,
+        thumbnailCaption,
+        sourceText,
+        authorId: currentUser.uid,
+        status: 'draft',
+        views: 0,
+        isVisualStory: true,
+        isAutoDraft: true,
+      };
+
+      if (firestoreDraftId) {
+        // Update existing draft
+        await articleService.updateArticle(firestoreDraftId, draftData);
+      } else {
+        // Create new draft
+        const docRef = await articleService.createArticle(draftData);
+        setFirestoreDraftId(docRef.id);
+      }
+
+      setSaveStatus('saved');
+      setIsDirty(false);
+      setTimeout(() => setSaveStatus('idle'), 3000);
+    } catch (err) {
+      console.error('Auto-save failed:', err);
+      setSaveStatus('error');
+      setTimeout(() => setSaveStatus('idle'), 4000);
+    } finally {
+      isSavingRef.current = false;
+    }
+  }, [isEditMode, currentUser, editor, category, tags, thumbnailCaption, sourceText, firestoreDraftId, hasMeaningfulContent]);
+
+  // Schedule Firestore auto-save (5 second debounce, separate from localStorage)
+  const scheduleAutoSave = useCallback(() => {
+    if (isEditMode || !currentUser) return;
+    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    autoSaveTimerRef.current = setTimeout(autoSaveToFirestore, 5000);
+  }, [autoSaveToFirestore, isEditMode, currentUser]);
+
+  // Trigger Firestore auto-save when content changes
+  useEffect(() => {
+    if (!editor || isEditMode || !currentUser) return;
+    const handler = () => scheduleAutoSave();
+    editor.on('update', handler);
+    return () => editor.off('update', handler);
+  }, [editor, scheduleAutoSave, isEditMode, currentUser]);
+
+  // Also trigger on field changes
+  useEffect(() => {
+    if (!isEditMode && currentUser) scheduleAutoSave();
+  }, [title, subtitle, authorName, category, tags, thumbnailCaption, sourceText, scheduleAutoSave, isEditMode, currentUser]);
+
+  // Cleanup auto-save timer on unmount
+  useEffect(() => {
+    return () => {
+      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    };
   }, []);
 
   // Inline toast state
@@ -273,16 +391,39 @@ const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', initialData = 
     status,
   });
 
-  // Discard handler
-  const handleDiscard = () => {
+  // Discard handler — with confirmation and Firestore draft deletion
+  const handleDiscard = async () => {
+    const hasContent = title.trim() || (editor && editor.getText().length > 10);
+    if (hasContent) {
+      const confirmed = await showConfirmation({
+        title: 'Discard Draft?',
+        message: 'This will permanently delete your current draft. This cannot be undone.',
+        confirmText: 'Discard',
+        cancelText: 'Keep Editing',
+        type: 'warning',
+      });
+      if (!confirmed) return;
+    }
+
+    // Delete Firestore draft if one was auto-created
+    if (firestoreDraftId) {
+      try {
+        await articleService.permanentlyDeleteArticle(firestoreDraftId);
+      } catch (err) {
+        console.error('Failed to delete auto-draft:', err);
+      }
+    }
+
     if (!isEditMode) clearDraft();
     navigate('/profile');
   };
 
   const handlePublish = () => {
     if (!title) return;
-    showToast('Saving...');
+    showToast('Submitting...');
     const payload = buildPayload('pending');
+    // Include firestoreDraftId so parent can update instead of creating duplicate
+    if (firestoreDraftId) payload.existingDraftId = firestoreDraftId;
     clearDraft();
     onSave?.(payload);
   };
@@ -290,6 +431,7 @@ const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', initialData = 
   const handleDraft = () => {
     showToast('Saving...');
     const payload = buildPayload('draft');
+    if (firestoreDraftId) payload.existingDraftId = firestoreDraftId;
     clearDraft();
     onSaveDraft?.(payload);
   };
@@ -297,7 +439,7 @@ const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', initialData = 
   if (!editor) return null;
 
   return (
-    <div className="tiptap-editor">
+    <div className={`tiptap-editor ${darkMode ? 'te-dark' : ''}`}>
       {/* Hidden file inputs */}
       <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileSelect} hidden />
       <input ref={thumbnailInputRef} type="file" accept="image/*" onChange={handleThumbnailSelect} hidden />
@@ -319,7 +461,27 @@ const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', initialData = 
               <circle cx="12" cy="7" r="4"/>
             </svg>
           </button>
+          {/* Dark mode toggle */}
+          <button className="te-nav-btn te-dark-toggle" onClick={() => setDarkMode(d => !d)} title={darkMode ? 'Light mode' : 'Dark mode'}>
+            {darkMode ? (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+              </svg>
+            ) : (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+              </svg>
+            )}
+          </button>
         </div>
+        {/* Save status indicator */}
+        <span className={`te-save-status ${saveStatus}`}>
+          {saveStatus === 'saving' && 'Saving...'}
+          {saveStatus === 'saved' && 'Saved'}
+          {saveStatus === 'error' && 'Save failed'}
+          {saveStatus === 'idle' && isDirty && 'Unsaved changes'}
+        </span>
+
         <div className="te-topbar-actions">
           <button className="te-btn te-btn-discard" onClick={handleDiscard}>Discard</button>
           {onSaveDraft && (

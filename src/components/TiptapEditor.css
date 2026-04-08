@@ -1205,3 +1205,149 @@
   }
 
 }
+
+/* ===== Dark Mode Toggle ===== */
+.te-dark-toggle {
+  margin-left: 4px;
+}
+
+/* ===== Save Status Indicator ===== */
+.te-save-status {
+  font-size: 11px;
+  font-family: var(--te-font-ui);
+  color: #666;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  transition: color 0.3s;
+  min-width: 0;
+}
+
+.te-save-status.saving { color: #f59e0b; }
+.te-save-status.saved { color: #4ade80; }
+.te-save-status.error { color: #ef4444; }
+
+/* =========================================================
+   DARK MODE — scoped to .tiptap-editor.te-dark
+   Only affects the editor card, toolbar, sidebar, inputs.
+   Topbar is already dark. Background is already dark.
+   ========================================================= */
+
+.tiptap-editor.te-dark .te-editor-card {
+  background: rgba(28, 28, 36, 0.97);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.2),
+    0 8px 24px rgba(0, 0, 0, 0.3),
+    0 24px 60px rgba(0, 0, 0, 0.4);
+}
+
+.tiptap-editor.te-dark .te-title-input {
+  color: #e8e8e8;
+}
+.tiptap-editor.te-dark .te-title-input::placeholder { color: #555; }
+
+.tiptap-editor.te-dark .te-subtitle-input {
+  color: #bbb;
+}
+.tiptap-editor.te-dark .te-subtitle-input::placeholder { color: #555; }
+
+.tiptap-editor.te-dark .te-byline {
+  color: #777;
+}
+
+.tiptap-editor.te-dark .te-author-input {
+  color: #ccc;
+}
+.tiptap-editor.te-dark .te-author-input:focus { background: rgba(255,255,255,0.06); }
+.tiptap-editor.te-dark .te-author-input::placeholder { color: #555; }
+.tiptap-editor.te-dark .te-date { color: #666; }
+
+/* Toolbar */
+.tiptap-editor.te-dark .te-toolbar {
+  background: #222230;
+  border-color: #3a3a4a;
+}
+
+.tiptap-editor.te-dark .te-toolbar-btn {
+  color: #999;
+}
+.tiptap-editor.te-dark .te-toolbar-btn:hover { color: #eee; background: rgba(255,255,255,0.08); }
+.tiptap-editor.te-dark .te-toolbar-btn.active { color: #fff; background: rgba(255,255,255,0.12); }
+.tiptap-editor.te-dark .te-toolbar-divider { background: #3a3a4a; }
+
+/* Editor content */
+.tiptap-editor.te-dark .te-editor-content {
+  color: #d8d8d8;
+  caret-color: #fff;
+}
+
+.tiptap-editor.te-dark .te-editor-content p.is-editor-empty::before {
+  color: #555;
+}
+
+.tiptap-editor.te-dark .te-editor-content blockquote {
+  border-left-color: #555;
+  background: rgba(255,255,255,0.03);
+}
+
+.tiptap-editor.te-dark .te-editor-content pre {
+  background: #1a1a28;
+}
+
+.tiptap-editor.te-dark .te-editor-content code {
+  background: rgba(255,255,255,0.08);
+  color: #e0e0e0;
+}
+
+.tiptap-editor.te-dark .te-editor-content hr {
+  border-color: #3a3a4a;
+}
+
+/* Image caption */
+.tiptap-editor.te-dark .te-image-caption {
+  color: #777;
+}
+.tiptap-editor.te-dark .te-image-caption:focus { color: #aaa; }
+.tiptap-editor.te-dark .te-image-caption::placeholder { color: #444; }
+
+/* Sidebar */
+.tiptap-editor.te-dark .te-sidebar {
+  background: #1e1e2a;
+  border-left-color: #333;
+}
+
+.tiptap-editor.te-dark .te-sidebar-header h3 { color: #e0e0e0; }
+.tiptap-editor.te-dark .te-sidebar-label { color: #bbb; }
+.tiptap-editor.te-dark .te-sidebar-desc { color: #777; }
+.tiptap-editor.te-dark .te-sidebar-input {
+  background: #2a2a3a;
+  border-color: #444;
+  color: #ddd;
+}
+.tiptap-editor.te-dark .te-sidebar-input:focus { border-color: #666; }
+.tiptap-editor.te-dark .te-sidebar-select {
+  background: #2a2a3a;
+  border-color: #444;
+  color: #ddd;
+}
+.tiptap-editor.te-dark .te-tag-chip {
+  background: #2a2a3a;
+  color: #aaa;
+  border-color: #444;
+}
+.tiptap-editor.te-dark .te-tag-chip.selected {
+  background: #3a3a5a;
+  color: #fff;
+  border-color: #666;
+}
+.tiptap-editor.te-dark .te-sidebar-overlay {
+  background: rgba(0, 0, 0, 0.5);
+}
+.tiptap-editor.te-dark .te-thumbnail-upload {
+  border-color: #444;
+  color: #888;
+}
+.tiptap-editor.te-dark .te-thumbnail-upload:hover {
+  border-color: #666;
+  color: #bbb;
+}

@@ -108,7 +108,13 @@ const CreateStory = () => {
 
       console.log('[CreateStory] Final payload size:', JSON.stringify(sanitized).length, 'bytes');
 
-      await articleService.createArticle(sanitized);
+      // If auto-draft exists, update it instead of creating duplicate
+      if (storyData.existingDraftId) {
+        sanitized.isAutoDraft = false; // promote from auto-draft to real save
+        await articleService.updateArticle(storyData.existingDraftId, sanitized);
+      } else {
+        await articleService.createArticle(sanitized);
+      }
 
       if (status === 'pending') {
         success('Your story has been submitted for review. You\'ll be notified once it\'s published.');
@@ -231,6 +237,7 @@ const CreateStory = () => {
           onSaveDraft={handleEditorSave}
           category={urlCategory === 'lens' ? 'lens' : 'word'}
           authorName={userData?.displayName || currentUser?.email || ''}
+          currentUser={currentUser}
         />
       </div>
     );
