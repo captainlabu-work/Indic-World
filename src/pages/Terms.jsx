@@ -2,165 +2,107 @@ import { useEffect } from 'react';
 import './LegalPages.css';
 
 const Terms = () => {
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
+  useEffect(() => { window.scrollTo(0, 0); }, []);
 
   return (
     <div className="legal-container">
       <div className="legal-header">
         <h1>Terms of Service</h1>
-        <p className="legal-updated">Last updated: {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+        <p className="legal-updated">Last updated: April 8, 2026</p>
       </div>
 
       <div className="legal-content">
         <section className="legal-section">
-          <h2>1. Acceptance of Terms</h2>
+          <h2>1. Introduction</h2>
           <p>
-            By accessing and using Indic ("the Platform"), you agree to be bound by these Terms of Service ("Terms").
-            If you do not agree to these Terms, please do not use our Platform.
+            Indic is a storytelling platform where users publish written stories, photo essays, and films.
+            By using Indic, you agree to these terms. If you do not agree, please do not use the platform.
           </p>
         </section>
 
         <section className="legal-section">
-          <h2>2. Description of Service</h2>
-          <p>
-            Indic is a storytelling platform that allows users to create, share, and discover written content.
-            We provide tools for writers to publish their stories and for readers to engage with content.
-          </p>
-        </section>
-
-        <section className="legal-section">
-          <h2>3. User Accounts</h2>
-          <h3>3.1 Account Creation</h3>
+          <h2>2. User Accounts</h2>
           <ul>
-            <li>You must provide accurate and complete information when creating an account</li>
-            <li>You are responsible for maintaining the security of your account credentials</li>
-            <li>You must be at least 13 years old to use our Platform</li>
-            <li>One person or entity may not maintain more than one account</li>
-          </ul>
-
-          <h3>3.2 Account Responsibilities</h3>
-          <ul>
-            <li>You are responsible for all activities that occur under your account</li>
-            <li>You must notify us immediately of any unauthorized use of your account</li>
-            <li>We are not liable for any loss or damage from your failure to maintain account security</li>
+            <li>You are responsible for maintaining the security of your account</li>
+            <li>The information you provide should be accurate and up to date</li>
+            <li>You must keep your login credentials confidential</li>
+            <li>You are responsible for all activity under your account</li>
           </ul>
         </section>
 
         <section className="legal-section">
-          <h2>4. User Content</h2>
-          <h3>4.1 Content Ownership</h3>
-          <p>
-            You retain ownership of all content you create and publish on our Platform. By posting content, you grant us a
-            non-exclusive, worldwide, royalty-free license to use, display, reproduce, and distribute your content on our Platform.
-          </p>
-
-          <h3>4.2 Content Guidelines</h3>
-          <p>You agree not to post content that:</p>
+          <h2>3. User Content</h2>
           <ul>
-            <li>Violates any applicable laws or regulations</li>
-            <li>Infringes on intellectual property rights of others</li>
-            <li>Contains hate speech, harassment, or discrimination</li>
-            <li>Includes explicit adult content without appropriate warnings</li>
-            <li>Spreads misinformation or false information</li>
-            <li>Promotes illegal activities or violence</li>
-            <li>Contains spam or commercial solicitations</li>
-          </ul>
-
-          <h3>4.3 Content Moderation</h3>
-          <p>
-            We reserve the right to review, moderate, and remove content that violates these Terms.
-            We may suspend or terminate accounts that repeatedly violate our content guidelines.
-          </p>
-        </section>
-
-        <section className="legal-section">
-          <h2>5. Intellectual Property Rights</h2>
-          <p>
-            The Platform and its original content, features, and functionality are owned by Indic and are protected by
-            international copyright, trademark, and other intellectual property laws.
-          </p>
-        </section>
-
-        <section className="legal-section">
-          <h2>6. Prohibited Uses</h2>
-          <p>You may not:</p>
-          <ul>
-            <li>Use the Platform for any illegal purpose or in violation of any laws</li>
-            <li>Attempt to gain unauthorized access to our systems or networks</li>
-            <li>Interfere with or disrupt the Platform's operation</li>
-            <li>Use automated systems or software to extract data from the Platform</li>
-            <li>Impersonate another person or entity</li>
-            <li>Sell or transfer your account to another person</li>
+            <li>You retain ownership of the content you publish on Indic</li>
+            <li>By publishing content, you grant Indic the right to display and distribute it on the platform</li>
+            <li>You are solely responsible for the content you create and share</li>
+            <li>You confirm that your content does not infringe on the rights of others</li>
           </ul>
         </section>
 
         <section className="legal-section">
-          <h2>7. Privacy</h2>
-          <p>
-            Your use of the Platform is also governed by our Privacy Policy. Please review our Privacy Policy,
-            which also governs the Platform and informs users of our data collection practices.
-          </p>
+          <h2>4. Content Guidelines</h2>
+          <p>The following types of content are not permitted on Indic:</p>
+          <ul>
+            <li>Illegal content of any kind</li>
+            <li>Harmful, abusive, threatening, or hateful material</li>
+            <li>Content that infringes copyright or intellectual property rights</li>
+            <li>Misleading, fraudulent, or deliberately false content</li>
+            <li>Spam, advertisements, or unsolicited promotions</li>
+          </ul>
+          <p>Indic reserves the right to remove any content that violates these guidelines.</p>
         </section>
 
         <section className="legal-section">
-          <h2>8. Disclaimers</h2>
+          <h2>5. Platform Rights</h2>
           <ul>
-            <li>The Platform is provided "as is" without warranties of any kind</li>
-            <li>We do not guarantee the accuracy, completeness, or usefulness of any content</li>
-            <li>We are not responsible for user-generated content</li>
-            <li>We do not guarantee uninterrupted or error-free operation of the Platform</li>
+            <li>Indic may remove content that violates these terms or community guidelines</li>
+            <li>Indic may suspend or terminate accounts that repeatedly violate these terms</li>
+            <li>Indic may modify, update, or discontinue features of the platform at any time</li>
           </ul>
         </section>
 
         <section className="legal-section">
-          <h2>9. Limitation of Liability</h2>
+          <h2>6. Intellectual Property</h2>
           <p>
-            To the maximum extent permitted by law, Indic shall not be liable for any indirect, incidental, special,
-            consequential, or punitive damages resulting from your use or inability to use the Platform.
+            The Indic platform — including its design, branding, logo, and underlying technology — is the
+            property of Indic. You may not copy, reproduce, or misuse any part of the platform without
+            explicit permission.
           </p>
         </section>
 
         <section className="legal-section">
-          <h2>10. Indemnification</h2>
+          <h2>7. Limitation of Liability</h2>
           <p>
-            You agree to indemnify and hold harmless Indic and its affiliates from any claims, damages, losses, liabilities,
-            costs, and expenses arising from your violation of these Terms or your use of the Platform.
+            Indic is a hosting platform for user-generated content. We do not endorse, verify, or guarantee
+            the accuracy or reliability of any content published by users. Use of the platform and engagement
+            with user content is at your own risk.
           </p>
         </section>
 
         <section className="legal-section">
-          <h2>11. Termination</h2>
-          <p>
-            We may terminate or suspend your account and access to the Platform immediately, without prior notice or liability,
-            for any reason, including breach of these Terms.
-          </p>
-        </section>
-
-        <section className="legal-section">
-          <h2>12. Governing Law</h2>
-          <p>
-            These Terms shall be governed by and construed in accordance with the laws of India,
-            without regard to its conflict of law provisions.
-          </p>
-        </section>
-
-        <section className="legal-section">
-          <h2>13. Changes to Terms</h2>
-          <p>
-            We reserve the right to modify or replace these Terms at any time. If a revision is material,
-            we will provide at least 30 days notice prior to any new terms taking effect.
-          </p>
-        </section>
-
-        <section className="legal-section">
-          <h2>14. Contact Information</h2>
-          <p>If you have any questions about these Terms, please contact us:</p>
+          <h2>8. Termination</h2>
           <ul>
-            <li>Email: legal@indic.com</li>
-            <li>Address: Indic Platform, India</li>
+            <li>You may stop using Indic at any time</li>
+            <li>You may request deletion of your account and data</li>
+            <li>Indic may suspend or terminate access if these terms are violated</li>
           </ul>
+        </section>
+
+        <section className="legal-section">
+          <h2>9. Changes to These Terms</h2>
+          <p>
+            We may update these Terms of Service as the platform evolves. Changes will be reflected on this
+            page with an updated date. Continued use of Indic after changes constitutes acceptance.
+          </p>
+        </section>
+
+        <section className="legal-section">
+          <h2>10. Contact</h2>
+          <p>
+            If you have questions about these Terms, contact us at{' '}
+            <a href="mailto:Indicsocials@gmail.com">Indicsocials@gmail.com</a>
+          </p>
         </section>
       </div>
     </div>

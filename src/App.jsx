@@ -24,6 +24,7 @@ const AuthorProfile = lazy(() => import('./pages/AuthorProfile'));
 const Privacy = lazy(() => import('./pages/Privacy'));
 const CookiePolicy = lazy(() => import('./pages/CookiePolicy'));
 const Terms = lazy(() => import('./pages/Terms'));
+const Disclaimer = lazy(() => import('./pages/Disclaimer'));
 
 function App() {
   return (
@@ -116,6 +117,7 @@ function App() {
                 <Route path="/privacy-policy" element={<Privacy />} />
                 <Route path="/cookie-policy" element={<CookiePolicy />} />
                 <Route path="/terms" element={<Terms />} />
+                <Route path="/disclaimer" element={<Disclaimer />} />
               </Routes>
               </Suspense>
             </main>
