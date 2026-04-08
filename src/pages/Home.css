@@ -563,10 +563,8 @@
 /* ===== CTA ===== */
 .cta-section {
   padding: 3rem 2rem;
-  margin-bottom: 3rem;
-  background: #1a1a1a;
+  background: #222;
   border-top: 1px solid #e8e8e8;
-  border-bottom: 1px solid #e8e8e8;
   text-align: center;
   color: #e8e8e8;
 }
