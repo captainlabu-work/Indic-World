@@ -539,6 +539,13 @@
   margin-top: 0.25rem;
 }
 
+.upload-zone-tip {
+  font-family: 'Crimson Text', serif;
+  font-size: 0.82rem;
+  color: #888;
+  margin-top: 0.5rem;
+}
+
 /* Inline error inside upload zone */
 .upload-zone-error {
   position: absolute;
