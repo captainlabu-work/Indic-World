@@ -340,9 +340,9 @@ const CreateStory = () => {
           ) : (
             <div className="upload-zone-empty">
               <div className="upload-zone-icon-large">
-                <svg width="52" height="52" viewBox="0 0 52 52" fill="none">
-                  <circle cx="26" cy="26" r="25" fill="none" stroke="rgba(77,184,151,0.25)" strokeWidth="1.5"/>
-                  <path d="M26 16v18M19 25l7-7 7 7" stroke="#4db897" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <svg width="58" height="58" viewBox="0 0 58 58" fill="none">
+                  <circle cx="29" cy="29" r="27.5" fill="none" stroke="rgba(77,184,151,0.28)" strokeWidth="1.5"/>
+                  <path d="M29 18v20M21 28l8-8 8 8" stroke="#4db897" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </div>
               <p className="upload-zone-title">Upload your film</p>
