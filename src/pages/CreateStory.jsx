@@ -151,7 +151,7 @@ const CreateStory = () => {
   const handleVideoChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (file.size > 200 * 1024 * 1024) { setError('File exceeds 200MB limit. Please compress your video.'); return; }
+      if (file.size > 750 * 1024 * 1024) { setError('File exceeds 750MB limit. Please compress your video.'); return; }
       setMotionData(prev => ({ ...prev, videoFile: file }));
       setError('');
     }
@@ -256,7 +256,7 @@ const CreateStory = () => {
     setIsDragging(false);
     const file = e.dataTransfer.files[0];
     if (file && file.type.startsWith('video/')) {
-      if (file.size > 200 * 1024 * 1024) { setError('File exceeds 200MB limit. Please compress your video.'); return; }
+      if (file.size > 750 * 1024 * 1024) { setError('File exceeds 750MB limit. Please compress your video.'); return; }
       setMotionData(prev => ({ ...prev, videoFile: file }));
       setError('');
     } else if (file) {
@@ -347,7 +347,7 @@ const CreateStory = () => {
               </div>
               <p className="upload-zone-title">Upload your film</p>
               <p className="upload-zone-text">Drag and drop or click to browse</p>
-              <p className="upload-zone-hint">MP4, MOV, AVI, WebM &middot; Max 200MB</p>
+              <p className="upload-zone-hint">MP4, MOV, AVI, WebM &middot; Max 750MB</p>
               <p className="upload-zone-tip">Large files may fail to upload. Compress your video before submitting.</p>
             </div>
           )}
@@ -363,7 +363,7 @@ const CreateStory = () => {
             </div>
             <div className="spec-item">
               <span className="spec-label">Max Size</span>
-              <span className="spec-value">200 MB</span>
+              <span className="spec-value">750 MB</span>
             </div>
             <div className="spec-item">
               <span className="spec-label">Aspect Ratio</span>
