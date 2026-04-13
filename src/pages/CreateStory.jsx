@@ -426,8 +426,8 @@ const CreateStory = () => {
 
         <div className="form-group">
           <label htmlFor="excerpt">Description</label>
-          <textarea id="excerpt" name="excerpt" value={motionData.excerpt} onChange={handleMotionInputChange} placeholder="A brief synopsis of your film" maxLength={200} rows={3} required />
-          <small className="char-count">{motionData.excerpt.length}/200</small>
+          <textarea id="excerpt" name="excerpt" value={motionData.excerpt} onChange={handleMotionInputChange} placeholder="A brief synopsis of your film" maxLength={2400} rows={5} required />
+          <small className="char-count">{motionData.excerpt.trim().split(/\s+/).filter(Boolean).length}/400 words</small>
         </div>
 
         <div className="form-group">
