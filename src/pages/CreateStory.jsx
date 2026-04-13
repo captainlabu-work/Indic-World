@@ -281,7 +281,7 @@ const CreateStory = () => {
       <div className="motion-header-row">
         <div className="motion-header-text">
           <h1>New Motion Submission</h1>
-          <p className="create-story-subtitle">Share a documentary, film, or video essay.</p>
+          <p className="motion-header-sub">Share a documentary, film, or video essay.</p>
         </div>
         <button
           type="button"
@@ -289,11 +289,11 @@ const CreateStory = () => {
           className="motion-submit-top"
           disabled={loading || !motionData.title || !motionData.excerpt || !motionData.videoFile || !motionData.type}
         >
-          {loading ? 'Submitting...' : 'Submit'}
+          {loading ? 'Submitting...' : 'Submit for Review'}
         </button>
       </div>
 
-      {/* Two-column: Upload zone + Specifications */}
+      {/* Two-column: Upload LEFT + Specifications RIGHT */}
       <div className="motion-upload-row">
         <div
           className={`motion-upload-zone${isDragging ? ' dragging' : ''}${motionData.videoFile ? ' has-file' : ''}`}
@@ -311,85 +311,103 @@ const CreateStory = () => {
           />
           {motionData.videoFile ? (
             <div className="upload-zone-selected">
-              <div className="upload-zone-icon">&#9654;</div>
+              <div className="upload-selected-icon">
+                <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                  <rect x="2" y="2" width="44" height="44" rx="10" fill="#f0faf6" stroke="#4db897" strokeWidth="1.5"/>
+                  <polygon points="19,14 19,34 35,24" fill="#4db897"/>
+                </svg>
+              </div>
               <p className="upload-zone-filename">{motionData.videoFile.name}</p>
               <p className="upload-zone-filesize">{(motionData.videoFile.size / (1024 * 1024)).toFixed(1)} MB</p>
-              <button
-                type="button"
-                className="upload-zone-remove"
-                onClick={(e) => { e.stopPropagation(); setMotionData(prev => ({ ...prev, videoFile: null })); }}
-              >
-                Remove
-              </button>
+              <div className="upload-zone-actions">
+                <button
+                  type="button"
+                  className="upload-action-btn replace"
+                  onClick={(e) => { e.stopPropagation(); document.getElementById('videoFile').click(); }}
+                >
+                  Replace
+                </button>
+                <button
+                  type="button"
+                  className="upload-action-btn remove"
+                  onClick={(e) => { e.stopPropagation(); setMotionData(prev => ({ ...prev, videoFile: null })); }}
+                >
+                  Remove
+                </button>
+              </div>
             </div>
           ) : (
             <div className="upload-zone-empty">
               <div className="upload-zone-icon-large">
-                <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-                  <circle cx="24" cy="24" r="22" fill="#e8f5f1" stroke="#7ecab5" strokeWidth="2"/>
-                  <path d="M24 14v16M16 22l8-8 8 8" stroke="#4db897" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <svg width="52" height="52" viewBox="0 0 52 52" fill="none">
+                  <circle cx="26" cy="26" r="25" fill="none" stroke="rgba(77,184,151,0.25)" strokeWidth="1.5"/>
+                  <path d="M26 16v18M19 25l7-7 7 7" stroke="#4db897" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </div>
-              <p className="upload-zone-text">Drag and drop your video here, or click to browse</p>
+              <p className="upload-zone-title">Upload your film</p>
+              <p className="upload-zone-text">Drag and drop or click to browse</p>
               <p className="upload-zone-hint">MP4, MOV, AVI, WebM &middot; Max 100MB</p>
             </div>
           )}
         </div>
 
+        {/* Specifications panel on the right */}
         <div className="motion-specs-panel">
           <h3>Specifications</h3>
           <div className="specs-list">
             <div className="spec-item">
-              <span className="spec-icon">&#9654;</span>
               <span className="spec-label">File Type</span>
               <span className="spec-value">.mp4, .mov, .avi, .webm</span>
             </div>
             <div className="spec-item">
-              <span className="spec-icon">&#128190;</span>
               <span className="spec-label">Max Size</span>
               <span className="spec-value">100 MB</span>
             </div>
             <div className="spec-item">
-              <span className="spec-icon">&#9634;</span>
               <span className="spec-label">Aspect Ratio</span>
               <span className="spec-value">16:9 recommended</span>
             </div>
             <div className="spec-item">
-              <span className="spec-icon">&#9201;</span>
               <span className="spec-label">Duration</span>
               <span className="spec-value">No limit</span>
             </div>
-            <div className="specs-divider"></div>
+          </div>
+          <div className="specs-divider"></div>
+          <h3>Your Selection</h3>
+          <div className="specs-list">
             <div className="spec-item">
-              <span className="spec-icon">&#9654;</span>
               <span className="spec-label">Type</span>
-              <span className={`spec-value${!motionData.type ? ' spec-placeholder' : ''}`}>
-                {motionData.type || 'Not selected'}
-              </span>
+              {motionData.type ? (
+                <span className="spec-pill">{motionData.type}</span>
+              ) : (
+                <span className="spec-value spec-placeholder">Not selected</span>
+              )}
             </div>
             <div className="spec-item">
-              <span className="spec-icon">&#9670;</span>
               <span className="spec-label">Theme</span>
-              <span className={`spec-value${!motionData.theme ? ' spec-placeholder' : ''}`}>
-                {motionData.theme || 'Not selected'}
-              </span>
+              {motionData.theme ? (
+                <span className="spec-pill">{motionData.theme}</span>
+              ) : (
+                <span className="spec-value spec-placeholder">Not selected</span>
+              )}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Story Details section */}
+      {/* Story Details section below */}
       <div className="motion-details-section">
         <h2>Story Details</h2>
-        <p className="motion-details-subtitle">Details about the video you are submitting.</p>
+        <p className="motion-details-subtitle">Tell us about your film.</p>
 
-        <div className="motion-fields-row">
+        <div className="form-group">
+          <label htmlFor="title">Title</label>
+          <input type="text" id="title" name="title" value={motionData.title} onChange={handleMotionInputChange} placeholder="What is your film called?" required />
+        </div>
+
+        <div className="motion-fields-row two-col">
           <div className="form-group">
-            <label htmlFor="title">Title *</label>
-            <input type="text" id="title" name="title" value={motionData.title} onChange={handleMotionInputChange} placeholder="Enter a title for your video" required />
-          </div>
-          <div className="form-group">
-            <label htmlFor="type">Type *</label>
+            <label htmlFor="type">Type</label>
             <select id="type" name="type" value={motionData.type} onChange={handleMotionInputChange} required className="motion-select">
               <option value="">Select type</option>
               {motionTypes.map(t => <option key={t} value={t}>{t}</option>)}
@@ -405,27 +423,34 @@ const CreateStory = () => {
         </div>
 
         <div className="form-group">
-          <label htmlFor="excerpt">Description *</label>
-          <textarea id="excerpt" name="excerpt" value={motionData.excerpt} onChange={handleMotionInputChange} placeholder="Brief description of your video (max 200 characters)" maxLength={200} rows={3} required />
+          <label htmlFor="excerpt">Description</label>
+          <textarea id="excerpt" name="excerpt" value={motionData.excerpt} onChange={handleMotionInputChange} placeholder="A brief synopsis of your film" maxLength={200} rows={3} required />
           <small className="char-count">{motionData.excerpt.length}/200</small>
         </div>
 
-        <div className="motion-fields-row two-col">
-          <div className="form-group">
-            <label htmlFor="featuredImage">Thumbnail Image</label>
-            <div className="motion-file-input-wrapper">
-              <input type="file" id="featuredImage" accept="image/*" onChange={handleImageChange} className="file-input" />
-              {imagePreview && (
-                <div className="image-preview">
-                  <img src={imagePreview} alt="Preview" />
-                  <button type="button" onClick={() => { setFeaturedImage(null); setImagePreview(null); }} className="remove-image-btn">Remove</button>
+        <div className="form-group">
+          <label htmlFor="featuredImage">Thumbnail Image</label>
+          <p className="motion-field-hint">A cover image for your film. JPG or PNG, max 5MB.</p>
+          <div className="motion-thumbnail-wrapper">
+            {imagePreview ? (
+              <div className="motion-thumbnail-preview">
+                <img src={imagePreview} alt="Thumbnail preview" />
+                <div className="motion-thumbnail-actions">
+                  <button type="button" onClick={() => { document.getElementById('featuredImage').click(); }} className="upload-action-btn replace">Replace</button>
+                  <button type="button" onClick={() => { setFeaturedImage(null); setImagePreview(null); }} className="upload-action-btn remove">Remove</button>
                 </div>
-              )}
-            </div>
-          </div>
-          <div className="form-group">
-            <label htmlFor="tags">Tags (Optional)</label>
-            <input type="text" id="tags" name="tags" value={motionData.tags} onChange={handleMotionInputChange} placeholder="e.g., documentary, short film, india" />
+              </div>
+            ) : (
+              <div className="motion-thumbnail-drop" onClick={() => document.getElementById('featuredImage').click()}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="3"/>
+                  <circle cx="8.5" cy="8.5" r="1.5"/>
+                  <path d="M21 15l-5-5L5 21"/>
+                </svg>
+                <span>Choose thumbnail</span>
+              </div>
+            )}
+            <input type="file" id="featuredImage" accept="image/*" onChange={handleImageChange} style={{ display: 'none' }} />
           </div>
         </div>
       </div>
@@ -434,12 +459,14 @@ const CreateStory = () => {
 
       <div className="form-actions motion-actions">
         <button type="button" onClick={handleDiscard} className="discard-btn" disabled={loading}>Discard</button>
-        <button type="button" onClick={() => handleMotionSubmit('draft')} className="draft-btn" disabled={loading || !motionData.title || !motionData.excerpt}>
-          {loading ? 'Saving...' : 'Save as Draft'}
-        </button>
-        <button type="button" onClick={() => handleMotionSubmit('pending')} className="submit-btn" disabled={loading || !motionData.title || !motionData.excerpt || !motionData.videoFile || !motionData.type}>
-          {loading ? 'Submitting...' : 'Submit for Review'}
-        </button>
+        <div className="motion-actions-right">
+          <button type="button" onClick={() => handleMotionSubmit('draft')} className="draft-btn" disabled={loading || !motionData.title || !motionData.excerpt}>
+            {loading ? 'Saving...' : 'Save as Draft'}
+          </button>
+          <button type="button" onClick={() => handleMotionSubmit('pending')} className="submit-btn" disabled={loading || !motionData.title || !motionData.excerpt || !motionData.videoFile || !motionData.type}>
+            {loading ? 'Submitting...' : 'Submit for Review'}
+          </button>
+        </div>
       </div>
     </div>
   );
