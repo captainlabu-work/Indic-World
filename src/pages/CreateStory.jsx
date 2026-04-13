@@ -151,7 +151,7 @@ const CreateStory = () => {
   const handleVideoChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (file.size > 100 * 1024 * 1024) { setError('Video must be less than 100MB'); return; }
+      if (file.size > 100 * 1024 * 1024) { setError('File exceeds 100MB limit. Please compress your video.'); return; }
       setMotionData(prev => ({ ...prev, videoFile: file }));
       setError('');
     }
@@ -256,7 +256,7 @@ const CreateStory = () => {
     setIsDragging(false);
     const file = e.dataTransfer.files[0];
     if (file && file.type.startsWith('video/')) {
-      if (file.size > 100 * 1024 * 1024) { setError('Video must be less than 100MB'); return; }
+      if (file.size > 100 * 1024 * 1024) { setError('File exceeds 100MB limit. Please compress your video.'); return; }
       setMotionData(prev => ({ ...prev, videoFile: file }));
       setError('');
     } else if (file) {
@@ -296,7 +296,7 @@ const CreateStory = () => {
       {/* Two-column: Upload LEFT + Specifications RIGHT */}
       <div className="motion-upload-row">
         <div
-          className={`motion-upload-zone${isDragging ? ' dragging' : ''}${motionData.videoFile ? ' has-file' : ''}`}
+          className={`motion-upload-zone${isDragging ? ' dragging' : ''}${motionData.videoFile ? ' has-file' : ''}${error ? ' has-error' : ''}`}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
@@ -309,6 +309,7 @@ const CreateStory = () => {
             onChange={handleVideoChange}
             style={{ display: 'none' }}
           />
+          {error && <p className="upload-zone-error">{error}</p>}
           {motionData.videoFile ? (
             <div className="upload-zone-selected">
               <div className="upload-selected-icon">
@@ -454,8 +455,6 @@ const CreateStory = () => {
           </div>
         </div>
       </div>
-
-      {error && <div className="error-message">{error}</div>}
 
       <div className="form-actions motion-actions">
         <button type="button" onClick={handleDiscard} className="discard-btn" disabled={loading}>Discard</button>

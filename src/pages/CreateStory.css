@@ -411,7 +411,7 @@
 .motion-container {
   background: #f7f7f5;
   padding-top: 7rem;
-  max-width: 1200px;
+  max-width: 1280px;
 }
 
 /* Header row: title left, submit right */
@@ -425,7 +425,7 @@
 .motion-header-text h1 {
   font-size: clamp(1.7rem, 3vw, 2.3rem);
   font-weight: 600;
-  color: #1a1a1a;
+  color: #111;
   margin-bottom: 0.2rem;
   font-family: 'Crimson Text', serif;
   letter-spacing: -0.01em;
@@ -433,32 +433,32 @@
 
 .motion-header-sub {
   font-size: 1rem;
-  color: #999;
+  color: #777;
   font-family: 'Crimson Text', serif;
 }
 
 .motion-submit-top {
-  padding: 0.65rem 1.8rem;
-  background: #262626;
+  padding: 0.7rem 2rem;
+  background: #1a1a1a;
   color: #fff;
   border: none;
   border-radius: 6px;
   font-family: 'Crimson Text', serif;
   font-weight: 600;
-  font-size: 0.92rem;
+  font-size: 0.95rem;
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
 }
 
 .motion-submit-top:hover:not(:disabled) {
-  background: #3a3a3a;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  background: #333;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
 }
 
 .motion-submit-top:disabled {
-  opacity: 0.4;
+  opacity: 0.35;
   cursor: not-allowed;
 }
 
@@ -470,35 +470,40 @@
   margin-bottom: 2rem;
   background: #fff;
   border-radius: 10px;
-  border: 1px solid #ebebeb;
+  border: 1px solid #e0e0de;
   overflow: hidden;
 }
 
 /* Upload drop zone */
 .motion-upload-zone {
   border: none;
-  border-right: 1px solid #ebebeb;
+  border-right: 1px solid #e0e0de;
   border-radius: 0;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   min-height: 300px;
   cursor: pointer;
   transition: background 0.2s ease;
-  background: #fafafa;
+  background: #f6f6f4;
   position: relative;
 }
 
 .motion-upload-zone:hover {
-  background: #f5f9f7;
+  background: #f0f5f2;
 }
 
 .motion-upload-zone.dragging {
-  background: #eef7f3;
+  background: #eaf3ee;
 }
 
 .motion-upload-zone.has-file {
-  background: #f5f9f7;
+  background: #f0f5f2;
+}
+
+.motion-upload-zone.has-error {
+  border-color: #e0a8a0;
 }
 
 .upload-zone-empty {
@@ -517,20 +522,37 @@
   font-family: 'Crimson Text', serif;
   font-size: 1.2rem;
   font-weight: 600;
-  color: #262626;
+  color: #1a1a1a;
 }
 
 .upload-zone-text {
   font-family: 'Crimson Text', serif;
   font-size: 0.92rem;
-  color: #999;
+  color: #777;
 }
 
 .upload-zone-hint {
   font-family: 'Crimson Text', serif;
   font-size: 0.8rem;
-  color: #c0c0c0;
+  color: #aaa;
   margin-top: 0.2rem;
+}
+
+/* Inline error inside upload zone */
+.upload-zone-error {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.35rem 1rem;
+  background: #fef2f0;
+  color: #b33a2a;
+  border: 1px solid #f0c8c2;
+  border-radius: 5px;
+  font-family: 'Crimson Text', serif;
+  font-size: 0.82rem;
+  white-space: nowrap;
+  z-index: 2;
 }
 
 .upload-zone-selected {
@@ -613,7 +635,7 @@
   font-family: 'Crimson Text', serif;
   font-size: 0.78rem;
   font-weight: 600;
-  color: #aaa;
+  color: #888;
   margin-bottom: 0.9rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -635,19 +657,19 @@
 .spec-label {
   font-family: 'Crimson Text', serif;
   font-size: 0.84rem;
-  font-weight: 400;
-  color: #888;
+  font-weight: 500;
+  color: #666;
 }
 
 .spec-value {
   font-family: 'Crimson Text', serif;
   font-size: 0.84rem;
-  color: #444;
+  color: #333;
   text-align: right;
 }
 
 .spec-placeholder {
-  color: #ccc;
+  color: #bbb;
   font-style: italic;
   font-size: 0.82rem;
 }
@@ -673,7 +695,7 @@
 .motion-details-section {
   background: #fff;
   border-radius: 10px;
-  border: 1px solid #ebebeb;
+  border: 1px solid #e0e0de;
   padding: 2rem 2.2rem;
   margin-bottom: 1.5rem;
   display: flex;
@@ -685,7 +707,7 @@
   font-family: 'Crimson Text', serif;
   font-size: 1.3rem;
   font-weight: 600;
-  color: #1a1a1a;
+  color: #111;
   margin-bottom: -0.6rem;
   letter-spacing: -0.01em;
 }
@@ -693,7 +715,7 @@
 .motion-details-subtitle {
   font-family: 'Crimson Text', serif;
   font-size: 0.88rem;
-  color: #aaa;
+  color: #888;
   margin-bottom: 0;
   padding-bottom: 0;
   border-bottom: none;
@@ -706,14 +728,14 @@
 .motion-details-section .form-group label {
   font-size: 0.86rem;
   font-weight: 500;
-  color: #555;
+  color: #444;
   letter-spacing: 0.01em;
 }
 
 .motion-details-section .form-group input,
 .motion-details-section .form-group textarea {
   padding: 0.75rem 0.9rem;
-  border: 1px solid #e5e5e3;
+  border: 1px solid #d8d8d6;
   border-radius: 6px;
   font-size: 0.95rem;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
@@ -735,7 +757,7 @@
 
 .motion-details-section .motion-select {
   padding: 0.75rem 0.9rem;
-  border: 1px solid #e5e5e3;
+  border: 1px solid #d8d8d6;
   border-radius: 6px;
   background-color: #fafaf9;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
@@ -767,7 +789,7 @@
 
 .motion-select {
   padding: 0.75rem 0.9rem;
-  border: 1px solid #e5e5e3;
+  border: 1px solid #d8d8d6;
   border-radius: 6px;
   font-family: 'Crimson Text', serif;
   font-size: 0.95rem;
