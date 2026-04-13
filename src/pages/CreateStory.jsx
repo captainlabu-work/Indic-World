@@ -30,6 +30,9 @@ const CreateStory = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [isDragging, setIsDragging] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(null); // null = not uploading, 0-100 = progress
+  const [uploadComplete, setUploadComplete] = useState(false);
+  const [videoDuration, setVideoDuration] = useState(null);
 
   // === Desk editor save handler (Word & Lens) ===
   const handleEditorSave = async (storyData) => {
@@ -148,12 +151,35 @@ const CreateStory = () => {
     }
   };
 
+  const extractVideoDuration = (file) => {
+    const video = document.createElement('video');
+    video.preload = 'metadata';
+    video.onloadedmetadata = () => {
+      setVideoDuration(video.duration);
+      URL.revokeObjectURL(video.src);
+    };
+    video.src = URL.createObjectURL(file);
+  };
+
+  const formatDuration = (seconds) => {
+    if (!seconds || !isFinite(seconds)) return '--';
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = Math.floor(seconds % 60);
+    if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    return `${m}:${String(s).padStart(2, '0')}`;
+  };
+
   const handleVideoChange = (e) => {
     const file = e.target.files[0];
     if (file) {
       if (file.size > 750 * 1024 * 1024) { setError('File exceeds 750MB limit. Please compress your video.'); return; }
       setMotionData(prev => ({ ...prev, videoFile: file }));
       setError('');
+      setUploadComplete(false);
+      setUploadProgress(null);
+      setVideoDuration(null);
+      extractVideoDuration(file);
     }
   };
 
@@ -177,10 +203,19 @@ const CreateStory = () => {
       }
       if (motionData.videoFile) {
         try {
-          videoUrl = await storageService.uploadImage(motionData.videoFile, `videos/${Date.now()}_${motionData.videoFile.name}`);
+          setUploadProgress(0);
+          setUploadComplete(false);
+          videoUrl = await storageService.uploadWithProgress(
+            motionData.videoFile,
+            `videos/${Date.now()}_${motionData.videoFile.name}`,
+            (progress) => setUploadProgress(progress)
+          );
+          setUploadProgress(100);
+          setUploadComplete(true);
         } catch (uploadError) {
           console.error('Video upload error:', uploadError);
-          setError('Failed to upload video. Please try again.');
+          setError('Upload failed. Please try again or compress your video.');
+          setUploadProgress(null);
           setLoading(false);
           return;
         }
@@ -259,6 +294,10 @@ const CreateStory = () => {
       if (file.size > 750 * 1024 * 1024) { setError('File exceeds 750MB limit. Please compress your video.'); return; }
       setMotionData(prev => ({ ...prev, videoFile: file }));
       setError('');
+      setUploadComplete(false);
+      setUploadProgress(null);
+      setVideoDuration(null);
+      extractVideoDuration(file);
     } else if (file) {
       setError('Please drop a video file (MP4, MOV, AVI, WebM)');
     }
@@ -287,7 +326,7 @@ const CreateStory = () => {
           type="button"
           onClick={() => handleMotionSubmit('pending')}
           className="motion-submit-top"
-          disabled={loading || !motionData.title || !motionData.excerpt || !motionData.videoFile || !motionData.type}
+          disabled={loading || !motionData.title || !motionData.excerpt || !motionData.videoFile || !motionData.type || (uploadProgress !== null && !uploadComplete)}
         >
           {loading ? 'Submitting...' : 'Submit for Review'}
         </button>
@@ -296,11 +335,11 @@ const CreateStory = () => {
       {/* Two-column: Upload LEFT + Specifications RIGHT */}
       <div className="motion-upload-row">
         <div
-          className={`motion-upload-zone${isDragging ? ' dragging' : ''}${motionData.videoFile ? ' has-file' : ''}${error ? ' has-error' : ''}`}
+          className={`motion-upload-zone${isDragging ? ' dragging' : ''}${motionData.videoFile ? ' has-file' : ''}${error ? ' has-error' : ''}${uploadProgress !== null && uploadProgress < 100 ? ' uploading' : ''}`}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
-          onClick={() => document.getElementById('videoFile').click()}
+          onClick={() => { if (uploadProgress === null || uploadComplete) document.getElementById('videoFile').click(); }}
         >
           <input
             type="file"
@@ -310,7 +349,40 @@ const CreateStory = () => {
             style={{ display: 'none' }}
           />
           {error && <p className="upload-zone-error">{error}</p>}
-          {motionData.videoFile ? (
+          {uploadProgress !== null && !uploadComplete && (
+            <div className="upload-progress-overlay">
+              <div className="upload-progress-ring">
+                <svg width="80" height="80" viewBox="0 0 80 80">
+                  <circle cx="40" cy="40" r="34" fill="none" stroke="#e8e8e6" strokeWidth="4"/>
+                  <circle cx="40" cy="40" r="34" fill="none" stroke="#4db897" strokeWidth="4"
+                    strokeLinecap="round"
+                    strokeDasharray={`${2 * Math.PI * 34}`}
+                    strokeDashoffset={`${2 * Math.PI * 34 * (1 - uploadProgress / 100)}`}
+                    style={{ transition: 'stroke-dashoffset 0.3s ease', transform: 'rotate(-90deg)', transformOrigin: 'center' }}
+                  />
+                </svg>
+                <span className="upload-progress-percent">{uploadProgress}%</span>
+              </div>
+              <p className="upload-progress-text">Uploading...</p>
+            </div>
+          )}
+          {uploadComplete && motionData.videoFile && (
+            <div className="upload-zone-selected">
+              <div className="upload-complete-icon">
+                <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                  <circle cx="24" cy="24" r="22" fill="#f0faf6" stroke="#4db897" strokeWidth="1.5"/>
+                  <path d="M15 24l6 6 12-12" stroke="#4db897" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+              <p className="upload-complete-text">Upload complete</p>
+              <p className="upload-zone-filename">{motionData.videoFile.name}</p>
+              <p className="upload-zone-filesize">
+                {(motionData.videoFile.size / (1024 * 1024)).toFixed(1)} MB
+                {videoDuration && <span> &middot; {formatDuration(videoDuration)}</span>}
+              </p>
+            </div>
+          )}
+          {motionData.videoFile && uploadProgress === null && !uploadComplete ? (
             <div className="upload-zone-selected">
               <div className="upload-selected-icon">
                 <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
@@ -319,7 +391,10 @@ const CreateStory = () => {
                 </svg>
               </div>
               <p className="upload-zone-filename">{motionData.videoFile.name}</p>
-              <p className="upload-zone-filesize">{(motionData.videoFile.size / (1024 * 1024)).toFixed(1)} MB</p>
+              <p className="upload-zone-filesize">
+                {(motionData.videoFile.size / (1024 * 1024)).toFixed(1)} MB
+                {videoDuration && <span> &middot; {formatDuration(videoDuration)}</span>}
+              </p>
               <div className="upload-zone-actions">
                 <button
                   type="button"
@@ -331,13 +406,13 @@ const CreateStory = () => {
                 <button
                   type="button"
                   className="upload-action-btn remove"
-                  onClick={(e) => { e.stopPropagation(); setMotionData(prev => ({ ...prev, videoFile: null })); }}
+                  onClick={(e) => { e.stopPropagation(); setMotionData(prev => ({ ...prev, videoFile: null })); setVideoDuration(null); setUploadProgress(null); setUploadComplete(false); }}
                 >
                   Remove
                 </button>
               </div>
             </div>
-          ) : (
+          ) : !motionData.videoFile && uploadProgress === null && (
             <div className="upload-zone-empty">
               <div className="upload-zone-icon-large">
                 <svg width="58" height="58" viewBox="0 0 58 58" fill="none">
@@ -347,7 +422,7 @@ const CreateStory = () => {
               </div>
               <p className="upload-zone-title">Upload your film</p>
               <p className="upload-zone-text">Drag and drop or click to browse</p>
-              <p className="upload-zone-hint">MP4, MOV, AVI, WebM &middot; Max 750MB</p>
+              <p className="upload-zone-hint">MP4, MOV, AVI, WebM &middot; Max 750MB &middot; Duration: --</p>
               <p className="upload-zone-tip">Large files may fail to upload. Compress your video before submitting.</p>
             </div>
           )}
@@ -463,7 +538,7 @@ const CreateStory = () => {
           <button type="button" onClick={() => handleMotionSubmit('draft')} className="draft-btn" disabled={loading || !motionData.title || !motionData.excerpt}>
             {loading ? 'Saving...' : 'Save as Draft'}
           </button>
-          <button type="button" onClick={() => handleMotionSubmit('pending')} className="submit-btn" disabled={loading || !motionData.title || !motionData.excerpt || !motionData.videoFile || !motionData.type}>
+          <button type="button" onClick={() => handleMotionSubmit('pending')} className="submit-btn" disabled={loading || !motionData.title || !motionData.excerpt || !motionData.videoFile || !motionData.type || (uploadProgress !== null && !uploadComplete)}>
             {loading ? 'Submitting...' : 'Submit for Review'}
           </button>
         </div>

@@ -25,6 +25,7 @@ import {
 import {
   ref,
   uploadBytes,
+  uploadBytesResumable,
   uploadString,
   getDownloadURL,
   deleteObject
@@ -733,6 +734,29 @@ export const storageService = {
       console.error('Storage upload error:', error);
       throw new Error(`Failed to upload image: ${error.message}`);
     }
+  },
+
+  // Upload file with progress tracking (returns promise, calls onProgress with 0-100)
+  uploadWithProgress(file, path, onProgress) {
+    return new Promise((resolve, reject) => {
+      const storageRef = ref(storage, path);
+      const uploadTask = uploadBytesResumable(storageRef, file);
+      uploadTask.on('state_changed',
+        (snapshot) => {
+          const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+          if (onProgress) onProgress(progress);
+        },
+        (error) => reject(new Error(`Upload failed: ${error.message}`)),
+        async () => {
+          try {
+            const url = await getDownloadURL(uploadTask.snapshot.ref);
+            resolve(url);
+          } catch (e) {
+            reject(e);
+          }
+        }
+      );
+    });
   },
 
   // Delete image

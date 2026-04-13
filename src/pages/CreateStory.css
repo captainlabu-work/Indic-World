@@ -564,6 +564,61 @@
   z-index: 2;
 }
 
+/* Uploading state */
+.motion-upload-zone.uploading {
+  background: #f0f5f2;
+  cursor: default;
+}
+
+/* Progress overlay */
+.upload-progress-overlay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 2rem;
+}
+
+.upload-progress-ring {
+  position: relative;
+  width: 80px;
+  height: 80px;
+}
+
+.upload-progress-ring svg {
+  display: block;
+}
+
+.upload-progress-percent {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: 'Crimson Text', serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.upload-progress-text {
+  font-family: 'Crimson Text', serif;
+  font-size: 0.95rem;
+  color: #666;
+}
+
+/* Upload complete */
+.upload-complete-icon {
+  margin-bottom: 0.3rem;
+}
+
+.upload-complete-text {
+  font-family: 'Crimson Text', serif;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #2d8a6a;
+  margin-bottom: 0.2rem;
+}
+
 .upload-zone-selected {
   display: flex;
   flex-direction: column;
