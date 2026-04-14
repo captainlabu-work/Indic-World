@@ -81,12 +81,15 @@ const MotionPlayer = () => {
       if (isSubscribed) {
         await subscriberService.unsubscribe(currentUser.uid, article.authorId);
         setIsSubscribed(false);
+        success('Unsubscribed');
       } else {
         await subscriberService.subscribe(currentUser.uid, article.authorId);
         setIsSubscribed(true);
+        success('Subscribed!');
       }
     } catch (err) {
       console.error('Subscribe error:', err);
+      showError(err.message || 'Failed to subscribe');
     } finally {
       setSubLoading(false);
     }
