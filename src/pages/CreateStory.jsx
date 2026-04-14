@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { articleService, storageService, validateFirestorePayload, sanitizePayload } from '../firebase/services';
@@ -15,6 +15,13 @@ const CreateStory = () => {
   // Map URL ?category param to editor tab: word/lens → desk, motion → motion
   const urlCategory = searchParams.get('category') || 'word';
   const [editorTab, setEditorTab] = useState(urlCategory === 'motion' ? 'motion' : 'desk');
+
+  // Edit mode: ?edit=<articleId> pre-fills the Motion form for updating
+  const editId = searchParams.get('edit');
+  const isEditMode = Boolean(editId);
+  const [editArticle, setEditArticle] = useState(null);
+  const [editLoading, setEditLoading] = useState(Boolean(editId));
+  const [existingVideoUrl, setExistingVideoUrl] = useState(null);
 
   // Motion-specific state
   const [motionData, setMotionData] = useState({
@@ -33,6 +40,35 @@ const CreateStory = () => {
   const [uploadProgress, setUploadProgress] = useState(null); // null = not uploading, 0-100 = progress
   const [uploadComplete, setUploadComplete] = useState(false);
   const [videoDuration, setVideoDuration] = useState(null);
+
+  // Fetch existing article data for edit mode
+  useEffect(() => {
+    if (!editId) return;
+    const fetchEditData = async () => {
+      try {
+        const data = await articleService.getArticle(editId);
+        if (!data) { setError('Article not found'); setEditLoading(false); return; }
+        if (data.authorId !== currentUser?.uid) { setError('You do not have permission to edit this'); setEditLoading(false); return; }
+        setEditArticle(data);
+        setMotionData({
+          title: data.title || '',
+          excerpt: data.excerpt || '',
+          tags: data.tags?.join(', ') || '',
+          videoFile: null,
+          type: data.motionType || '',
+          theme: data.motionTheme || ''
+        });
+        if (data.featuredImage) setImagePreview(data.featuredImage);
+        if (data.content) setExistingVideoUrl(data.content);
+      } catch (err) {
+        console.error('Error fetching article for edit:', err);
+        setError('Failed to load article');
+      } finally {
+        setEditLoading(false);
+      }
+    };
+    fetchEditData();
+  }, [editId, currentUser?.uid]);
 
   // === Desk editor save handler (Word & Lens) ===
   const handleEditorSave = async (storyData) => {
@@ -192,8 +228,8 @@ const CreateStory = () => {
     setLoading(true);
     setError('');
     try {
-      let imageUrl = '';
-      let videoUrl = '';
+      // Upload thumbnail if new one provided, else keep existing
+      let imageUrl = isEditMode ? (editArticle?.featuredImage || '') : '';
       if (featuredImage) {
         try {
           imageUrl = await storageService.uploadImage(featuredImage, `articles/${Date.now()}_${featuredImage.name}`);
@@ -201,6 +237,9 @@ const CreateStory = () => {
           console.error('Image upload error:', uploadError);
         }
       }
+
+      // Upload video if new one provided, else keep existing
+      let videoUrl = existingVideoUrl || '';
       if (motionData.videoFile) {
         try {
           setUploadProgress(0);
@@ -220,26 +259,49 @@ const CreateStory = () => {
           return;
         }
       }
-      const articleData = {
-        title: motionData.title,
-        excerpt: motionData.excerpt,
-        content: videoUrl,
-        category: 'motion',
-        featuredImage: imageUrl,
-        tags: motionData.tags.split(',').map(tag => tag.trim()).filter(Boolean),
-        authorId: currentUser.uid,
-        authorName: userData?.displayName || currentUser.email,
-        status,
-        views: 0,
-        isMotion: true,
-        motionType: motionData.type || '',
-        motionTheme: motionData.theme || ''
-      };
-      await articleService.createArticle(articleData);
-      success(status === 'pending' ? 'Video submitted for review!' : 'Video saved as draft!');
+
+      if (isEditMode) {
+        // Update existing article
+        const updateData = {
+          title: motionData.title,
+          excerpt: motionData.excerpt,
+          content: videoUrl,
+          featuredImage: imageUrl,
+          tags: motionData.tags.split(',').map(tag => tag.trim()).filter(Boolean),
+          category: 'motion',
+          motionType: motionData.type || '',
+          motionTheme: motionData.theme || '',
+          status,
+        };
+        if (editArticle?.status === 'needs-revision' && status === 'pending') {
+          updateData.isRevised = true;
+          updateData.revisionNote = '';
+        }
+        await articleService.updateArticle(editId, updateData);
+        success(status === 'pending' ? 'Video submitted for review!' : 'Draft saved!');
+      } else {
+        // Create new article
+        const articleData = {
+          title: motionData.title,
+          excerpt: motionData.excerpt,
+          content: videoUrl,
+          category: 'motion',
+          featuredImage: imageUrl,
+          tags: motionData.tags.split(',').map(tag => tag.trim()).filter(Boolean),
+          authorId: currentUser.uid,
+          authorName: userData?.displayName || currentUser.email,
+          status,
+          views: 0,
+          isMotion: true,
+          motionType: motionData.type || '',
+          motionTheme: motionData.theme || ''
+        };
+        await articleService.createArticle(articleData);
+        success(status === 'pending' ? 'Video submitted for review!' : 'Video saved as draft!');
+      }
       navigate('/profile');
     } catch (err) {
-      console.error('Error creating video:', err);
+      console.error('Error saving video:', err);
       showError(`Failed to save: ${err.message || 'Unknown error'}`);
     } finally {
       setLoading(false);
@@ -261,6 +323,11 @@ const CreateStory = () => {
       navigate('/profile');
     }
   };
+
+  // Loading state for edit mode
+  if (editLoading) {
+    return <div className="create-story-container"><div className="loading-state">Loading video data...</div></div>;
+  }
 
   // === Desk tab: TiptapEditor for Word & Lens ===
   if (editorTab === 'desk') {
@@ -319,14 +386,19 @@ const CreateStory = () => {
       {/* Header row with title and submit button */}
       <div className="motion-header-row">
         <div className="motion-header-text">
-          <h1>New Motion Submission</h1>
-          <p className="motion-header-sub">Share a documentary, film, or video essay.</p>
+          <h1>{isEditMode ? 'Edit Motion' : 'New Motion Submission'}</h1>
+          <p className="motion-header-sub">{isEditMode ? 'Update your video submission.' : 'Share a documentary, film, or video essay.'}</p>
+          {isEditMode && editArticle?.status === 'needs-revision' && editArticle?.revisionNote && (
+            <div className="revision-note" style={{ marginTop: '0.75rem', padding: '0.75rem 1rem', background: '#ede9fe', borderRadius: '4px', fontSize: '0.9rem', color: '#5b21b6' }}>
+              <strong>Admin Feedback:</strong> {editArticle.revisionNote}
+            </div>
+          )}
         </div>
         <button
           type="button"
           onClick={() => handleMotionSubmit('pending')}
           className="motion-submit-top"
-          disabled={loading || !motionData.title || !motionData.excerpt || !motionData.videoFile || !motionData.type || (uploadProgress !== null && !uploadComplete)}
+          disabled={loading || !motionData.title || !motionData.excerpt || (!motionData.videoFile && !existingVideoUrl) || !motionData.type || (uploadProgress !== null && !uploadComplete)}
         >
           {loading ? 'Submitting...' : 'Submit for Review'}
         </button>
@@ -412,7 +484,19 @@ const CreateStory = () => {
                 </button>
               </div>
             </div>
-          ) : !motionData.videoFile && uploadProgress === null && (
+          ) : !motionData.videoFile && existingVideoUrl && uploadProgress === null && (
+            <div className="upload-zone-selected">
+              <div className="upload-complete-icon">
+                <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                  <circle cx="24" cy="24" r="22" fill="#f0faf6" stroke="#4db897" strokeWidth="1.5"/>
+                  <path d="M15 24l6 6 12-12" stroke="#4db897" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+              <p className="upload-complete-text">Video uploaded</p>
+              <p className="upload-zone-hint" style={{ marginTop: '0.5rem' }}>Click to replace with a new video</p>
+            </div>
+          )}
+          {!motionData.videoFile && !existingVideoUrl && uploadProgress === null && (
             <div className="upload-zone-empty">
               <div className="upload-zone-icon-large">
                 <svg width="58" height="58" viewBox="0 0 58 58" fill="none">
@@ -538,7 +622,7 @@ const CreateStory = () => {
           <button type="button" onClick={() => handleMotionSubmit('draft')} className="draft-btn" disabled={loading || !motionData.title || !motionData.excerpt}>
             {loading ? 'Saving...' : 'Save as Draft'}
           </button>
-          <button type="button" onClick={() => handleMotionSubmit('pending')} className="submit-btn" disabled={loading || !motionData.title || !motionData.excerpt || !motionData.videoFile || !motionData.type || (uploadProgress !== null && !uploadComplete)}>
+          <button type="button" onClick={() => handleMotionSubmit('pending')} className="submit-btn" disabled={loading || !motionData.title || !motionData.excerpt || (!motionData.videoFile && !existingVideoUrl) || !motionData.type || (uploadProgress !== null && !uploadComplete)}>
             {loading ? 'Submitting...' : 'Submit for Review'}
           </button>
         </div>

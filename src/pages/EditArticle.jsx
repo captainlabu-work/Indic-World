@@ -8,18 +8,12 @@ import './CreateStory.css';
 
 const EditArticle = () => {
   const { currentUser, userData } = useAuth();
-  const { success, error: showError, showConfirmation } = useNotification();
+  const { success, error: showError } = useNotification();
   const navigate = useNavigate();
   const { id } = useParams();
   const [article, setArticle] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-
-  // Motion edit state
-  const [motionData, setMotionData] = useState({ title: '', excerpt: '', tags: '' });
-  const [featuredImage, setFeaturedImage] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
-  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     const fetchArticle = async () => {
@@ -34,15 +28,6 @@ const EditArticle = () => {
           return;
         }
         setArticle(articleData);
-        // Pre-fill motion form if motion article
-        if (articleData.isMotion || articleData.category === 'motion') {
-          setMotionData({
-            title: articleData.title || '',
-            excerpt: articleData.excerpt || '',
-            tags: articleData.tags?.join(', ') || ''
-          });
-          setImagePreview(articleData.featuredImage || null);
-        }
       } catch (err) {
         console.error('Error fetching article:', err);
         setError('Failed to load article');
@@ -133,64 +118,6 @@ const EditArticle = () => {
     }
   };
 
-  // === Motion form handlers ===
-  const handleMotionInputChange = (e) => {
-    const { name, value } = e.target;
-    setMotionData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) { setError('Image must be under 5MB'); return; }
-      if (!file.type.startsWith('image/')) { setError('File must be an image'); return; }
-      setFeaturedImage(file);
-      setImagePreview(URL.createObjectURL(file));
-      setError('');
-    }
-  };
-
-  const handleMotionSubmit = async (status = 'draft') => {
-    setSaving(true);
-    try {
-      let imageUrl = article.featuredImage || '';
-      if (featuredImage) {
-        imageUrl = await storageService.uploadImage(featuredImage, `articles/${Date.now()}_${featuredImage.name}`);
-      }
-      const updateData = {
-        title: motionData.title,
-        excerpt: motionData.excerpt,
-        featuredImage: imageUrl,
-        tags: motionData.tags.split(',').map(t => t.trim()).filter(Boolean),
-        category: 'motion',
-        status,
-      };
-      if (article.status === 'needs-revision' && status === 'pending') {
-        updateData.isRevised = true;
-        updateData.revisionNote = '';
-      }
-      await articleService.updateArticle(id, updateData);
-      success(status === 'pending' ? 'Video submitted for review!' : 'Draft saved!');
-      navigate('/profile');
-    } catch (err) {
-      console.error('Error updating video:', err);
-      showError(`Failed to save: ${err.message || 'Unknown error'}`);
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleDiscard = async () => {
-    const confirmed = await showConfirmation({
-      title: 'Discard Changes?',
-      message: 'Are you sure? All unsaved changes will be lost.',
-      confirmText: 'Discard',
-      cancelText: 'Keep Editing',
-      type: 'warning'
-    });
-    if (confirmed) navigate('/profile');
-  };
-
   if (loading) {
     return <div className="create-story-container"><div className="loading-state">Loading article...</div></div>;
   }
@@ -200,56 +127,10 @@ const EditArticle = () => {
 
   const isMotion = article.isMotion || article.category === 'motion';
 
-  // === Motion edit form ===
+  // Motion edits use the new Motion uploader in edit mode
   if (isMotion) {
-    return (
-      <div className="create-story-container">
-        <div className="create-story-header">
-          <h1>Edit Video</h1>
-          <p className="create-story-subtitle">Update your video submission</p>
-          {article.status === 'needs-revision' && article.revisionNote && (
-            <div className="revision-note">
-              <strong>Admin Feedback:</strong> {article.revisionNote}
-            </div>
-          )}
-        </div>
-        <form className="create-story-form">
-          <div className="form-group">
-            <label htmlFor="title">Title *</label>
-            <input type="text" id="title" name="title" value={motionData.title} onChange={handleMotionInputChange} placeholder="Video title" required />
-          </div>
-          <div className="form-group">
-            <label htmlFor="excerpt">Description *</label>
-            <textarea id="excerpt" name="excerpt" value={motionData.excerpt} onChange={handleMotionInputChange} placeholder="Brief description" maxLength={200} rows={3} required />
-            <small className="char-count">{motionData.excerpt.length}/200</small>
-          </div>
-          <div className="form-group">
-            <label htmlFor="featuredImage">Thumbnail Image</label>
-            <input type="file" id="featuredImage" accept="image/*" onChange={handleImageChange} className="file-input" />
-            {imagePreview && (
-              <div className="image-preview">
-                <img src={imagePreview} alt="Preview" />
-                <button type="button" onClick={() => { setFeaturedImage(null); setImagePreview(null); }} className="remove-image-btn">Remove</button>
-              </div>
-            )}
-          </div>
-          <div className="form-group">
-            <label htmlFor="tags">Tags (Optional)</label>
-            <input type="text" id="tags" name="tags" value={motionData.tags} onChange={handleMotionInputChange} placeholder="e.g., documentary, short film" />
-          </div>
-          {error && <div className="error-message">{error}</div>}
-          <div className="form-actions">
-            <button type="button" onClick={handleDiscard} className="discard-btn" disabled={saving}>Discard</button>
-            <button type="button" onClick={() => handleMotionSubmit('draft')} className="draft-btn" disabled={saving || !motionData.title || !motionData.excerpt}>
-              {saving ? 'Saving...' : 'Save as Draft'}
-            </button>
-            <button type="button" onClick={() => handleMotionSubmit('pending')} className="submit-btn" disabled={saving || !motionData.title || !motionData.excerpt}>
-              {saving ? 'Submitting...' : 'Submit for Review'}
-            </button>
-          </div>
-        </form>
-      </div>
-    );
+    navigate(`/create-story?category=motion&edit=${id}`, { replace: true });
+    return null;
   }
 
   // === Desk editor (Word & Lens) ===

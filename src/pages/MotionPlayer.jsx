@@ -260,7 +260,7 @@ const MotionPlayer = () => {
               {copied ? 'Link Copied!' : 'Share'}
             </button>
             {currentUser && currentUser.uid === article.authorId && (
-              <Link to={`/edit-article/${article.id}`} className="mp-action-btn mp-action-btn--outline">
+              <Link to={`/create-story?category=motion&edit=${article.id}`} className="mp-action-btn mp-action-btn--outline">
                 Edit
               </Link>
             )}
