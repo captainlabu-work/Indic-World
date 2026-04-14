@@ -79,6 +79,12 @@ const Article = () => {
             ...articleDoc.data()
           };
 
+          // Redirect motion content to the dedicated player page
+          if (articleData.category === 'motion' || articleData.isMotion) {
+            navigate(`/motion/${id}`, { replace: true });
+            return;
+          }
+
           if (articleData.status !== 'published' &&
               !isAdmin &&
               (!currentUser || currentUser.uid !== articleData.authorId)) {

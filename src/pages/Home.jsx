@@ -80,7 +80,7 @@ const ScrollRow = ({ title, items, navigate, getCategoryLabel }) => {
           <article
             key={item.id}
             className={`scroll-card ${item.placeholder ? 'scroll-card--placeholder' : ''}`}
-            onClick={() => !item.placeholder && navigate(`/article/${item.id}`)}
+            onClick={() => !item.placeholder && navigate(item.category === 'motion' ? `/motion/${item.id}` : `/article/${item.id}`)}
           >
             <div className="scroll-card-image">
               {item.placeholder ? (
@@ -170,7 +170,7 @@ const Home = () => {
     <div className="home-container">
       {/* Featured Article */}
       {!loading && featuredArticle && (
-        <section className="home-featured" onClick={() => navigate(`/article/${featuredArticle.id}`)}>
+        <section className="home-featured" onClick={() => navigate(featuredArticle.category === 'motion' ? `/motion/${featuredArticle.id}` : `/article/${featuredArticle.id}`)}>
           <div className="home-featured-image">
             <img
               src={featuredArticle.featuredImage || PLACEHOLDER_IMAGE}

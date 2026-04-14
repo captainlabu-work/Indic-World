@@ -138,7 +138,7 @@ const AuthorProfile = () => {
               <article
                 key={article.id}
                 className="author-story-card"
-                onClick={() => navigate(`/article/${article.id}`)}
+                onClick={() => navigate(article.category === 'motion' ? `/motion/${article.id}` : `/article/${article.id}`)}
               >
                 {article.featuredImage && (
                   <div className="author-card-image">

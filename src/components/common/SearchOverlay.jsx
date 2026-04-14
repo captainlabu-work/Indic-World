@@ -59,9 +59,9 @@ const SearchOverlay = ({ isOpen, onClose }) => {
     }, 300);
   };
 
-  const goToStory = (id) => {
+  const goToStory = (id, category) => {
     onClose();
-    navigate(`/article/${id}`);
+    navigate(category === 'motion' ? `/motion/${id}` : `/article/${id}`);
   };
 
   const goToAuthor = (uid) => {
@@ -119,7 +119,7 @@ const SearchOverlay = ({ isOpen, onClose }) => {
             <div className="search-section">
               <h4 className="search-section-title">Stories</h4>
               {stories.map(story => (
-                <div key={story.id} className="search-result-item" onClick={() => goToStory(story.id)}>
+                <div key={story.id} className="search-result-item" onClick={() => goToStory(story.id, story.category)}>
                   {story.featuredImage && (
                     <div className="search-result-thumb">
                       <img src={story.featuredImage} alt="" />

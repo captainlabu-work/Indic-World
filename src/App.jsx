@@ -18,6 +18,7 @@ const Admin = lazy(() => import('./pages/Admin'));
 const CreateStory = lazy(() => import('./pages/CreateStory'));
 const EditArticle = lazy(() => import('./pages/EditArticle'));
 const Article = lazy(() => import('./pages/Article'));
+const MotionPlayer = lazy(() => import('./pages/MotionPlayer'));
 const CategoryPage = lazy(() => import('./pages/CategoryPage'));
 const Subscribers = lazy(() => import('./pages/Subscribers'));
 const Stats = lazy(() => import('./pages/Stats'));
@@ -116,6 +117,7 @@ function App() {
 
                 {/* Article View */}
                 <Route path="/article/:id" element={<Article />} />
+                <Route path="/motion/:id" element={<MotionPlayer />} />
 
                 {/* Public Author Profile */}
                 <Route path="/author/:uid" element={<AuthorProfile />} />

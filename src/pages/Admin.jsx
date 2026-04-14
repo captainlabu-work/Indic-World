@@ -346,7 +346,7 @@ const Admin = () => {
 
   // === Story Card (Magnum-style) ===
   const renderStoryCard = (article) => (
-    <div key={article.id} className="admin-story-card" onClick={() => navigate(`/article/${article.id}`)}>
+    <div key={article.id} className="admin-story-card" onClick={() => navigate(article.category === 'motion' ? `/motion/${article.id}` : `/article/${article.id}`)}>
       <div className="admin-card-image">
         <img
           src={article.featuredImage || 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?q=80&w=2028'}

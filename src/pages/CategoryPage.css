@@ -271,10 +271,144 @@
   background: #333;
 }
 
+/* ===== Motion Category — Video Card Enhancements ===== */
+
+/* Cover image: gradient overlay + play icon */
+.cp-cover-image--motion {
+  position: relative;
+}
+
+.motion-cover-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.65) 0%,
+    rgba(0, 0, 0, 0.1) 50%,
+    transparent 100%
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.3s;
+}
+
+.cp-cover--motion:hover .motion-cover-overlay {
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.7) 0%,
+    rgba(0, 0, 0, 0.2) 50%,
+    rgba(0, 0, 0, 0.05) 100%
+  );
+}
+
+.motion-cover-overlay .motion-play-svg {
+  width: 72px;
+  height: 72px;
+  opacity: 0.9;
+  transition: transform 0.3s, opacity 0.3s;
+}
+
+.cp-cover--motion:hover .motion-cover-overlay .motion-play-svg {
+  transform: scale(1.1);
+  opacity: 1;
+}
+
+.motion-type-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.25rem 0.6rem;
+  border-radius: 3px;
+  backdrop-filter: blur(4px);
+}
+
+.motion-type-badge--cover {
+  top: 16px;
+  left: 16px;
+  font-size: 0.7rem;
+  padding: 0.3rem 0.8rem;
+}
+
+/* Grid card: play overlay + gradient */
+.cp-card-image--motion {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border-radius: 4px;
+}
+
+.cp-card-image--motion img {
+  border-radius: 4px;
+}
+
+.motion-thumb-hidden {
+  opacity: 0 !important;
+}
+
+.motion-preview-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 4px;
+  z-index: 1;
+}
+
+.motion-card-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.55) 0%,
+    rgba(0, 0, 0, 0.05) 60%,
+    transparent 100%
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  transition: opacity 0.3s;
+  border-radius: 4px;
+}
+
+.motion-card-overlay--hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.motion-play-svg {
+  width: 48px;
+  height: 48px;
+  opacity: 0.85;
+  transition: transform 0.3s, opacity 0.3s;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.4));
+}
+
+.cp-card--motion:hover .motion-play-svg {
+  transform: scale(1.12);
+  opacity: 1;
+}
+
+/* Motion grid: 3 columns, wider cards */
+.cp-grid--motion {
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+
 /* ===== Responsive ===== */
 @media (max-width: 1100px) {
   .cp-grid {
     grid-template-columns: repeat(3, 1fr);
+  }
+  .cp-grid--motion {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
@@ -294,6 +428,9 @@
   .cp-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 1.5rem;
+  }
+  .cp-grid--motion {
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .cp-cover-image img {
@@ -331,6 +468,9 @@
   }
 
   .cp-grid {
+    grid-template-columns: 1fr;
+  }
+  .cp-grid--motion {
     grid-template-columns: 1fr;
   }
 
