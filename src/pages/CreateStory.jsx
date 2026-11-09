@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { articleService, storageService, validateFirestorePayload, sanitizePayload } from '../firebase/services';
 import { useNotification } from '../components/common/NotificationSystem';
 import TiptapEditor from '../components/TiptapEditor';
+import { checkImageFile, checkVideoFile, IMAGE_ACCEPT, VIDEO_ACCEPT } from '../utils/uploadLimits';
 import './CreateStory.css';
 
 const CreateStory = () => {
@@ -179,8 +180,8 @@ const CreateStory = () => {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) { setError('Image size must be less than 5MB'); return; }
-      if (!file.type.startsWith('image/')) { setError('File must be an image'); return; }
+      const problem = checkImageFile(file, 5 * 1024 * 1024);
+      if (problem) { setError(problem); return; }
       setFeaturedImage(file);
       setImagePreview(URL.createObjectURL(file));
       setError('');
@@ -209,7 +210,8 @@ const CreateStory = () => {
   const handleVideoChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (file.size > 750 * 1024 * 1024) { setError('File exceeds 750MB limit. Please compress your video.'); return; }
+      const problem = checkVideoFile(file);
+      if (problem) { setError(problem); return; }
       setMotionData(prev => ({ ...prev, videoFile: file }));
       setError('');
       setUploadComplete(false);
@@ -357,16 +359,15 @@ const CreateStory = () => {
     e.preventDefault();
     setIsDragging(false);
     const file = e.dataTransfer.files[0];
-    if (file && file.type.startsWith('video/')) {
-      if (file.size > 750 * 1024 * 1024) { setError('File exceeds 750MB limit. Please compress your video.'); return; }
+    if (file) {
+      const problem = checkVideoFile(file);
+      if (problem) { setError(problem); return; }
       setMotionData(prev => ({ ...prev, videoFile: file }));
       setError('');
       setUploadComplete(false);
       setUploadProgress(null);
       setVideoDuration(null);
       extractVideoDuration(file);
-    } else if (file) {
-      setError('Please drop a video file (MP4, MOV, AVI, WebM)');
     }
   };
 
@@ -416,7 +417,7 @@ const CreateStory = () => {
           <input
             type="file"
             id="videoFile"
-            accept="video/*"
+            accept={VIDEO_ACCEPT}
             onChange={handleVideoChange}
             style={{ display: 'none' }}
           />
@@ -506,7 +507,7 @@ const CreateStory = () => {
               </div>
               <p className="upload-zone-title">Upload your film</p>
               <p className="upload-zone-text">Drag and drop or click to browse</p>
-              <p className="upload-zone-hint">MP4, MOV, AVI, WebM &middot; Max 750MB &middot; Duration: --</p>
+              <p className="upload-zone-hint">MP4, MOV, WebM &middot; Max 750MB &middot; Duration: --</p>
               <p className="upload-zone-tip">Large files may fail to upload. Compress your video before submitting.</p>
             </div>
           )}
@@ -518,7 +519,7 @@ const CreateStory = () => {
           <div className="specs-list">
             <div className="spec-item">
               <span className="spec-label">File Type</span>
-              <span className="spec-value">.mp4, .mov, .avi, .webm</span>
+              <span className="spec-value">.mp4, .mov, .webm</span>
             </div>
             <div className="spec-item">
               <span className="spec-label">Max Size</span>
@@ -611,7 +612,7 @@ const CreateStory = () => {
                 <span>Choose thumbnail</span>
               </div>
             )}
-            <input type="file" id="featuredImage" accept="image/*" onChange={handleImageChange} style={{ display: 'none' }} />
+            <input type="file" id="featuredImage" accept={IMAGE_ACCEPT} onChange={handleImageChange} style={{ display: 'none' }} />
           </div>
         </div>
       </div>

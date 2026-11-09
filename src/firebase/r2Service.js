@@ -3,6 +3,7 @@
 // user's Firebase ID token and returns a short-lived presigned PUT URL for R2.
 
 import { auth } from './config';
+import { checkImageFile, checkVideoFile, MAX_PROFILE_PHOTO_BYTES } from '../utils/uploadLimits';
 
 const WORKER_URL = import.meta.env.VITE_R2_UPLOAD_WORKER_URL;
 
@@ -30,13 +31,22 @@ function extractFileName(path, file) {
   return file?.name || `upload-${Date.now()}`;
 }
 
+// Same type/size limits the Worker enforces; checked here for a clearer message.
+function assertUploadAllowed(file, folder) {
+  let problem;
+  if (folder === 'videos') problem = checkVideoFile(file);
+  else if (folder === 'avatars') problem = checkImageFile(file, MAX_PROFILE_PHOTO_BYTES);
+  else problem = checkImageFile(file);
+  if (problem) throw new Error(problem);
+}
+
 async function getIdToken() {
   const user = auth.currentUser;
   if (!user) throw new Error('You must be signed in to upload');
   return await user.getIdToken();
 }
 
-async function requestPresignedUrl({ fileName, contentType, folder }) {
+async function requestPresignedUrl({ fileName, contentType, folder, size }) {
   if (!WORKER_URL) throw new Error('R2 upload worker URL not configured');
   const token = await getIdToken();
   const res = await fetch(WORKER_URL, {
@@ -45,7 +55,7 @@ async function requestPresignedUrl({ fileName, contentType, folder }) {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
     },
-    body: JSON.stringify({ fileName, contentType, folder }),
+    body: JSON.stringify({ fileName, contentType, folder, size }),
   });
   if (!res.ok) {
     let detail = '';
@@ -64,6 +74,7 @@ export const r2Service = {
   // Upload a File or Blob, return the public URL on R2
   async uploadImage(file, path) {
     const folder = folderFromPath(path);
+    assertUploadAllowed(file, folder);
     const fileName = extractFileName(path, file);
     const contentType = file.type || 'application/octet-stream';
 
@@ -71,6 +82,7 @@ export const r2Service = {
       fileName,
       contentType,
       folder,
+      size: file.size,
     });
 
     const putRes = await fetch(uploadUrl, {
@@ -90,6 +102,7 @@ export const r2Service = {
       const run = async () => {
         try {
           const folder = folderFromPath(path);
+          assertUploadAllowed(file, folder);
           const fileName = extractFileName(path, file);
           const contentType = file.type || 'application/octet-stream';
 
@@ -97,6 +110,7 @@ export const r2Service = {
             fileName,
             contentType,
             folder,
+            size: file.size,
           });
 
           const xhr = new XMLHttpRequest();

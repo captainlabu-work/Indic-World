@@ -6,6 +6,7 @@ import { updateProfile } from 'firebase/auth';
 import { auth, storage } from '../firebase/config';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useNotification } from '../components/common/NotificationSystem';
+import { checkImageFile, IMAGE_ACCEPT } from '../utils/uploadLimits';
 import './Settings.css';
 
 const Settings = () => {
@@ -38,15 +39,10 @@ const Settings = () => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      error('Please upload an image file');
-      return;
-    }
-
-    // Validate file size (max 2MB)
-    if (file.size > 2 * 1024 * 1024) {
-      error('Image must be less than 2MB');
+    // Validate file type and size (max 2MB here; storage.rules allows up to 5MB)
+    const problem = checkImageFile(file, 2 * 1024 * 1024);
+    if (problem) {
+      error(problem);
       return;
     }
 
@@ -263,7 +259,7 @@ const Settings = () => {
                 <input
                   type="file"
                   id="photoUpload"
-                  accept="image/*"
+                  accept={IMAGE_ACCEPT}
                   onChange={handlePhotoUpload}
                   className="photo-input"
                   disabled={uploading}

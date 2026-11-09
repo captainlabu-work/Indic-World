@@ -1,4 +1,4 @@
-import { AwsClient } from 'aws4fetch';
+import { AwsV4Signer } from 'aws4fetch';
 import { jwtVerify, createRemoteJWKSet } from 'jose';
 
 // Firebase publishes its public keys here for ID token verification
@@ -6,9 +6,52 @@ const FIREBASE_JWKS = createRemoteJWKSet(
   new URL('https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com')
 );
 
-const VALID_FOLDERS = new Set(['videos', 'articles', 'thumbnails', 'content', 'avatars']);
 const MAX_FILENAME = 200;
 const PRESIGN_EXPIRES = 3600; // 1 hour
+
+// Allowed file types and sizes per folder. Mirrors storage.rules and
+// src/utils/uploadLimits.js in the web app.
+const MB = 1024 * 1024;
+const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/avif'];
+const VIDEO_TYPES = ['video/mp4', 'video/quicktime', 'video/webm'];
+const FOLDER_LIMITS = {
+  videos: { types: VIDEO_TYPES, maxBytes: 750 * MB },
+  articles: { types: IMAGE_TYPES, maxBytes: 15 * MB },
+  thumbnails: { types: IMAGE_TYPES, maxBytes: 15 * MB },
+  content: { types: IMAGE_TYPES, maxBytes: 15 * MB },
+  avatars: { types: IMAGE_TYPES, maxBytes: 5 * MB },
+};
+
+// Check an upload request against the folder's limits.
+// Returns { status, error } when it must be rejected, or null when it is allowed.
+export function checkUpload({ folder, contentType, size }) {
+  const limits = FOLDER_LIMITS[folder];
+  if (!limits) return { status: 400, error: 'Unknown upload folder' };
+  if (!limits.types.includes(contentType)) return { status: 415, error: 'File type not allowed' };
+  if (!Number.isInteger(size) || size <= 0) return { status: 400, error: 'size (bytes) required' };
+  if (size > limits.maxBytes) return { status: 413, error: 'File too large' };
+  return null;
+}
+
+// Presign a PUT for `key`. Content-Type and Content-Length are part of the
+// signature, so R2 rejects an upload whose type or size differs from what was
+// approved here (aws4fetch leaves both unsigned unless allHeaders is set).
+export async function presignUpload(env, key, contentType, size) {
+  const objectUrl = `${env.R2_ENDPOINT}/${env.R2_BUCKET_NAME}/${encodeURIComponent(key).replace(/%2F/g, '/')}?X-Amz-Expires=${PRESIGN_EXPIRES}`;
+  const signer = new AwsV4Signer({
+    url: objectUrl,
+    method: 'PUT',
+    headers: { 'Content-Type': contentType, 'Content-Length': String(size) },
+    accessKeyId: env.R2_ACCESS_KEY_ID,
+    secretAccessKey: env.R2_SECRET_ACCESS_KEY,
+    region: 'auto',
+    service: 's3',
+    signQuery: true,
+    allHeaders: true,
+  });
+  const { url } = await signer.sign();
+  return url.toString();
+}
 
 function pickCorsOrigin(request, env) {
   const origin = request.headers.get('Origin');
@@ -94,7 +137,7 @@ export default {
       return jsonResponse({ error: 'Invalid JSON body' }, { status: 400 }, cors);
     }
 
-    const { fileName, contentType, folder } = body;
+    const { fileName, contentType, folder, size } = body;
     if (!fileName || typeof fileName !== 'string') {
       return jsonResponse({ error: 'fileName required' }, { status: 400 }, cors);
     }
@@ -102,37 +145,26 @@ export default {
       return jsonResponse({ error: 'contentType required' }, { status: 400 }, cors);
     }
 
-    const safeFolder = VALID_FOLDERS.has(folder) ? folder : 'uploads';
+    // === File type and size limits ===
+    const rejection = checkUpload({ folder, contentType, size });
+    if (rejection) {
+      return jsonResponse({ error: rejection.error }, { status: rejection.status }, cors);
+    }
+
     const safeName = sanitizeFileName(fileName);
     if (!safeName) {
       return jsonResponse({ error: 'Invalid fileName' }, { status: 400 }, cors);
     }
 
     // Object key: folder/timestamp_uid_filename
-    const key = `${safeFolder}/${Date.now()}_${uid}_${safeName}`;
+    const key = `${folder}/${Date.now()}_${uid}_${safeName}`;
 
     // === Generate presigned URL via S3 v4 signing ===
-    const aws = new AwsClient({
-      accessKeyId: env.R2_ACCESS_KEY_ID,
-      secretAccessKey: env.R2_SECRET_ACCESS_KEY,
-      region: 'auto',
-      service: 's3',
-    });
-
-    const objectUrl = `${env.R2_ENDPOINT}/${env.R2_BUCKET_NAME}/${encodeURIComponent(key).replace(/%2F/g, '/')}?X-Amz-Expires=${PRESIGN_EXPIRES}`;
-
-    const signed = await aws.sign(
-      new Request(objectUrl, {
-        method: 'PUT',
-        headers: { 'Content-Type': contentType },
-      }),
-      { aws: { signQuery: true } }
-    );
-
+    const uploadUrl = await presignUpload(env, key, contentType, size);
     const publicUrl = `${env.R2_PUBLIC_BASE}/${key}`;
 
     return jsonResponse({
-      uploadUrl: signed.url,
+      uploadUrl,
       publicUrl,
       key,
       contentType,

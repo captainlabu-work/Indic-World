@@ -11,6 +11,7 @@ import { Plugin, PluginKey } from '@tiptap/pm/state';
 import { Extension } from '@tiptap/core';
 import { articleService } from '../firebase/services';
 import { useNotification } from './common/NotificationSystem';
+import { checkImageFile, IMAGE_ACCEPT } from '../utils/uploadLimits';
 import './TiptapEditor.css';
 
 const DRAFT_KEY = 'indic-editor-draft';
@@ -355,11 +356,13 @@ const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', initialData = 
   // Thumbnail upload handler
   const handleThumbnailSelect = useCallback((e) => {
     const file = e.target.files?.[0];
-    if (!file || !file.type.startsWith('image/')) return;
+    e.target.value = '';
+    if (!file) return;
+    const problem = checkImageFile(file);
+    if (problem) { showToast(problem); return; }
     setThumbnailFile(file);
     setThumbnail(URL.createObjectURL(file));
-    e.target.value = '';
-  }, []);
+  }, [showToast]);
 
   const removeThumbnail = useCallback(() => {
     setThumbnail(null);
@@ -442,7 +445,7 @@ const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', initialData = 
     <div className={`tiptap-editor ${darkMode ? 'te-dark' : ''}`}>
       {/* Hidden file inputs */}
       <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileSelect} hidden />
-      <input ref={thumbnailInputRef} type="file" accept="image/*" onChange={handleThumbnailSelect} hidden />
+      <input ref={thumbnailInputRef} type="file" accept={IMAGE_ACCEPT} onChange={handleThumbnailSelect} hidden />
 
       {/* Top Bar */}
       <header className="te-topbar">

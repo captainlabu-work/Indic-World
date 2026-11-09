@@ -1,40 +1,66 @@
 rules_version = '2';
 
+// Indic World — Firebase Storage security rules.
+//
+// Users can only write inside folders named after their own UID, and only images
+// (JPEG, PNG, WebP, AVIF) or videos (MP4, MOV, WebM) within size limits. The same
+// limits are enforced for Cloudflare R2 uploads in worker/src/index.js.
+// Tests: tests/rules/storage.rules.test.js (`npm run test:rules`).
+
 service firebase.storage {
   match /b/{bucket}/o {
-    // Profile photos - users can only read/write their own photo
-    match /profile-photos/{userId} {
-      allow read: if true; // Anyone can view profile photos
-      allow write: if request.auth != null && request.auth.uid == userId;
+
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
     }
 
-    // Article images - authenticated users can upload
-    match /article-images/{allPaths=**} {
-      allow read: if true; // Anyone can view article images
-      allow write: if request.auth != null;
+    function isImage() {
+      return request.resource.contentType.matches('image/(jpeg|png|webp|avif)');
     }
 
-    // Articles path - authenticated users can upload
-    match /articles/{allPaths=**} {
-      allow read: if true; // Anyone can view article images
-      allow write: if request.auth != null;
+    function isVideo() {
+      return request.resource.contentType.matches('video/(mp4|quicktime|webm)');
     }
 
-    // Videos path - authenticated users can upload videos
-    match /videos/{allPaths=**} {
+    function isUnderMB(mb) {
+      return request.resource.size <= mb * 1024 * 1024;
+    }
+
+    // Profile photo: one file per user (Settings page), max 5 MB
+    match /profile-photos/{uid} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow create, update: if isOwner(uid) && isImage() && isUnderMB(5);
+      allow delete: if isOwner(uid);
     }
 
-    // Avatars path - users can upload their own avatar
-    match /avatars/{userId}/{allPaths=**} {
+    match /avatars/{uid}/{file=**} {
       allow read: if true;
-      allow write: if request.auth != null && request.auth.uid == userId;
+      allow create, update: if isOwner(uid) && isImage() && isUnderMB(5);
+      allow delete: if isOwner(uid);
     }
 
-    // Default deny for everything else
-    match /{allPaths=**} {
-      allow read, write: if false;
+    // Story images and thumbnails, max 15 MB
+    match /articles/{uid}/{file=**} {
+      allow create, update: if isOwner(uid) && isImage() && isUnderMB(15);
+      allow delete: if isOwner(uid);
+    }
+
+    // Motion videos, max 750 MB
+    match /videos/{uid}/{file=**} {
+      allow create, update: if isOwner(uid) && isVideo() && isUnderMB(750);
+      allow delete: if isOwner(uid);
+    }
+
+    // Files uploaded before per-user folders stay publicly readable but can no
+    // longer be written. Everything else is denied.
+    match /articles/{path=**} {
+      allow read: if true;
+    }
+    match /videos/{path=**} {
+      allow read: if true;
+    }
+    match /article-images/{path=**} {
+      allow read: if true;
     }
   }
 }

@@ -4,12 +4,23 @@ Issues short-lived presigned URLs so authenticated Indic users can upload direct
 
 ## How it works
 
-1. Browser sends `POST` to this Worker with `Authorization: Bearer <firebase-id-token>` and a JSON body `{ fileName, contentType, folder }`
+1. Browser sends `POST` to this Worker with `Authorization: Bearer <firebase-id-token>` and a JSON body `{ fileName, contentType, folder, size }`
 2. Worker verifies the Firebase ID token against Firebase's public JWKS
-3. Worker signs a presigned `PUT` URL using R2 S3-compatible credentials (via `aws4fetch`)
-4. Returns `{ uploadUrl, publicUrl, key }` to the browser
-5. Browser does `PUT` directly to `uploadUrl` — file goes to R2, no proxy
-6. Browser stores `publicUrl` in Firestore
+3. Worker checks the file type and size against the folder's limits (see below) and rejects anything else
+4. Worker signs a presigned `PUT` URL using R2 S3-compatible credentials (via `aws4fetch`). `Content-Type` and `Content-Length` are signed, so R2 refuses an upload whose type or size differs from what was approved
+5. Returns `{ uploadUrl, publicUrl, key }` to the browser
+6. Browser does `PUT` directly to `uploadUrl` — file goes to R2, no proxy
+7. Browser stores `publicUrl` in Firestore
+
+## Upload limits
+
+| Folder | Allowed types | Max size |
+|---|---|---|
+| `videos` | `video/mp4`, `video/quicktime` (MOV), `video/webm` | 750 MB |
+| `articles`, `thumbnails`, `content` | `image/jpeg`, `image/png`, `image/webp`, `image/avif` | 15 MB |
+| `avatars` | same image types | 5 MB |
+
+Any other folder is rejected. The same limits apply to Firebase Storage (`storage.rules`) and are checked in the web app (`src/utils/uploadLimits.js`). Unit tests: `npm test` in the repo root.
 
 ## One-time setup
 
