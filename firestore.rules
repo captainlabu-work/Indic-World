@@ -1,65 +1,296 @@
 rules_version = '2';
 
+// Indic World — Firestore security rules.
+//
+// The site has no backend server: the browser talks to Firestore directly, so these
+// rules are the only thing protecting the data. Tests live in tests/rules/ and run
+// against the emulator with `npm run test:rules`. Rollout steps: docs/SECURITY_ROLLOUT.md.
+
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper function to check if user is authenticated
-    function isAuthenticated() {
+    // ---------------------------------------------------------------- helpers
+
+    function isSignedIn() {
       return request.auth != null;
     }
 
-    // Helper function to check if user owns the document
-    function isOwner(userId) {
-      return isAuthenticated() && request.auth.uid == userId;
+    function isUser(uid) {
+      return isSignedIn() && request.auth.uid == uid;
     }
 
-    // Users collection rules
-    match /users/{userId} {
-      // Authenticated users can read user docs (for profile display, etc.)
-      allow read: if isAuthenticated();
-
-      // Users can create their own document during signup
-      allow create: if isAuthenticated();
-
-      // Users can update their own document; admins can update any
-      allow update: if isAuthenticated() &&
-                      (request.auth.uid == resource.data.uid ||
-                       resource.data.role == 'admin');
-
-      // Only the user themselves or admins can delete
-      allow delete: if isAuthenticated() &&
-                      (request.auth.uid == resource.data.uid);
+    function userPath(uid) {
+      return /databases/$(database)/documents/users/$(uid);
     }
 
-    // Articles collection rules
+    function publicProfilePath(uid) {
+      return /databases/$(database)/documents/publicProfiles/$(uid);
+    }
+
+    function subscriptionPath(subscriberId, authorId) {
+      return /databases/$(database)/documents/subscriptions/$(subscriberId + '_' + authorId);
+    }
+
+    // Admins are users whose users/{uid} document has role "admin". Only an existing
+    // admin can set a role (the first admin is set by hand in the Firebase console).
+    function isAdmin() {
+      return isSignedIn()
+        && exists(userPath(request.auth.uid))
+        && get(userPath(request.auth.uid)).data.get('role', '') == 'admin';
+    }
+
+    // Fields that this write adds, removes or changes.
+    function changedKeys() {
+      return request.resource.data.diff(resource.data).affectedKeys();
+    }
+
+    // Absent/null, or a string of at most `max` characters.
+    function isOptionalString(value, max) {
+      return value == null || (value is string && value.size() <= max);
+    }
+
+    // ------------------------------------------- users/{uid}: private account record
+    // Holds email and role. Only the user themselves and admins can read it.
+
+    match /users/{uid} {
+      allow get: if isUser(uid) || isAdmin();
+      allow list: if isAdmin();
+
+      // Created by the app on first sign-in. A user can never give themselves a role.
+      allow create: if isUser(uid)
+        && request.resource.data.keys().hasOnly(['uid', 'email', 'displayName', 'photoURL', 'createdAt', 'updatedAt'])
+        && request.resource.data.uid == uid
+        && request.resource.data.email == request.auth.token.get('email', '')
+        && isOptionalString(request.resource.data.get('displayName', null), 100)
+        && isOptionalString(request.resource.data.get('photoURL', null), 2048)
+        && request.resource.data.createdAt == request.time;
+
+      // The user may change their name and photo. Only an admin may change a role,
+      // and an admin may change nothing else on someone else's record.
+      allow update: if (isUser(uid)
+          && changedKeys().hasOnly(['displayName', 'photoURL', 'updatedAt'])
+          && isOptionalString(request.resource.data.get('displayName', null), 100)
+          && isOptionalString(request.resource.data.get('photoURL', null), 2048))
+        || (isAdmin()
+          && changedKeys().hasOnly(['role'])
+          && request.resource.data.role in ['author', 'editor', 'admin', 'viewer']);
+
+      allow delete: if isAdmin();
+    }
+
+    // -------------------------------- publicProfiles/{uid}: what anyone may see
+    // Name, photo, bio and subscriber count. Shown on author pages and in search,
+    // including to logged-out visitors. Never contains email.
+
+    function subscriberCount(data) {
+      return data.get('subscriberCount', 0);
+    }
+
+    function isValidPublicProfile(data) {
+      return isOptionalString(data.get('displayName', null), 100)
+        && isOptionalString(data.get('photoURL', null), 2048)
+        && isOptionalString(data.get('bio', null), 500);
+    }
+
+    // A reader may move an author's subscriberCount by exactly one, and only in the
+    // same batch that creates (+1) or deletes (-1) their own subscription document.
+    function isSubscriberCountChange(authorId) {
+      let path = subscriptionPath(request.auth.uid, authorId);
+      let before = subscriberCount(resource.data);
+      let after = subscriberCount(request.resource.data);
+      return isSignedIn()
+        && changedKeys().hasOnly(['subscriberCount'])
+        && ((after == before + 1 && !exists(path) && existsAfter(path))
+          || (after == before - 1 && exists(path) && !existsAfter(path)));
+    }
+
+    match /publicProfiles/{uid} {
+      allow read: if true;
+
+      allow create: if isUser(uid)
+        && request.resource.data.keys().hasOnly(['displayName', 'photoURL', 'bio', 'subscriberCount', 'updatedAt'])
+        && subscriberCount(request.resource.data) == 0
+        && isValidPublicProfile(request.resource.data);
+
+      allow update: if (isUser(uid)
+          && changedKeys().hasOnly(['displayName', 'photoURL', 'bio', 'updatedAt'])
+          && isValidPublicProfile(request.resource.data))
+        || isSubscriberCountChange(uid);
+
+      allow delete: if isAdmin();
+    }
+
+    // ------------------------------------- subscriptions/{subscriberId_authorId}
+
+    match /subscriptions/{subscriptionId} {
+      // Readers can look up and list their own subscriptions; writers can list
+      // who subscribes to them. Nobody else can see who follows whom.
+      allow get: if isSignedIn()
+        && (subscriptionId.split('_')[0] == request.auth.uid
+          || (resource != null && resource.data.authorId == request.auth.uid)
+          || isAdmin());
+      allow list: if isSignedIn()
+        && (resource.data.subscriberId == request.auth.uid
+          || resource.data.authorId == request.auth.uid
+          || isAdmin());
+
+      // Subscribe only as yourself, never to yourself, and bump the author's
+      // public count by one in the same batch.
+      allow create: if isSignedIn()
+        && request.resource.data.keys().hasOnly(['subscriberId', 'authorId', 'subscribedAt'])
+        && request.resource.data.subscriberId == request.auth.uid
+        && request.resource.data.authorId is string
+        && request.resource.data.authorId != request.auth.uid
+        && subscriptionId == request.auth.uid + '_' + request.resource.data.authorId
+        && request.resource.data.subscribedAt == request.time
+        && subscriberCount(getAfter(publicProfilePath(request.resource.data.authorId)).data)
+             == subscriberCount(get(publicProfilePath(request.resource.data.authorId)).data) + 1;
+
+      // Unsubscribe only yourself, lowering the author's count by one in the same batch.
+      allow delete: if (isSignedIn()
+          && resource.data.subscriberId == request.auth.uid
+          && subscriberCount(getAfter(publicProfilePath(resource.data.authorId)).data)
+               == subscriberCount(get(publicProfilePath(resource.data.authorId)).data) - 1)
+        || isAdmin();
+
+      // Subscriptions are never edited.
+    }
+
+    // ------------------------------------------- articles/{id}: stories (all formats)
+
+    function articleStatuses() {
+      return ['draft', 'pending', 'published', 'needs-revision', 'rejected', 'archived', 'deleted'];
+    }
+
+    // Fields a writer may set when creating a story.
+    function writerCreateKeys() {
+      return ['title', 'excerpt', 'content', 'contentJSON', 'category', 'featuredImage',
+              'thumbnailCaption', 'sourceText', 'tags', 'authorId', 'authorName', 'status',
+              'views', 'isVisualStory', 'isMotion', 'motionType', 'motionTheme', 'isAutoDraft',
+              'createdAt', 'updatedAt'];
+    }
+
+    // Fields a writer may change on their own story. Admin-only fields (staffPick,
+    // staffPickOrder, publicDomainVerified, publishedAt, rejectionReason) and
+    // authorId, createdAt and views are deliberately missing.
+    function writerEditableKeys() {
+      return ['title', 'excerpt', 'content', 'contentJSON', 'category', 'featuredImage',
+              'thumbnailCaption', 'sourceText', 'tags', 'authorName', 'status', 'isVisualStory',
+              'isMotion', 'motionType', 'motionTheme', 'isAutoDraft', 'isRevised', 'revisionNote',
+              'updatedAt', 'deletedAt'];
+    }
+
+    function isValidArticle(data) {
+      return data.title is string && data.title.size() > 0 && data.title.size() <= 300
+        && data.status in articleStatuses()
+        && data.get('category', 'word') in ['word', 'lens', 'motion']
+        && isOptionalString(data.get('excerpt', null), 5000)
+        && isOptionalString(data.get('authorName', null), 120)
+        && isOptionalString(data.get('featuredImage', null), 2048)
+        && isOptionalString(data.get('thumbnailCaption', null), 1000)
+        && isOptionalString(data.get('sourceText', null), 1000)
+        && isOptionalString(data.get('motionType', null), 100)
+        && isOptionalString(data.get('motionTheme', null), 100)
+        && isOptionalString(data.get('content', null), 1000000)
+        && isOptionalString(data.get('contentJSON', null), 1000000)
+        && data.get('tags', []) is list && data.get('tags', []).size() <= 10
+        && data.get('views', 0) is int && data.get('views', 0) >= 0;
+    }
+
+    function isWriterOf(data) {
+      return isSignedIn() && data.authorId == request.auth.uid;
+    }
+
+    // New stories start as a draft or are submitted for review, as their own author.
+    function isWriterCreate() {
+      let data = request.resource.data;
+      return isWriterOf(data)
+        && data.keys().hasOnly(writerCreateKeys())
+        && data.status in ['draft', 'pending']
+        && data.get('views', 0) == 0
+        && data.createdAt == request.time
+        && data.updatedAt == request.time
+        && isValidArticle(data);
+    }
+
+    // Writers can edit or delete their own stories in any state, but every edit
+    // leaves the story as draft, pending (submitted for review) or deleted. They
+    // can never publish, reject or request changes; editing a published story
+    // takes it back to review. A writer may only clear the admin's revisionNote.
+    function isWriterUpdate() {
+      let data = request.resource.data;
+      return isWriterOf(resource.data)
+        && changedKeys().hasOnly(writerEditableKeys())
+        && data.status in ['draft', 'pending', 'deleted']
+        && data.updatedAt == request.time
+        && (!('revisionNote' in changedKeys()) || data.revisionNote == '')
+        && isValidArticle(data);
+    }
+
+    // Admins review stories (publish, reject, request changes), set Staff Picks
+    // and the Public Domain badge, archive, restore and unpublish.
+    function isAdminUpdate() {
+      let data = request.resource.data;
+      return isAdmin()
+        && data.authorId == resource.data.authorId
+        && data.status in articleStatuses()
+        && data.get('staffPick', false) is bool
+        && (data.get('staffPickOrder', null) == null || data.get('staffPickOrder', null) is int)
+        && data.get('publicDomainVerified', false) is bool
+        && isOptionalString(data.get('revisionNote', null), 5000)
+        && isOptionalString(data.get('rejectionReason', null), 5000);
+    }
+
+    // Anyone, including logged-out readers, may add exactly one view to a published
+    // story — nothing else may change in the same write.
+    function isViewIncrement() {
+      return resource.data.status == 'published'
+        && changedKeys().hasOnly(['views'])
+        && request.resource.data.views == resource.data.get('views', 0) + 1;
+    }
+
     match /articles/{articleId} {
-      // Anyone can read published articles; authenticated users can read all
-      allow read: if resource.data.status == 'published' ||
-                    isAuthenticated();
+      // Published stories are public. Drafts and stories under review are visible
+      // only to their author and admins. (A missing document reads as "not found".)
+      allow get: if resource == null
+        || resource.data.status == 'published'
+        || isWriterOf(resource.data)
+        || isAdmin();
+      allow list: if resource.data.status == 'published'
+        || isWriterOf(resource.data)
+        || isAdmin();
 
-      // Authenticated users can create articles
-      allow create: if isAuthenticated() &&
-                      request.resource.data.authorId == request.auth.uid;
-
-      // Authors can update their own articles; any authenticated user can
-      // increment views on published articles; admin updates handled by role
-      allow update: if isAuthenticated();
-
-      // Authors can delete their own articles
-      allow delete: if isOwner(resource.data.authorId);
+      allow create: if isWriterCreate();
+      allow update: if isWriterUpdate() || isAdminUpdate() || isViewIncrement();
+      allow delete: if isWriterOf(resource.data) || isAdmin();
     }
 
-    // Site settings (homepage cover story, etc.) — public read, admin write
+    // --------------------------------- siteSettings: homepage cover story, etc.
+
     match /siteSettings/{settingId} {
       allow read: if true;
-      allow write: if isAuthenticated();
+      allow write: if isAdmin();
     }
 
-    // Subscribers collection
-    match /subscribers/{subscriberId} {
-      allow read: if true;
-      allow create: if true;
-      allow update, delete: if isAuthenticated();
+    // ----------------------------------------- contact_submissions: contact form
+
+    match /contact_submissions/{submissionId} {
+      // Anyone may send a message (size-limited); only admins can read or manage them.
+      allow create: if request.resource.data.keys().hasOnly(['name', 'email', 'message', 'timestamp', 'status'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 100
+        && request.resource.data.email is string
+        && request.resource.data.email.size() <= 254
+        && request.resource.data.email.matches('[^@\\s]+@[^@\\s]+\\.[^@\\s]+')
+        && request.resource.data.message is string
+        && request.resource.data.message.size() > 0
+        && request.resource.data.message.size() <= 5000
+        && request.resource.data.timestamp == request.time
+        && request.resource.data.status == 'unread';
+      allow read, update, delete: if isAdmin();
     }
+
+    // Everything else (including the old, unused `subscribers` collection) is denied.
   }
 }

@@ -5,9 +5,14 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:emulator": "vite --mode emulator",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "emulators": "firebase emulators:start --project demo-indic",
+    "seed:emulator": "node scripts/seed-emulator.mjs",
+    "test": "vitest run tests/worker",
+    "test:rules": "firebase emulators:exec --only firestore,storage --project demo-indic \"vitest run tests/rules\""
   },
   "dependencies": {
     "@hello-pangea/dnd": "^18.0.1",
