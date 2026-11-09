@@ -61,12 +61,8 @@ const Settings = () => {
       // Update Firebase Auth profile
       await updateProfile(auth.currentUser, { photoURL: downloadURL });
 
-      // Update Firestore user document
-      if (userData?.id) {
-        await userService.updateUserProfile(userData.id, { photoURL: downloadURL });
-      } else {
-        await userService.updateUser(currentUser.uid, { photoURL: downloadURL });
-      }
+      // Update Firestore user record and public profile
+      await userService.updateUserProfile(currentUser.uid, { photoURL: downloadURL });
 
       setPhotoURL(downloadURL);
       success('Profile photo updated successfully!');
@@ -90,12 +86,8 @@ const Settings = () => {
       // Update Firebase Auth profile
       await updateProfile(auth.currentUser, { displayName });
 
-      // Update Firestore user document
-      if (userData?.id) {
-        await userService.updateUserProfile(userData.id, { displayName });
-      } else {
-        await userService.updateUser(currentUser.uid, { displayName });
-      }
+      // Update Firestore user record and public profile
+      await userService.updateUserProfile(currentUser.uid, { displayName });
 
       success('Profile updated successfully!');
 

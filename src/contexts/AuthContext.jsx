@@ -2,7 +2,6 @@ import { createContext, useContext, useState, useEffect, useCallback } from 'rea
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth } from '../firebase/config';
 import { userService } from '../firebase/services';
-import { ensureUserDocument } from '../utils/fixUserData';
 
 const AuthContext = createContext({});
 
@@ -25,28 +24,17 @@ export const AuthProvider = ({ children }) => {
       setCurrentUser(user);
 
       if (user) {
-        // Fetch user data from Firestore
-        let data = await userService.getUserData(user.uid);
-        console.log('User data from Firestore:', data);
-        console.log('User email:', user.email);
-        console.log('Admin email from env:', import.meta.env.VITE_ADMIN_EMAIL);
-
-        // If no user data exists, create it
-        if (!data) {
-          console.log('No user document found, creating one...');
-          await ensureUserDocument();
-          // Fetch again after creation
-          data = await userService.getUserData(user.uid);
-          console.log('User data after creation:', data);
+        try {
+          await userService.ensureUserDocuments(user);
+          const data = await userService.getUserData(user.uid);
+          setUserData(data);
+          // Only controls what the UI shows; Firestore rules enforce admin access.
+          setIsAdmin(data?.role === 'admin');
+        } catch (err) {
+          console.error('Failed to load user profile:', err);
+          setUserData(null);
+          setIsAdmin(false);
         }
-
-        // Check admin by email if role not set properly
-        const isAdminUser = data?.role === 'admin' || user.email === import.meta.env.VITE_ADMIN_EMAIL;
-
-        setUserData(data);
-        setIsAdmin(isAdminUser);
-
-        console.log('Is admin:', isAdminUser);
       } else {
         setUserData(null);
         setIsAdmin(false);

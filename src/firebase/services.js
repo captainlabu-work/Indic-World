@@ -19,7 +19,9 @@ import {
   where,
   orderBy,
   limit,
-  Timestamp,
+  increment,
+  runTransaction,
+  writeBatch,
   serverTimestamp
 } from "firebase/firestore";
 import {
@@ -39,18 +41,7 @@ export const authService = {
   async signUp(email, password, displayName) {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     await updateProfile(userCredential.user, { displayName });
-
-    // Create user document in Firestore
-    await addDoc(collection(db, "users"), {
-      uid: userCredential.user.uid,
-      email: email,
-      displayName: displayName,
-      photoURL: '',
-      role: email === import.meta.env.VITE_ADMIN_EMAIL ? "admin" : "author",
-      createdAt: serverTimestamp(),
-      articlesCount: 0
-    });
-
+    await userService.ensureUserDocuments(userCredential.user, { displayName });
     return userCredential.user;
   },
 
@@ -63,32 +54,7 @@ export const authService = {
   async signInWithGoogle() {
     const provider = new GoogleAuthProvider();
     const result = await signInWithPopup(auth, provider);
-
-    console.log('Google sign in result:', result.user);
-
-    // Check if user document exists
-    const q = query(collection(db, "users"), where("uid", "==", result.user.uid));
-    const querySnapshot = await getDocs(q);
-
-    console.log('User query result:', querySnapshot.empty);
-
-    // If user doesn't exist, create user document
-    if (querySnapshot.empty) {
-      console.log('Creating new user document for:', result.user.email);
-      await addDoc(collection(db, "users"), {
-        uid: result.user.uid,
-        email: result.user.email,
-        displayName: result.user.displayName || '',
-        photoURL: result.user.photoURL || '',
-        role: result.user.email === import.meta.env.VITE_ADMIN_EMAIL ? "admin" : "author",
-        createdAt: serverTimestamp(),
-        articlesCount: 0
-      });
-      console.log('User document created successfully');
-    } else {
-      console.log('User document already exists');
-    }
-
+    await userService.ensureUserDocuments(result.user);
     return result.user;
   },
 
@@ -110,44 +76,75 @@ export const authService = {
 
 // ==================== User Services ====================
 
+// Each account has two documents, both keyed by the Firebase Auth UID:
+// - users/{uid}: private record (email, role). Readable only by its owner and admins.
+// - publicProfiles/{uid}: name, photo and subscriber count. Readable by anyone.
+// `role` is never written by the app for the signed-in user; the rules only let
+// an admin set it (the first admin is set by hand in the Firebase console).
 export const userService = {
-  // Get user data from Firestore
+  // Get the signed-in user's private record (or any user's, for admins)
   async getUserData(uid) {
-    const q = query(collection(db, "users"), where("uid", "==", uid));
-    const querySnapshot = await getDocs(q);
-    if (!querySnapshot.empty) {
-      return { id: querySnapshot.docs[0].id, ...querySnapshot.docs[0].data() };
-    }
-    return null;
+    const snap = await getDoc(doc(db, "users", uid));
+    return snap.exists() ? { id: snap.id, ...snap.data() } : null;
   },
 
-  // Update user profile
-  async updateUserProfile(userId, data) {
-    const userRef = doc(db, "users", userId);
-    return await updateDoc(userRef, data);
+  // Get the public profile shown on author pages and in search
+  async getPublicProfile(uid) {
+    const snap = await getDoc(doc(db, "publicProfiles", uid));
+    return snap.exists() ? { id: snap.id, uid: snap.id, ...snap.data() } : null;
   },
 
-  // Update user by UID
-  async updateUser(uid, data) {
-    const q = query(collection(db, "users"), where("uid", "==", uid));
-    const querySnapshot = await getDocs(q);
-    if (!querySnapshot.empty) {
-      const userRef = doc(db, "users", querySnapshot.docs[0].id);
-      return await updateDoc(userRef, data);
-    }
-    throw new Error("User not found");
+  // Create users/{uid} and publicProfiles/{uid} if they don't exist yet.
+  // Runs in a transaction because sign-up and the auth listener can both call it.
+  async ensureUserDocuments(user, { displayName } = {}) {
+    const name = displayName ?? user.displayName ?? '';
+    const userRef = doc(db, "users", user.uid);
+    const profileRef = doc(db, "publicProfiles", user.uid);
+
+    await runTransaction(db, async (tx) => {
+      const userSnap = await tx.get(userRef);
+      const profileSnap = await tx.get(profileRef);
+
+      if (!userSnap.exists()) {
+        tx.set(userRef, {
+          uid: user.uid,
+          email: user.email || '',
+          displayName: name,
+          photoURL: user.photoURL || '',
+          createdAt: serverTimestamp()
+        });
+      } else if (displayName && !userSnap.data().displayName) {
+        tx.update(userRef, { displayName, updatedAt: serverTimestamp() });
+      }
+
+      if (!profileSnap.exists()) {
+        tx.set(profileRef, {
+          displayName: name,
+          photoURL: user.photoURL || '',
+          subscriberCount: 0,
+          updatedAt: serverTimestamp()
+        });
+      } else if (displayName && !profileSnap.data().displayName) {
+        tx.update(profileRef, { displayName, updatedAt: serverTimestamp() });
+      }
+    });
   },
 
-  // Check if user is admin
-  async isAdmin(uid) {
-    const userData = await this.getUserData(uid);
-    return userData?.role === "admin";
+  // Update name and/or photo on both the private record and the public profile
+  async updateUserProfile(uid, { displayName, photoURL }) {
+    const data = { updatedAt: serverTimestamp() };
+    if (displayName !== undefined) data.displayName = displayName;
+    if (photoURL !== undefined) data.photoURL = photoURL;
+
+    const batch = writeBatch(db);
+    batch.update(doc(db, "users", uid), data);
+    batch.set(doc(db, "publicProfiles", uid), data, { merge: true });
+    return await batch.commit();
   },
 
-  // Update user role (admin only)
-  async updateUserRole(userId, newRole) {
-    const userRef = doc(db, "users", userId);
-    return await updateDoc(userRef, { role: newRole });
+  // Update user role (admin only — enforced by Firestore rules)
+  async updateUserRole(uid, newRole) {
+    return await updateDoc(doc(db, "users", uid), { role: newRole });
   }
 };
 
