@@ -51,7 +51,7 @@ const Navbar = () => {
           <Link to="/" className="nav-logo">
             <span className="nav-logo-text">Indic</span>
             <div className="nav-divider"></div>
-            <img src="/Indic 2.png" alt="Indic Logo" className="nav-logo-img" />
+            <img src="/Indic 2.png" alt="Indic Logo" className="nav-logo-img" width={192} height={192} />
           </Link>
           <ul className="nav-categories">
             {CATEGORIES.map(({ path, label }) => (
@@ -118,7 +118,7 @@ const Navbar = () => {
             <Link to="/profile" className="mobile-account" onClick={closeMenu}>
               <div className="mobile-account-avatar">
                 {userData?.photoURL || currentUser?.photoURL ? (
-                  <img src={userData?.photoURL || currentUser?.photoURL} alt="" className="profile-avatar-img" />
+                  <img src={userData?.photoURL || currentUser?.photoURL} alt="" className="profile-avatar-img" loading="lazy" decoding="async" />
                 ) : getInitials()}
               </div>
               <span className="mobile-account-label">SIGNED IN AS</span>

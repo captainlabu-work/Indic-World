@@ -265,7 +265,7 @@ const Stats = () => {
         <nav className="stats-nav">
           <div className="nav-left">
             <Link to="/" className="logo-link">
-              <img src="/Indic.png" alt="INDIC" className="site-logo" />
+              <img src="/Indic.png" alt="INDIC" className="site-logo" width={256} height={256} />
             </Link>
             <Link to="/profile" className="nav-link">PROFILE</Link>
             <Link to="/stats" className="nav-link active">STATS</Link>

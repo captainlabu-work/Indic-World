@@ -143,7 +143,7 @@ const Auth = () => {
           <div className="auth-logo">
             <h1 className="auth-logo-text">Indic</h1>
             <div className="auth-divider"></div>
-            <img src="/Indic 2.png" alt="Indic Logo" className="auth-logo-img" />
+            <img src="/Indic 2.png" alt="Indic Logo" className="auth-logo-img" width={192} height={192} />
           </div>
           <p className="auth-subtitle">Welcome to the storytelling community</p>
         </div>

@@ -82,6 +82,7 @@ const MotionCard = ({ story, config, navigate, getFirstTag }) => {
           src={story.featuredImage || config.bgImage}
           alt={story.title}
           loading="lazy"
+          decoding="async"
           className={previewing ? 'motion-thumb-hidden' : ''}
         />
         {previewing && story.content && (
@@ -183,6 +184,7 @@ const CategoryPage = ({ category }) => {
                 <img
                   src={coverStory.featuredImage || config.bgImage}
                   alt={coverStory.title}
+                  fetchPriority="high"
                 />
                 {coverStory.publicDomainVerified && <span className="pd-badge">PD</span>}
                 {isMotion && (
@@ -225,6 +227,7 @@ const CategoryPage = ({ category }) => {
                           src={story.featuredImage || config.bgImage}
                           alt={story.title}
                           loading="lazy"
+                          decoding="async"
                         />
                         {story.publicDomainVerified && <span className="pd-badge">PD</span>}
                       </div>

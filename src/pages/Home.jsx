@@ -110,6 +110,7 @@ const ScrollRow = ({ title, items, navigate, getCategoryLabel }) => {
                   src={item.featuredImage || PLACEHOLDER_IMAGE}
                   alt={item.title}
                   loading="lazy"
+                  decoding="async"
                 />
               )}
             </div>
@@ -195,6 +196,7 @@ const Home = () => {
             <img
               src={featuredArticle.featuredImage || PLACEHOLDER_IMAGE}
               alt={featuredArticle.title}
+              fetchPriority="high"
               style={{ objectPosition: `${featuredFocalX}% ${featuredFocalY}%` }}
             />
             {featuredArticle.publicDomainVerified && <span className="pd-badge">PD</span>}

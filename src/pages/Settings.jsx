@@ -120,7 +120,7 @@ const Settings = () => {
               <span></span>
             </button>
             <Link to="/" className="logo-link">
-              <img src="/Indic.png" alt="INDIC" className="site-logo" />
+              <img src="/Indic.png" alt="INDIC" className="site-logo" width={256} height={256} />
             </Link>
             <Link to="/" className="nav-link">
               <svg className="icon" viewBox="0 0 20 20" width="20" height="20">
@@ -185,9 +185,9 @@ const Settings = () => {
               <div className="menu-user">
                 <div className="menu-user-avatar">
                   {photoURL ? (
-                    <img src={photoURL} alt="User" />
+                    <img src={photoURL} alt="User" loading="lazy" decoding="async" />
                   ) : (
-                    <img src="/Indic.png" alt="User" />
+                    <img src="/Indic.png" alt="User" loading="lazy" decoding="async" />
                   )}
                 </div>
                 <div className="menu-user-info">

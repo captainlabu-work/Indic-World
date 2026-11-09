@@ -304,7 +304,7 @@ const Article = () => {
       {/* Featured image — wide */}
       {article.featuredImage && (
         <div className="article-hero">
-          <img src={article.featuredImage} alt={article.title} />
+          <img src={article.featuredImage} alt={article.title} fetchPriority="high" />
           {article.thumbnailCaption && (
             <p className="article-hero-caption">{article.thumbnailCaption}</p>
           )}

@@ -80,7 +80,7 @@ const Subscribers = () => {
         <nav className="subscribers-nav">
           <div className="nav-left">
             <Link to="/" className="logo-link">
-              <img src="/Indic.png" alt="INDIC" className="site-logo" />
+              <img src="/Indic.png" alt="INDIC" className="site-logo" width={256} height={256} />
             </Link>
             <Link to="/profile" className="nav-link">PROFILE</Link>
             <Link to="/stats" className="nav-link">STATS</Link>
@@ -159,7 +159,7 @@ const Subscribers = () => {
                 <div key={sub.id} className="subscriber-item">
                   <div className="subscriber-avatar">
                     {sub.photoURL ? (
-                      <img src={sub.photoURL} alt={sub.displayName} />
+                      <img src={sub.photoURL} alt={sub.displayName} loading="lazy" decoding="async" />
                     ) : (
                       <div className="avatar-fallback">
                         {(sub.displayName || '?').charAt(0).toUpperCase()}

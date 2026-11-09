@@ -103,7 +103,18 @@ describe('sanitizeStoryHtml keeps everything the editor produces', () => {
   it('splits into the same text and image blocks without losing content', () => {
     const blocks = buildArticleBlocks(original);
     expect(blocks.map((b) => b.type)).toEqual(['text', 'media', 'media', 'media', 'media']);
-    expect(parse(blocks.map((b) => b.html).join('')).isEqualNode(parse(original))).toBe(true);
+    // Ignore the loading/decoding attributes added for performance (tested below)
+    const rendered = parse(blocks.map((b) => b.html).join(''));
+    rendered.querySelectorAll('img').forEach((img) => { img.removeAttribute('loading'); img.removeAttribute('decoding'); });
+    expect(rendered.isEqualNode(parse(original))).toBe(true);
+  });
+
+  it('lazy-loads every story image except the first, and decodes them asynchronously', () => {
+    const imgs = [...parse(buildArticleBlocks(original).map((b) => b.html).join('')).querySelectorAll('img')];
+    expect(imgs.length).toBe(7);
+    expect(imgs[0].hasAttribute('loading')).toBe(false);
+    expect(imgs.slice(1).every((img) => img.getAttribute('loading') === 'lazy')).toBe(true);
+    expect(imgs.every((img) => img.getAttribute('decoding') === 'async')).toBe(true);
   });
 
   it('makes links open safely in a new tab', () => {

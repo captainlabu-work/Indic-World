@@ -141,7 +141,7 @@ const AuthorProfile = () => {
               >
                 {article.featuredImage && (
                   <div className="author-card-image">
-                    <img src={article.featuredImage} alt={article.title} loading="lazy" />
+                    <img src={article.featuredImage} alt={article.title} loading="lazy" decoding="async" />
                   </div>
                 )}
                 <div className="author-card-body">

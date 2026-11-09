@@ -122,7 +122,7 @@ const SearchOverlay = ({ isOpen, onClose }) => {
                 <div key={story.id} className="search-result-item" onClick={() => goToStory(story.id, story.category)}>
                   {story.featuredImage && (
                     <div className="search-result-thumb">
-                      <img src={story.featuredImage} alt="" />
+                      <img src={story.featuredImage} alt="" loading="lazy" decoding="async" />
                     </div>
                   )}
                   <div className="search-result-info">
@@ -142,7 +142,7 @@ const SearchOverlay = ({ isOpen, onClose }) => {
                 <div key={author.id} className="search-result-item" onClick={() => goToAuthor(author.uid)}>
                   <div className="search-result-avatar">
                     {author.photoURL ? (
-                      <img src={author.photoURL} alt="" />
+                      <img src={author.photoURL} alt="" loading="lazy" decoding="async" />
                     ) : (
                       <span className="search-avatar-fallback">
                         {(author.displayName || '?').charAt(0).toUpperCase()}

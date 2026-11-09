@@ -22,6 +22,13 @@ export function buildArticleBlocks(htmlString) {
   const dom = parser.parseFromString(sanitizeStoryHtml(htmlString), 'text/html');
   const children = Array.from(dom.body.childNodes);
 
+  // Decode images off the main thread, and only download images after the first
+  // one when the reader scrolls near them.
+  dom.body.querySelectorAll('img').forEach((img, i) => {
+    img.setAttribute('decoding', 'async');
+    if (i > 0) img.setAttribute('loading', 'lazy');
+  });
+
   const blocks = [];
   let textBuffer = '';
 

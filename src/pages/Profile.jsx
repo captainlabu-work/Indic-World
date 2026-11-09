@@ -124,7 +124,7 @@ const Profile = () => {
               <span></span>
             </button>
             <Link to="/" className="logo-link">
-              <img src="/Indic.png" alt="INDIC" className="site-logo" />
+              <img src="/Indic.png" alt="INDIC" className="site-logo" width={256} height={256} />
             </Link>
             <Link to="/settings" className="nav-link nav-link-settings-mobile" title="Settings">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -195,9 +195,9 @@ const Profile = () => {
               <div className="menu-user">
                 <div className="menu-user-avatar">
                   {photoURL ? (
-                    <img src={photoURL} alt="User" />
+                    <img src={photoURL} alt="User" loading="lazy" decoding="async" />
                   ) : (
-                    <img src="/Indic.png" alt="User" />
+                    <img src="/Indic.png" alt="User" loading="lazy" decoding="async" />
                   )}
                 </div>
                 <div className="menu-user-info">

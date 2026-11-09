@@ -352,6 +352,7 @@ const Admin = () => {
           src={article.featuredImage || 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?q=80&w=2028'}
           alt={article.title}
           loading="lazy"
+          decoding="async"
         />
         <span className={`admin-card-status status-${article.status}${article.isRevised ? ' revised' : ''}`}>
           {article.status === 'pending' && article.isRevised ? 'Revised' : article.status}
@@ -561,7 +562,7 @@ const Admin = () => {
                   <div key={user.id} className="user-card">
                     <div className="user-avatar">
                       {user.photoURL ? (
-                        <img src={user.photoURL} alt={user.displayName || user.email} className="avatar-img" />
+                        <img src={user.photoURL} alt={user.displayName || user.email} className="avatar-img" loading="lazy" decoding="async" />
                       ) : (
                         user.displayName ? user.displayName.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase()
                       )}

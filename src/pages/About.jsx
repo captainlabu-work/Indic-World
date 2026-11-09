@@ -7,7 +7,7 @@ const About = () => {
         <div className="logo-section">
           <h1 className="logo-text">Indic</h1>
           <div className="divider"></div>
-          <img src="/Indic 2.png" alt="Indic Logo" className="logo-img" />
+          <img src="/Indic 2.png" alt="Indic Logo" className="logo-img" width={192} height={192} />
         </div>
       </header>
 
