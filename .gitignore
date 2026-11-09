@@ -33,3 +33,8 @@ dist-ssr
 
 # Kilo Code agent worktrees
 .kilo/
+
+# Firebase service account keys (used by scripts/migrate-users.mjs) — never commit
+*service-account*.json
+*serviceAccount*.json
+*-firebase-adminsdk-*.json
