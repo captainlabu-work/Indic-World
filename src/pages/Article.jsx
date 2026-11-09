@@ -50,7 +50,7 @@ function buildArticleBlocks(htmlString) {
 const Article = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { currentUser, isAdmin } = useAuth();
+  const { currentUser, isAdmin, loading: authLoading } = useAuth();
   const { success, error: showError } = useNotification();
   const [article, setArticle] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -69,7 +69,12 @@ const Article = () => {
   );
 
   useEffect(() => {
+    // Wait for sign-in to resolve: drafts are only readable by their author and admins
+    if (authLoading) return;
+
     const fetchArticle = async () => {
+      setLoading(true);
+      setError(null);
       try {
         const articleDoc = await getDoc(doc(db, 'articles', id));
 
@@ -109,15 +114,19 @@ const Article = () => {
           setError('Article not found');
         }
       } catch (err) {
-        console.error('Error fetching article:', err);
-        setError('Failed to load article');
+        if (err.code === 'permission-denied') {
+          setError('Article not found');
+        } else {
+          console.error('Error fetching article:', err);
+          setError('Failed to load article');
+        }
       } finally {
         setLoading(false);
       }
     };
 
     fetchArticle();
-  }, [id, currentUser, isAdmin]);
+  }, [id, currentUser, isAdmin, authLoading, navigate]);
 
   // Detect image orientation for single images and grid rows
   useEffect(() => {

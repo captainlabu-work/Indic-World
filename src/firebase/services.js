@@ -577,67 +577,54 @@ export const articleService = {
     }, { merge: true });
   },
 
-  // Increment article views
+  // Add one view. The rules only accept views going up by exactly 1 on a
+  // published story, so this must use increment() rather than writing a total.
   async incrementViews(articleId) {
-    const articleRef = doc(db, "articles", articleId);
-    const articleSnap = await getDoc(articleRef);
-    if (articleSnap.exists()) {
-      const currentViews = articleSnap.data().views || 0;
-      await updateDoc(articleRef, { views: currentViews + 1 });
-    }
+    return await updateDoc(doc(db, "articles", articleId), { views: increment(1) });
   }
 };
 
 // ==================== Subscriber Services ====================
 
+// Subscription documents use the ID "{subscriberId}_{authorId}" and are written in
+// the same batch as the author's public subscriberCount, so the Firestore rules can
+// check that the count only ever moves by one for a real subscribe/unsubscribe.
+const subscriptionRef = (subscriberId, authorId) =>
+  doc(db, "subscriptions", `${subscriberId}_${authorId}`);
+
 export const subscriberService = {
   // Subscribe to an author
   async subscribe(subscriberId, authorId) {
-    // Prevent self-subscribe
     if (subscriberId === authorId) throw new Error("Cannot subscribe to yourself");
 
-    // Check if already subscribed
-    const q = query(
-      collection(db, "subscriptions"),
-      where("subscriberId", "==", subscriberId),
-      where("authorId", "==", authorId)
-    );
-    const existing = await getDocs(q);
-    if (!existing.empty) return existing.docs[0].id;
+    const subRef = subscriptionRef(subscriberId, authorId);
+    if ((await getDoc(subRef)).exists()) return subRef.id;
 
-    const docRef = await addDoc(collection(db, "subscriptions"), {
-      subscriberId,
-      authorId,
-      subscribedAt: serverTimestamp()
-    });
-    return docRef.id;
+    const batch = writeBatch(db);
+    batch.set(subRef, { subscriberId, authorId, subscribedAt: serverTimestamp() });
+    batch.update(doc(db, "publicProfiles", authorId), { subscriberCount: increment(1) });
+    await batch.commit();
+    return subRef.id;
   },
 
   // Unsubscribe from an author
   async unsubscribe(subscriberId, authorId) {
-    const q = query(
-      collection(db, "subscriptions"),
-      where("subscriberId", "==", subscriberId),
-      where("authorId", "==", authorId)
-    );
-    const snapshot = await getDocs(q);
-    for (const d of snapshot.docs) {
-      await deleteDoc(doc(db, "subscriptions", d.id));
-    }
+    const subRef = subscriptionRef(subscriberId, authorId);
+    if (!(await getDoc(subRef)).exists()) return;
+
+    const batch = writeBatch(db);
+    batch.delete(subRef);
+    batch.update(doc(db, "publicProfiles", authorId), { subscriberCount: increment(-1) });
+    await batch.commit();
   },
 
   // Check if user is subscribed to an author
   async isSubscribed(subscriberId, authorId) {
-    const q = query(
-      collection(db, "subscriptions"),
-      where("subscriberId", "==", subscriberId),
-      where("authorId", "==", authorId)
-    );
-    const snapshot = await getDocs(q);
-    return !snapshot.empty;
+    return (await getDoc(subscriptionRef(subscriberId, authorId))).exists();
   },
 
-  // Get subscribers of an author (people who subscribed to them)
+  // Get subscribers of an author (people who subscribed to them).
+  // Only public profile fields are shown; subscribers' emails stay private.
   async getSubscribers(authorId) {
     const q = query(
       collection(db, "subscriptions"),
@@ -647,18 +634,14 @@ export const subscriberService = {
     const snapshot = await getDocs(q);
     const subs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
 
-    // Enrich with user data
-    const enriched = [];
-    for (const sub of subs) {
-      const userData = await userService.getUserData(sub.subscriberId);
-      enriched.push({
+    return await Promise.all(subs.map(async (sub) => {
+      const profile = await userService.getPublicProfile(sub.subscriberId);
+      return {
         ...sub,
-        displayName: userData?.displayName || "Unknown User",
-        photoURL: userData?.photoURL || "",
-        email: userData?.email || ""
-      });
-    }
-    return enriched;
+        displayName: profile?.displayName || "Unknown User",
+        photoURL: profile?.photoURL || ""
+      };
+    }));
   },
 
   // Get subscriptions count (authors the user is subscribed to)
@@ -671,14 +654,10 @@ export const subscriberService = {
     return snapshot.size;
   },
 
-  // Get subscriber count for an author
+  // Get subscriber count for an author (public, kept on their public profile)
   async getSubscriberCount(authorId) {
-    const q = query(
-      collection(db, "subscriptions"),
-      where("authorId", "==", authorId)
-    );
-    const snapshot = await getDocs(q);
-    return snapshot.size;
+    const profile = await userService.getPublicProfile(authorId);
+    return profile?.subscriberCount || 0;
   }
 };
 
@@ -704,12 +683,12 @@ export const searchService = {
       .slice(0, limitCount);
   },
 
-  // Search users by display name
+  // Search authors by display name (public profiles, so it works when logged out)
   async searchUsers(searchTerm, limitCount = 10) {
-    const snapshot = await getDocs(collection(db, "users"));
+    const snapshot = await getDocs(collection(db, "publicProfiles"));
     const term = searchTerm.toLowerCase();
     return snapshot.docs
-      .map(d => ({ id: d.id, ...d.data() }))
+      .map(d => ({ id: d.id, uid: d.id, ...d.data() }))
       .filter(u => u.displayName?.toLowerCase().includes(term))
       .slice(0, limitCount);
   }

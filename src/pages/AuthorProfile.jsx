@@ -19,14 +19,13 @@ const AuthorProfile = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [userData, publishedArticles, subCount] = await Promise.all([
-          userService.getUserData(uid),
-          articleService.getPublishedArticlesByAuthor(uid),
-          subscriberService.getSubscriberCount(uid)
+        const [profile, publishedArticles] = await Promise.all([
+          userService.getPublicProfile(uid),
+          articleService.getPublishedArticlesByAuthor(uid)
         ]);
-        setAuthor(userData);
+        setAuthor(profile);
         setArticles(publishedArticles);
-        setSubscriberCount(subCount);
+        setSubscriberCount(profile?.subscriberCount || 0);
 
         if (currentUser && currentUser.uid !== uid) {
           const subscribed = await subscriberService.isSubscribed(currentUser.uid, uid);

@@ -168,7 +168,6 @@ const Subscribers = () => {
                   </div>
                   <div className="subscriber-info">
                     <span className="subscriber-name">{sub.displayName}</span>
-                    {sub.email && <span className="subscriber-email">{sub.email}</span>}
                   </div>
                   {sub.subscribedAt && (
                     <span className="subscriber-date">{formatDate(sub.subscribedAt)}</span>

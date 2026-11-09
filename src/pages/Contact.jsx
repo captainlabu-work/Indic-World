@@ -65,6 +65,7 @@ const Contact = () => {
                 placeholder="Your name"
                 value={formData.name}
                 onChange={handleChange}
+                maxLength={100}
                 required
               />
             </div>
@@ -78,6 +79,7 @@ const Contact = () => {
                 placeholder="Your email address"
                 value={formData.email}
                 onChange={handleChange}
+                maxLength={254}
                 required
               />
             </div>
@@ -90,6 +92,7 @@ const Contact = () => {
                 placeholder="Tell us about your query or project idea..."
                 value={formData.message}
                 onChange={handleChange}
+                maxLength={5000}
                 required
               />
             </div>

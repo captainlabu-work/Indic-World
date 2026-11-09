@@ -11,7 +11,7 @@ import './MotionPlayer.css';
 const MotionPlayer = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { currentUser, isAdmin } = useAuth();
+  const { currentUser, isAdmin, loading: authLoading } = useAuth();
   const { success, error: showError } = useNotification();
   const videoRef = useRef(null);
 
@@ -30,7 +30,12 @@ const MotionPlayer = () => {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
+    // Wait for sign-in to resolve: unpublished videos are only readable by their creator and admins
+    if (authLoading) return;
+
     const fetchArticle = async () => {
+      setLoading(true);
+      setError(null);
       try {
         const articleDoc = await getDoc(doc(db, 'articles', id));
         if (articleDoc.exists()) {
@@ -56,14 +61,18 @@ const MotionPlayer = () => {
           setError('Video not found');
         }
       } catch (err) {
-        console.error('Error fetching motion:', err);
-        setError('Failed to load video');
+        if (err.code === 'permission-denied') {
+          setError('Video not found');
+        } else {
+          console.error('Error fetching motion:', err);
+          setError('Failed to load video');
+        }
       } finally {
         setLoading(false);
       }
     };
     fetchArticle();
-  }, [id, currentUser, isAdmin]);
+  }, [id, currentUser, isAdmin, authLoading]);
 
   // Subscription check
   useEffect(() => {
