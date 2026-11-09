@@ -1,11 +1,22 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { articleService, userService } from '../firebase/services';
-import { collection, query, where, onSnapshot, orderBy, doc as firestoreDoc } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, orderBy, limit, getCountFromServer, doc as firestoreDoc } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { formatRelativeTime } from '../utils/formatters';
 import { useNotification } from '../components/common/NotificationSystem';
 import './Admin.css';
+
+// Each tab shows the newest stories in that state; the counters above use
+// server-side counts, so they stay exact beyond this limit.
+const ADMIN_LIST_LIMIT = 200;
+const USERS_LIST_LIMIT = 500;
+
+const articlesWithStatus = (status) =>
+  query(collection(db, 'articles'), where('status', '==', status), orderBy('createdAt', 'desc'), limit(ADMIN_LIST_LIMIT));
+
+const countWithStatus = async (status) =>
+  (await getCountFromServer(query(collection(db, 'articles'), where('status', '==', status)))).data().count;
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -18,13 +29,9 @@ const Admin = () => {
   const [deletedArticles, setDeletedArticles] = useState([]);
   const [users, setUsers] = useState([]);
   const [stats, setStats] = useState({
-    totalUsers: 0,
-    totalArticles: 0,
     pendingCount: 0,
     publishedCount: 0,
-    rejectedCount: 0,
-    archivedCount: 0,
-    deletedCount: 0
+    rejectedCount: 0
   });
   const [loading, setLoading] = useState(true);
   const [actionArticle, setActionArticle] = useState(null);
@@ -40,37 +47,40 @@ const Admin = () => {
     setLoading(true);
 
     const unsubscribePending = onSnapshot(
-      query(collection(db, 'articles'), where('status', '==', 'pending'), orderBy('createdAt', 'desc')),
-      (snapshot) => setPendingArticles(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))),
-      (error) => console.error('Error fetching pending articles:', error)
+      articlesWithStatus('pending'),
+      (snapshot) => {
+        setPendingArticles(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        setLoading(false);
+      },
+      (error) => { console.error('Error fetching pending articles:', error); setLoading(false); }
     );
 
     const unsubscribePublished = onSnapshot(
-      query(collection(db, 'articles'), where('status', '==', 'published'), orderBy('createdAt', 'desc')),
+      articlesWithStatus('published'),
       (snapshot) => setPublishedArticles(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))),
       (error) => console.error('Error fetching published articles:', error)
     );
 
     const unsubscribeRejected = onSnapshot(
-      query(collection(db, 'articles'), where('status', '==', 'rejected'), orderBy('createdAt', 'desc')),
+      articlesWithStatus('rejected'),
       (snapshot) => setRejectedArticles(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))),
       (error) => console.error('Error fetching rejected articles:', error)
     );
 
     const unsubscribeArchived = onSnapshot(
-      query(collection(db, 'articles'), where('status', '==', 'archived')),
+      articlesWithStatus('archived'),
       (snapshot) => setArchivedArticles(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))),
       (error) => console.error('Error fetching archived articles:', error)
     );
 
     const unsubscribeDeleted = onSnapshot(
-      query(collection(db, 'articles'), where('status', '==', 'deleted')),
+      articlesWithStatus('deleted'),
       (snapshot) => setDeletedArticles(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))),
       (error) => console.error('Error fetching deleted articles:', error)
     );
 
     const unsubscribeUsers = onSnapshot(
-      collection(db, 'users'),
+      query(collection(db, 'users'), limit(USERS_LIST_LIMIT)),
       (snapshot) => {
         const usersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         const uniqueUsers = usersData.reduce((acc, current) => {
@@ -78,27 +88,8 @@ const Admin = () => {
           return acc;
         }, []);
         setUsers(uniqueUsers);
-        setStats(prev => ({ ...prev, totalUsers: uniqueUsers.length }));
       },
       (error) => console.error('Error fetching users:', error)
-    );
-
-    const unsubscribeStats = onSnapshot(
-      collection(db, 'articles'),
-      (snapshot) => {
-        const articles = snapshot.docs.map(doc => doc.data());
-        setStats(prev => ({
-          ...prev,
-          totalArticles: articles.length,
-          pendingCount: articles.filter(a => a.status === 'pending').length,
-          publishedCount: articles.filter(a => a.status === 'published').length,
-          rejectedCount: articles.filter(a => a.status === 'rejected').length,
-          archivedCount: articles.filter(a => a.status === 'archived').length,
-          deletedCount: articles.filter(a => a.status === 'deleted').length
-        }));
-        setLoading(false);
-      },
-      (error) => { console.error('Error fetching stats:', error); setLoading(false); }
     );
 
     // Listen for cover story setting
@@ -114,10 +105,22 @@ const Admin = () => {
 
     return () => {
       unsubscribePending(); unsubscribePublished(); unsubscribeRejected();
-      unsubscribeArchived(); unsubscribeDeleted(); unsubscribeUsers(); unsubscribeStats();
+      unsubscribeArchived(); unsubscribeDeleted(); unsubscribeUsers();
       unsubscribeCover();
     };
   }, []);
+
+  // Exact counts for the stat cards, re-counted on the server whenever a list changes
+  // (instead of streaming every story to this page just to count them)
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all(['pending', 'published', 'rejected'].map(countWithStatus))
+      .then(([pendingCount, publishedCount, rejectedCount]) => {
+        if (!cancelled) setStats({ pendingCount, publishedCount, rejectedCount });
+      })
+      .catch((err) => console.error('Error counting stories:', err));
+    return () => { cancelled = true; };
+  }, [pendingArticles, publishedArticles, rejectedArticles]);
 
   // === Action handlers ===
   const handleApprove = async (articleId, e) => {
@@ -438,9 +441,14 @@ const Admin = () => {
       );
     }
     return (
-      <div className="admin-story-grid">
-        {filtered.map(article => renderStoryCard(article))}
-      </div>
+      <>
+        <div className="admin-story-grid">
+          {filtered.map(article => renderStoryCard(article))}
+        </div>
+        {articles.length >= ADMIN_LIST_LIMIT && (
+          <p className="admin-list-note">Showing the newest {ADMIN_LIST_LIMIT} stories.</p>
+        )}
+      </>
     );
   };
 
@@ -459,14 +467,14 @@ const Admin = () => {
         <div className="admin-stat-card"><div className="stat-number">{stats.pendingCount}</div><div className="stat-label">Pending Review</div></div>
         <div className="admin-stat-card"><div className="stat-number">{stats.publishedCount}</div><div className="stat-label">Published</div></div>
         <div className="admin-stat-card"><div className="stat-number">{stats.rejectedCount}</div><div className="stat-label">Rejected</div></div>
-        <div className="admin-stat-card"><div className="stat-number">{stats.totalUsers}</div><div className="stat-label">Total Users</div></div>
+        <div className="admin-stat-card"><div className="stat-number">{users.length}</div><div className="stat-label">Total Users</div></div>
       </div>
 
       <div className="admin-tabs">
         {[
-          ['pending', `Pending Review (${pendingArticles.length})`],
-          ['published', `Published (${publishedArticles.length})`],
-          ['rejected', `Rejected (${rejectedArticles.length})`],
+          ['pending', `Pending Review (${stats.pendingCount})`],
+          ['published', `Published (${stats.publishedCount})`],
+          ['rejected', `Rejected (${stats.rejectedCount})`],
           ['archived', `Archived (${archivedArticles.length})`],
           ['deleted', `Deleted (${deletedArticles.length})`],
           ['users', `Users (${users.length})`],

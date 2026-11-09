@@ -127,6 +127,13 @@
   font-family: 'Crimson Text', serif;
 }
 
+.admin-list-note {
+  margin-top: 1.5rem;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #8e8e8e;
+}
+
 .empty-state {
   background: #ffffff;
   border: 2px dashed #e0e0e0;

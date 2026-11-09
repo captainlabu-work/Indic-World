@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { articleService } from '../firebase/services';
-import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, orderBy, limit } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { formatRelativeTime } from '../utils/formatters';
 import { useNotification } from '../components/common/NotificationSystem';
@@ -36,7 +36,8 @@ const Profile = () => {
       query(
         collection(db, 'articles'),
         where('authorId', '==', currentUser.uid),
-        orderBy('createdAt', 'desc')
+        orderBy('createdAt', 'desc'),
+        limit(500)
       ),
       (snapshot) => {
         const userArticles = snapshot.docs.map(doc => ({

@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { subscriberService } from '../firebase/services';
-import { collection, query, where, onSnapshot, orderBy, getDocs } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, orderBy, getDocs, limit } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
@@ -52,7 +52,8 @@ const Stats = () => {
       query(
         collection(db, 'articles'),
         where('authorId', '==', currentUser.uid),
-        orderBy('createdAt', 'desc')
+        orderBy('createdAt', 'desc'),
+        limit(500)
       ),
       (snapshot) => {
         const userArticles = snapshot.docs.map(doc => ({
@@ -76,7 +77,8 @@ const Stats = () => {
         const q = query(
           collection(db, 'subscriptions'),
           where('authorId', '==', currentUser.uid),
-          orderBy('subscribedAt', 'desc')
+          orderBy('subscribedAt', 'desc'),
+          limit(2000)
         );
         const snapshot = await getDocs(q);
         setSubscribers(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));

@@ -15,6 +15,7 @@ import {
   doc,
   getDoc,
   getDocs,
+  getCountFromServer,
   query,
   where,
   orderBy,
@@ -224,6 +225,31 @@ export function sanitizePayload(obj) {
   return cleaned;
 }
 
+// Run a query on `articles`. If it fails — usually because the Firestore index it
+// needs is missing or still building — log it and return an empty list instead of
+// reading the whole collection. Required indexes are in firestore.indexes.json.
+async function listArticles(label, ...constraints) {
+  try {
+    const snap = await getDocs(query(collection(db, "articles"), ...constraints));
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch (err) {
+    console.error(`[${label}] query failed (missing Firestore index? see firestore.indexes.json):`, err.message);
+    return [];
+  }
+}
+
+const published = where("status", "==", "published");
+
+// Staff picks: staffPickOrder ascending (unset last), then newest first
+const byStaffPickOrder = (a, b) => {
+  const aOrder = a.staffPickOrder ?? Infinity;
+  const bOrder = b.staffPickOrder ?? Infinity;
+  if (aOrder !== bOrder) return aOrder - bOrder;
+  const aTime = a.publishedAt?.seconds || a.createdAt?.seconds || 0;
+  const bTime = b.publishedAt?.seconds || b.createdAt?.seconds || 0;
+  return bTime - aTime;
+};
+
 export const articleService = {
   // Create new article
   async createArticle(articleData) {
@@ -259,14 +285,6 @@ export const articleService = {
     return await deleteDoc(articleRef);
   },
 
-  // Archive article
-  async archiveArticle(articleId) {
-    return await this.updateArticle(articleId, {
-      status: "archived",
-      archivedAt: serverTimestamp()
-    });
-  },
-
   // Unarchive article
   async unarchiveArticle(articleId, previousStatus = "draft") {
     return await this.updateArticle(articleId, {
@@ -293,99 +311,21 @@ export const articleService = {
     return null;
   },
 
-  // Get articles by author
-  async getArticlesByAuthor(authorId) {
-    const q = query(
-      collection(db, "articles"),
-      where("authorId", "==", authorId),
-      orderBy("createdAt", "desc")
-    );
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  },
-
-  // Get published articles by a specific author
+  // Published articles by one author (index: status + authorId + createdAt)
   async getPublishedArticlesByAuthor(authorId, limitCount = 50) {
-    try {
-      const q = query(
-        collection(db, "articles"),
-        where("status", "==", "published"),
-        where("authorId", "==", authorId),
-        orderBy("createdAt", "desc"),
-        limit(limitCount)
-      );
-      const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    } catch (err) {
-      console.warn('Compound query failed, using fallback:', err.message);
-      const q = query(
-        collection(db, "articles"),
-        where("status", "==", "published"),
-        orderBy("createdAt", "desc")
-      );
-      const querySnapshot = await getDocs(q);
-      return querySnapshot.docs
-        .map(doc => ({ id: doc.id, ...doc.data() }))
-        .filter(a => a.authorId === authorId)
-        .slice(0, limitCount);
-    }
+    return listArticles('author stories',
+      published, where("authorId", "==", authorId), orderBy("createdAt", "desc"), limit(limitCount));
   },
 
-  // Get published articles
+  // Newest published articles (index: status + createdAt)
   async getPublishedArticles(limitCount = 20) {
-    const q = query(
-      collection(db, "articles"),
-      where("status", "==", "published"),
-      orderBy("createdAt", "desc"),
-      limit(limitCount)
-    );
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    return listArticles('latest stories', published, orderBy("createdAt", "desc"), limit(limitCount));
   },
 
-  // Get published articles by category
+  // Newest published articles in a category (index: status + category + createdAt)
   async getPublishedArticlesByCategory(category, limitCount = 20) {
-    try {
-      // Compound query (requires composite index in Firestore)
-      const q = query(
-        collection(db, "articles"),
-        where("status", "==", "published"),
-        where("category", "==", category),
-        orderBy("createdAt", "desc"),
-        limit(limitCount)
-      );
-      const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    } catch (err) {
-      // Fallback: fetch all published, filter client-side (before index is created)
-      console.warn('Compound query failed (index may be building), using fallback:', err.message);
-      const q = query(
-        collection(db, "articles"),
-        where("status", "==", "published"),
-        orderBy("createdAt", "desc")
-      );
-      const querySnapshot = await getDocs(q);
-      return querySnapshot.docs
-        .map(doc => ({ id: doc.id, ...doc.data() }))
-        .filter(a => a.category === category)
-        .slice(0, limitCount);
-    }
-  },
-
-  // Get pending articles (for admin)
-  async getPendingArticles() {
-    const q = query(
-      collection(db, "articles"),
-      where("status", "==", "pending"),
-      orderBy("createdAt", "desc")
-    );
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  },
-
-  // Submit article for review
-  async submitForReview(articleId) {
-    return await this.updateArticle(articleId, { status: "pending" });
+    return listArticles(`${category} stories`,
+      published, where("category", "==", category), orderBy("createdAt", "desc"), limit(limitCount));
   },
 
   // Approve article (admin only)
@@ -414,113 +354,21 @@ export const articleService = {
     });
   },
 
-  // Get rejected articles (for admin)
-  async getRejectedArticles() {
-    const q = query(
-      collection(db, "articles"),
-      where("status", "==", "rejected"),
-      orderBy("createdAt", "desc")
-    );
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  },
-
-  // Get archived articles
-  async getArchivedArticles() {
-    const q = query(
-      collection(db, "articles"),
-      where("status", "==", "archived"),
-      orderBy("archivedAt", "desc")
-    );
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  },
-
-  // Get deleted articles (soft deleted)
-  async getDeletedArticles() {
-    const q = query(
-      collection(db, "articles"),
-      where("status", "==", "deleted"),
-      orderBy("deletedAt", "desc")
-    );
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  },
-
   // Update article status
   async updateArticleStatus(articleId, status) {
     return await this.updateArticle(articleId, { status });
   },
 
-  // Get top picks (most viewed published articles)
+  // Most-viewed published articles (index: status + views)
   async getTopPicks(limitCount = 10) {
-    try {
-      const q = query(
-        collection(db, "articles"),
-        where("status", "==", "published"),
-        orderBy("views", "desc"),
-        limit(limitCount)
-      );
-      const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    } catch (err) {
-      // Fallback: fetch all published, sort client-side
-      console.warn('Top picks query failed (index may be building), using fallback:', err.message);
-      const q = query(
-        collection(db, "articles"),
-        where("status", "==", "published"),
-        orderBy("createdAt", "desc")
-      );
-      const querySnapshot = await getDocs(q);
-      return querySnapshot.docs
-        .map(doc => ({ id: doc.id, ...doc.data() }))
-        .sort((a, b) => (b.views || 0) - (a.views || 0))
-        .slice(0, limitCount);
-    }
+    return listArticles('top picks', published, orderBy("views", "desc"), limit(limitCount));
   },
 
-  // Get staff picks (articles marked as staff pick by admin)
-  // Sorted by staffPickOrder (ascending, nulls last), then by publishedAt desc
+  // Staff picks, in the admin's chosen order (index: status + staffPick + createdAt)
   async getStaffPicks(limitCount = 10) {
-    try {
-      const q = query(
-        collection(db, "articles"),
-        where("status", "==", "published"),
-        where("staffPick", "==", true),
-        orderBy("createdAt", "desc"),
-        limit(limitCount)
-      );
-      const querySnapshot = await getDocs(q);
-      const picks = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      // Client-side sort: staffPickOrder ascending (nulls last), then publishedAt desc
-      return picks.sort((a, b) => {
-        const aOrder = a.staffPickOrder ?? Infinity;
-        const bOrder = b.staffPickOrder ?? Infinity;
-        if (aOrder !== bOrder) return aOrder - bOrder;
-        const aTime = a.publishedAt?.seconds || a.createdAt?.seconds || 0;
-        const bTime = b.publishedAt?.seconds || b.createdAt?.seconds || 0;
-        return bTime - aTime;
-      });
-    } catch (err) {
-      console.warn('Staff picks query failed (index may be building), using fallback:', err.message);
-      const q = query(
-        collection(db, "articles"),
-        where("status", "==", "published"),
-        orderBy("createdAt", "desc")
-      );
-      const querySnapshot = await getDocs(q);
-      const picks = querySnapshot.docs
-        .map(doc => ({ id: doc.id, ...doc.data() }))
-        .filter(a => a.staffPick === true);
-      return picks.sort((a, b) => {
-        const aOrder = a.staffPickOrder ?? Infinity;
-        const bOrder = b.staffPickOrder ?? Infinity;
-        if (aOrder !== bOrder) return aOrder - bOrder;
-        const aTime = a.publishedAt?.seconds || a.createdAt?.seconds || 0;
-        const bTime = b.publishedAt?.seconds || b.createdAt?.seconds || 0;
-        return bTime - aTime;
-      }).slice(0, limitCount);
-    }
+    const picks = await listArticles('staff picks',
+      published, where("staffPick", "==", true), orderBy("createdAt", "desc"), limit(limitCount));
+    return picks.sort(byStaffPickOrder);
   },
 
   // Get the admin-selected cover story for the homepage
@@ -553,16 +401,6 @@ export const articleService = {
       coverFocalY: focalY,
       updatedAt: serverTimestamp()
     }, { merge: true });
-  },
-
-  // Update just the focal point of the current cover story
-  async updateCoverFocal(focalX, focalY) {
-    const settingsRef = doc(db, "siteSettings", "homepage");
-    return await updateDoc(settingsRef, {
-      coverFocalX: focalX,
-      coverFocalY: focalY,
-      updatedAt: serverTimestamp()
-    });
   },
 
   // Remove the cover story (falls back to latest)
@@ -625,11 +463,12 @@ export const subscriberService = {
 
   // Get subscribers of an author (people who subscribed to them).
   // Only public profile fields are shown; subscribers' emails stay private.
-  async getSubscribers(authorId) {
+  async getSubscribers(authorId, limitCount = 500) {
     const q = query(
       collection(db, "subscriptions"),
       where("authorId", "==", authorId),
-      orderBy("subscribedAt", "desc")
+      orderBy("subscribedAt", "desc"),
+      limit(limitCount)
     );
     const snapshot = await getDocs(q);
     const subs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -644,14 +483,11 @@ export const subscriberService = {
     }));
   },
 
-  // Get subscriptions count (authors the user is subscribed to)
+  // Get subscriptions count (authors the user is subscribed to), counted on the
+  // server so the documents themselves aren't downloaded
   async getSubscriptionsCount(subscriberId) {
-    const q = query(
-      collection(db, "subscriptions"),
-      where("subscriberId", "==", subscriberId)
-    );
-    const snapshot = await getDocs(q);
-    return snapshot.size;
+    const q = query(collection(db, "subscriptions"), where("subscriberId", "==", subscriberId));
+    return (await getCountFromServer(q)).data().count;
   },
 
   // Get subscriber count for an author (public, kept on their public profile)
@@ -663,32 +499,42 @@ export const subscriberService = {
 
 // ==================== Search Services ====================
 
+// Firestore has no text search, so search filters a bounded sample in the browser:
+// the 100 newest published stories and up to 300 author profiles. The sample is
+// loaded once and reused for 5 minutes instead of being re-read on every keystroke.
+const SEARCH_CACHE_MS = 5 * 60 * 1000;
+let searchSample = null; // { loadedAt, promise }
+
+function loadSearchSample() {
+  if (!searchSample || Date.now() - searchSample.loadedAt > SEARCH_CACHE_MS) {
+    const promise = Promise.all([
+      listArticles('search', published, orderBy("createdAt", "desc"), limit(100)),
+      getDocs(query(collection(db, "publicProfiles"), limit(300))),
+    ]).then(([stories, profiles]) => ({
+      stories,
+      authors: profiles.docs.map(d => ({ id: d.id, uid: d.id, ...d.data() })),
+    }));
+    searchSample = { loadedAt: Date.now(), promise };
+    promise.catch(() => { searchSample = null; });
+  }
+  return searchSample.promise;
+}
+
 export const searchService = {
-  // Search articles by title (client-side filter on published articles)
+  // Search published stories by title or author name
   async searchArticles(searchTerm, limitCount = 20) {
-    const q = query(
-      collection(db, "articles"),
-      where("status", "==", "published"),
-      orderBy("createdAt", "desc"),
-      limit(100)
-    );
-    const snapshot = await getDocs(q);
     const term = searchTerm.toLowerCase();
-    return snapshot.docs
-      .map(d => ({ id: d.id, ...d.data() }))
-      .filter(a =>
-        a.title?.toLowerCase().includes(term) ||
-        a.authorName?.toLowerCase().includes(term)
-      )
+    const { stories } = await loadSearchSample();
+    return stories
+      .filter(a => a.title?.toLowerCase().includes(term) || a.authorName?.toLowerCase().includes(term))
       .slice(0, limitCount);
   },
 
   // Search authors by display name (public profiles, so it works when logged out)
   async searchUsers(searchTerm, limitCount = 10) {
-    const snapshot = await getDocs(collection(db, "publicProfiles"));
     const term = searchTerm.toLowerCase();
-    return snapshot.docs
-      .map(d => ({ id: d.id, uid: d.id, ...d.data() }))
+    const { authors } = await loadSearchSample();
+    return authors
       .filter(u => u.displayName?.toLowerCase().includes(term))
       .slice(0, limitCount);
   }
