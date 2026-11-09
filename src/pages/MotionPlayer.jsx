@@ -28,6 +28,9 @@ const MotionPlayer = () => {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [subLoading, setSubLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  // Video ID whose view has been counted, so re-running the load (e.g. after
+  // sign-in, or React StrictMode in development) never counts the same visit twice
+  const viewCountedFor = useRef(null);
 
   useEffect(() => {
     // Wait for sign-in to resolve: unpublished videos are only readable by their creator and admins
@@ -52,7 +55,9 @@ const MotionPlayer = () => {
 
           // Increment views
           if (data.status === 'published' &&
-              (!currentUser || currentUser.uid !== data.authorId)) {
+              (!currentUser || currentUser.uid !== data.authorId) &&
+              viewCountedFor.current !== id) {
+            viewCountedFor.current = id;
             try {
               await updateDoc(doc(db, 'articles', id), { views: increment(1) });
             } catch { /* non-critical */ }

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { doc, getDoc, updateDoc, increment } from 'firebase/firestore';
 import { db } from '../firebase/config';
@@ -21,6 +21,9 @@ const Article = () => {
   const [showFeedback, setShowFeedback] = useState(false);
   const [feedbackText, setFeedbackText] = useState('');
   const [copied, setCopied] = useState(false);
+  // Article ID whose view has been counted, so re-running the load (e.g. after
+  // sign-in, or React StrictMode in development) never counts the same visit twice
+  const viewCountedFor = useRef(null);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [subLoading, setSubLoading] = useState(false);
 
@@ -63,7 +66,9 @@ const Article = () => {
           setArticle(articleData);
 
           if (articleData.status === 'published' &&
-              (!currentUser || currentUser.uid !== articleData.authorId)) {
+              (!currentUser || currentUser.uid !== articleData.authorId) &&
+              viewCountedFor.current !== id) {
+            viewCountedFor.current = id;
             try {
               await updateDoc(doc(db, 'articles', id), {
                 views: increment(1)
