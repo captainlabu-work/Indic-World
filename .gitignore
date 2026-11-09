@@ -30,3 +30,6 @@ dist-ssr
 
 # Vercel
 .vercel
+
+# Kilo Code agent worktrees
+.kilo/
