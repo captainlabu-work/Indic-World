@@ -5,7 +5,7 @@ import { subscriberService } from '../firebase/services';
 import './Subscribers.css';
 
 const Subscribers = () => {
-  const { currentUser, userData, logout } = useAuth();
+  const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
   const [subscribers, setSubscribers] = useState([]);
   const [subscriberCount, setSubscriberCount] = useState(0);
@@ -62,8 +62,6 @@ const Subscribers = () => {
       year: 'numeric'
     });
   };
-
-  const photoURL = userData?.photoURL || currentUser?.photoURL;
 
   if (loading) {
     return (

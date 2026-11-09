@@ -4,7 +4,9 @@ import './NotificationSystem.css';
 // Create context for notifications
 const NotificationContext = createContext();
 
-// Hook to use notifications
+// Hook to use notifications. It lives next to its provider on purpose; this only
+// affects hot reload in development.
+// eslint-disable-next-line react-refresh/only-export-components
 export const useNotification = () => {
   const context = useContext(NotificationContext);
   if (!context) {

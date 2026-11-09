@@ -130,7 +130,7 @@ const Admin = () => {
       await articleService.approveArticle(articleId);
       setActionArticle(null);
       success('Article approved and published!');
-    } catch (err) {
+    } catch {
       showError('Failed to approve article');
     } finally {
       setActionLoading(false);
@@ -145,7 +145,7 @@ const Admin = () => {
       setActionArticle(null);
       setRejectionReason('');
       success('Sent back for revision');
-    } catch (err) {
+    } catch {
       showError('Failed to request changes');
     } finally {
       setActionLoading(false);
@@ -166,7 +166,7 @@ const Admin = () => {
       setActionArticle(null);
       setRejectionReason('');
       success('Article rejected');
-    } catch (err) {
+    } catch {
       showError('Failed to reject');
     } finally {
       setActionLoading(false);
@@ -184,7 +184,7 @@ const Admin = () => {
     try {
       await articleService.updateArticleStatus(articleId, 'draft');
       success('Article unpublished');
-    } catch (err) {
+    } catch {
       showError('Failed to unpublish');
     } finally {
       setActionLoading(false);
@@ -202,7 +202,7 @@ const Admin = () => {
     try {
       await articleService.restoreArticle(articleId, 'draft');
       success('Article restored!');
-    } catch (err) {
+    } catch {
       showError('Failed to restore');
     } finally {
       setActionLoading(false);
@@ -220,7 +220,7 @@ const Admin = () => {
     try {
       await articleService.permanentlyDeleteArticle(articleId);
       success('Permanently deleted');
-    } catch (err) {
+    } catch {
       showError('Failed to delete');
     } finally {
       setActionLoading(false);
@@ -232,7 +232,7 @@ const Admin = () => {
     try {
       await articleService.unarchiveArticle(articleId, 'draft');
       success('Article unarchived');
-    } catch (err) {
+    } catch {
       showError('Failed to unarchive');
     }
   };
@@ -244,7 +244,7 @@ const Admin = () => {
       setEditingUserId(null);
       setSelectedRole('');
       success('Role updated!');
-    } catch (err) {
+    } catch {
       showError('Failed to update role');
     } finally {
       setActionLoading(false);
@@ -256,7 +256,7 @@ const Admin = () => {
     try {
       await articleService.updateArticle(articleId, { publicDomainVerified: !currentValue });
       success(!currentValue ? 'Marked as Public Domain' : 'Public Domain removed');
-    } catch (err) {
+    } catch {
       showError('Failed to update');
     }
   };
@@ -273,7 +273,7 @@ const Admin = () => {
       }
       await articleService.updateArticle(articleId, updates);
       success(!currentValue ? 'Added to Staff Picks' : 'Removed from Staff Picks');
-    } catch (err) {
+    } catch {
       showError('Failed to update');
     }
   };
@@ -283,7 +283,7 @@ const Admin = () => {
     try {
       const val = order === '' ? null : parseInt(order, 10);
       await articleService.updateArticle(articleId, { staffPickOrder: val });
-    } catch (err) {
+    } catch {
       showError('Failed to update order');
     }
   };
@@ -293,7 +293,7 @@ const Admin = () => {
     try {
       await articleService.setCoverStory(articleId);
       success('Set as homepage cover story!');
-    } catch (err) {
+    } catch {
       showError('Failed to set cover story');
     }
   };
@@ -303,7 +303,7 @@ const Admin = () => {
     try {
       await articleService.clearCoverStory();
       success('Cover story removed — homepage will use latest');
-    } catch (err) {
+    } catch {
       showError('Failed to clear cover story');
     }
   };
@@ -325,7 +325,7 @@ const Admin = () => {
       await articleService.setCoverStory(focalEdit.articleId, focalEdit.x, focalEdit.y);
       success('Focal point saved!');
       setFocalEdit(null);
-    } catch (err) {
+    } catch {
       showError('Failed to save focal point');
     }
   };

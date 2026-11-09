@@ -211,7 +211,9 @@ const TiptapEditor = ({ onSave, onSaveDraft, initialContent = '', initialData = 
         };
         try {
           localStorage.setItem(DRAFT_KEY, JSON.stringify(data));
-        } catch {}
+        } catch {
+          // Storage full or blocked: the draft just isn't kept locally
+        }
       }
     };
   }, [editor, category, tags, thumbnailCaption, sourceText, isEditMode]);

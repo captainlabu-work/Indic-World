@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { subscriberService } from '../firebase/services';
 import { collection, query, where, onSnapshot, orderBy, getDocs, limit } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import {
@@ -17,7 +16,7 @@ const RANGE_OPTIONS = [
 ];
 
 const Stats = () => {
-  const { currentUser, userData, logout } = useAuth();
+  const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
   const [articles, setArticles] = useState([]);
   const [subscribers, setSubscribers] = useState([]);

@@ -5,6 +5,8 @@ import { userService } from '../firebase/services';
 
 const AuthContext = createContext({});
 
+// The hook lives next to its provider on purpose; this only affects hot reload in development.
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {

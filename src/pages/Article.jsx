@@ -193,7 +193,7 @@ const Article = () => {
       await articleService.approveArticle(id);
       setArticle(prev => ({ ...prev, status: 'published' }));
       success('Article approved and published!');
-    } catch (err) {
+    } catch {
       showError('Failed to approve article');
     } finally {
       setActionLoading(false);
@@ -209,7 +209,7 @@ const Article = () => {
       setFeedbackText('');
       success('Sent back for revision');
       navigate('/admin');
-    } catch (err) {
+    } catch {
       showError('Failed to request changes');
     } finally {
       setActionLoading(false);
@@ -225,7 +225,7 @@ const Article = () => {
       setFeedbackText('');
       success('Article rejected');
       navigate('/admin');
-    } catch (err) {
+    } catch {
       showError('Failed to reject');
     } finally {
       setActionLoading(false);
