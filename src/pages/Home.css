@@ -495,8 +495,20 @@
   transform: scale(1.05);
 }
 
+/* Tile photo: an <img> (not a CSS background) so it can lazy-load and pick a size */
+.category-overlay-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
 .category-overlay-bg::before {
   content: '';
+  z-index: 1;
   position: absolute;
   top: 0;
   left: 0;

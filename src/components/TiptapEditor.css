@@ -15,12 +15,27 @@
   width: 100%;
   min-height: 100vh;
   background: #1a1a3e;
-  background-image: url('/starry-night.jpg');
+  /* Blurred by the overlay below, so a 1600px image is plenty (originals in assets-src/) */
+  background-image: url('/images/editor-bg-1600.webp');
+  background-image: image-set(
+    url('/images/editor-bg-1600.avif') type('image/avif'),
+    url('/images/editor-bg-1600.webp') type('image/webp')
+  );
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
   font-family: var(--te-font-ui);
   position: relative;
+}
+
+@media (max-width: 1280px) {
+  .tiptap-editor {
+    background-image: url('/images/editor-bg-1280.webp');
+    background-image: image-set(
+      url('/images/editor-bg-1280.avif') type('image/avif'),
+      url('/images/editor-bg-1280.webp') type('image/webp')
+    );
+  }
 }
 
 /* Blur overlay — scoped to editor only, not footer */

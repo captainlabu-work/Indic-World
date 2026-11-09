@@ -13,6 +13,26 @@ const PLACEHOLDER_CARDS = Array.from({ length: 4 }, (_, i) => ({
   featuredImage: null,
 }));
 
+/* ── Explore tile photo: AVIF/WebP in three widths, loaded when scrolled near ── */
+const EXPLORE_TILE_SIZES = '(max-width: 480px) calc(100vw - 2rem), (max-width: 1200px) calc(100vw - 4rem), 420px';
+const exploreSrcSet = (name, ext) =>
+  [480, 800, 1200].map((w) => `/images/${name}-${w}.${ext} ${w}w`).join(', ');
+
+const ExploreImage = ({ name }) => (
+  <picture>
+    <source type="image/avif" srcSet={exploreSrcSet(name, 'avif')} sizes={EXPLORE_TILE_SIZES} />
+    <img
+      className="category-overlay-img"
+      src={`/images/${name}-800.webp`}
+      srcSet={exploreSrcSet(name, 'webp')}
+      sizes={EXPLORE_TILE_SIZES}
+      alt=""
+      loading="lazy"
+      decoding="async"
+    />
+  </picture>
+);
+
 /* ── Horizontal Scroll Row ── */
 const ScrollRow = ({ title, items, navigate, getCategoryLabel }) => {
   const trackRef = useRef(null);
@@ -246,7 +266,8 @@ const Home = () => {
           </div>
           <div className="category-overlays">
             <Link to="/word" className="category-overlay">
-              <div className="category-overlay-bg" style={{ backgroundImage: `url('/kyrie-isaac-b5yyiiRflis-unsplash.jpg')` }}>
+              <div className="category-overlay-bg">
+                <ExploreImage name="explore-word" />
                 <div className="category-overlay-content">
                   <div className="category-label"><span className="category-icon">&#x270D;&#xFE0F;</span><h3>Indic Word</h3></div>
                   <p className="category-description">Written narratives & reportage</p>
@@ -255,7 +276,8 @@ const Home = () => {
               </div>
             </Link>
             <Link to="/lens" className="category-overlay">
-              <div className="category-overlay-bg" style={{ backgroundImage: `url('/saajithan-thayaparan-wBFu6IpuKRI-unsplash.jpg')` }}>
+              <div className="category-overlay-bg">
+                <ExploreImage name="explore-lens" />
                 <div className="category-overlay-content">
                   <div className="category-label"><span className="category-icon">&#x1F4F8;</span><h3>Indic Lens</h3></div>
                   <p className="category-description">Visual stories & photo essays</p>
@@ -264,7 +286,8 @@ const Home = () => {
               </div>
             </Link>
             <Link to="/motion" className="category-overlay">
-              <div className="category-overlay-bg" style={{ backgroundImage: `url('/vasiko-gorkovoy-OkBBRDHoxNw-unsplash.jpg')` }}>
+              <div className="category-overlay-bg">
+                <ExploreImage name="explore-motion" />
                 <div className="category-overlay-content">
                   <div className="category-label"><span className="category-icon">&#x1F3AC;</span><h3>Indic Motion</h3></div>
                   <p className="category-description">Documentaries & films</p>
