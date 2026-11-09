@@ -6,46 +6,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { articleService, subscriberService } from '../firebase/services';
 import { formatTimestamp } from '../utils/formatters';
 import { useNotification } from '../components/common/NotificationSystem';
+import { buildArticleBlocks } from '../utils/articleBlocks';
 import './Article.css';
-
-// Media node tags/selectors — these get media-container treatment
-const MEDIA_TAGS = new Set(['FIGURE', 'IMG']);
-const isMediaNode = (el) => {
-  if (MEDIA_TAGS.has(el.tagName)) return true;
-  if (el.tagName === 'DIV' && el.getAttribute('data-type') === 'image-grid') return true;
-  return false;
-};
-
-// Split flat HTML into alternating text-container / media-container blocks
-function buildArticleBlocks(htmlString) {
-  if (!htmlString) return [];
-
-  const parser = new DOMParser();
-  const dom = parser.parseFromString(htmlString, 'text/html');
-  const children = Array.from(dom.body.childNodes);
-
-  const blocks = [];
-  let textBuffer = '';
-
-  const flushText = () => {
-    if (textBuffer.trim()) {
-      blocks.push({ type: 'text', html: textBuffer });
-    }
-    textBuffer = '';
-  };
-
-  for (const node of children) {
-    if (node.nodeType === Node.ELEMENT_NODE && isMediaNode(node)) {
-      flushText();
-      blocks.push({ type: 'media', html: node.outerHTML });
-    } else if (node.nodeType === Node.ELEMENT_NODE || node.nodeType === Node.TEXT_NODE) {
-      textBuffer += node.outerHTML || node.textContent;
-    }
-  }
-  flushText();
-
-  return blocks;
-}
 
 const Article = () => {
   const { id } = useParams();

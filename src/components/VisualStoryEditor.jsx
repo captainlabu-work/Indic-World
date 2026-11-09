@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import { sanitizeStoryHtml } from '../utils/sanitizeHtml';
 import './VisualStoryEditor.css';
 
 const VisualStoryEditor = ({ onSave, initialData = null }) => {
@@ -143,7 +144,7 @@ const VisualStoryEditor = ({ onSave, initialData = null }) => {
               contentEditable
               className="text-content"
               onBlur={(e) => updateBlock(block.id, { text: e.target.innerHTML })}
-              dangerouslySetInnerHTML={{ __html: block.content.text }}
+              dangerouslySetInnerHTML={{ __html: sanitizeStoryHtml(block.content.text) }}
             />
           </div>
         );

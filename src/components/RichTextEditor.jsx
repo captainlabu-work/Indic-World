@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { parseMarkdownToHtml } from '../utils/formatters';
+import { sanitizeStoryHtml } from '../utils/sanitizeHtml';
 import './RichTextEditor.css';
 
 const RichTextEditor = ({ value, onChange, placeholder }) => {
@@ -176,7 +177,7 @@ const RichTextEditor = ({ value, onChange, placeholder }) => {
             {value ? (
               <div
                 className="preview-content"
-                dangerouslySetInnerHTML={{ __html: previewHtml }}
+                dangerouslySetInnerHTML={{ __html: sanitizeStoryHtml(previewHtml) }}
               />
             ) : (
               <div className="preview-empty">Nothing to preview yet. Start writing!</div>
