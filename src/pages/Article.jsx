@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { doc, getDoc, updateDoc, increment } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { useAuth } from '../contexts/AuthContext';
 import { articleService, subscriberService } from '../firebase/services';
@@ -69,13 +69,8 @@ const Article = () => {
               (!currentUser || currentUser.uid !== articleData.authorId) &&
               viewCountedFor.current !== id) {
             viewCountedFor.current = id;
-            try {
-              await updateDoc(doc(db, 'articles', id), {
-                views: increment(1)
-              });
-            } catch {
-              // View increment may fail for anonymous users — non-critical
-            }
+            // Count the view in the background: the story shouldn't wait for this write
+            articleService.incrementViews(id).catch(() => {});
           }
         } else {
           setError('Article not found');

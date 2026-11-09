@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { doc, getDoc, updateDoc, increment } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { useAuth } from '../contexts/AuthContext';
 import { articleService, subscriberService } from '../firebase/services';
@@ -58,9 +58,8 @@ const MotionPlayer = () => {
               (!currentUser || currentUser.uid !== data.authorId) &&
               viewCountedFor.current !== id) {
             viewCountedFor.current = id;
-            try {
-              await updateDoc(doc(db, 'articles', id), { views: increment(1) });
-            } catch { /* non-critical */ }
+            // Count the view in the background: the video shouldn't wait for this write
+            articleService.incrementViews(id).catch(() => {});
           }
         } else {
           setError('Video not found');
