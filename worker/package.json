@@ -1,0 +1,19 @@
+{
+  "name": "indic-r2-uploader",
+  "version": "1.0.0",
+  "description": "Cloudflare Worker that issues presigned R2 upload URLs to authenticated Indic users",
+  "private": true,
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail"
+  },
+  "dependencies": {
+    "aws4fetch": "^1.0.20",
+    "jose": "^5.9.6"
+  },
+  "devDependencies": {
+    "wrangler": "^3.95.0"
+  }
+}

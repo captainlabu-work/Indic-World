@@ -719,8 +719,14 @@ export const searchService = {
 };
 
 // ==================== Storage Services ====================
+// NOTE: Uploads have been migrated to Cloudflare R2. The active `storageService`
+// export is now r2Service (see firebase/r2Service.js). The Firebase Storage
+// implementation below is kept as `firebaseStorageService` for the migration
+// script and read-only fallbacks. Do not use it for new uploads.
 
-export const storageService = {
+export { r2Service as storageService } from './r2Service';
+
+export const firebaseStorageService = {
   // Upload image
   async uploadImage(file, path) {
     try {

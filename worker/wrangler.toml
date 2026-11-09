@@ -1,0 +1,17 @@
+name = "indic-r2-uploader"
+main = "src/index.js"
+compatibility_date = "2024-11-06"
+compatibility_flags = ["nodejs_compat"]
+
+# Public env vars (NOT secrets — these are non-sensitive)
+[vars]
+R2_BUCKET_NAME = "indic-world-media"
+R2_PUBLIC_BASE = "https://media.indic.world"
+FIREBASE_PROJECT_ID = "indicteam1"
+ALLOWED_ORIGINS = "https://indic.world,https://www.indic.world,http://localhost:3000,http://localhost:5173,http://localhost:5174"
+
+# Secrets are set via: wrangler secret put <NAME>
+# Required secrets:
+#   R2_ACCESS_KEY_ID
+#   R2_SECRET_ACCESS_KEY
+#   R2_ENDPOINT  (e.g. https://<account-id>.r2.cloudflarestorage.com)
