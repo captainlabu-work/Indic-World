@@ -105,12 +105,11 @@ src/
   contexts/       AuthContext (signed-in user and admin flag)
   utils/          sanitizeHtml, articleBlocks (story layout), uploadLimits, formatters
 public/           files served as-is: logos, favicon, optimised images in public/images/
-assets-src/       full-size original images (not served); see assets-src/README.md
+assets-src/       how the optimised images were made (originals kept outside git); see assets-src/README.md
 worker/           Cloudflare Worker that issues R2 upload links
 scripts/          migrate-users.mjs (one-off migration), seed-emulator.mjs (test data)
 tests/            unit/ (Vitest) and rules/ (Firebase emulator)
 docs/             rollout guides
-old-static-files/ the original 2025 HTML site (not used)
 ```
 
 ## Conventions
@@ -119,8 +118,8 @@ old-static-files/ the original 2025 HTML site (not used)
   Inter (dashboard and editor UI), Source Serif 4 (editor) and Noto Devanagari (Hindi). They load
   once, from `index.html`.
 - **Images:**
-  - put full-size originals in `assets-src/` and serve AVIF/WebP copies under 300 KB from
-    `public/images/`;
+  - keep full-size originals out of git (`assets-src/originals/` is ignored) and serve AVIF/WebP
+    copies under 300 KB from `public/images/`;
   - lazy-load anything below the fold;
   - keep cover and hero images eager.
 - **Lists:** every Firestore list query has a `limit()`. A query that needs a composite index

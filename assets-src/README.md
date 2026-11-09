@@ -3,6 +3,11 @@
 Full-size originals of the images in `public/`. Nothing in this folder is served to visitors;
 only the optimised copies in `public/` are.
 
+The originals themselves are **not stored in git** (`assets-src/originals/` is in `.gitignore`).
+They are backed up outside the repository (the owner's Google Drive). Older copies are also in
+git history, in commits before Nov 2026. To make new web copies, put the originals back in
+`assets-src/originals/` and follow the settings below.
+
 | Original | Used for | Optimised copies in `public/` |
 |---|---|---|
 | `starry-night.jpg` (4032×2496) | Editor background (`TiptapEditor.css`) | `images/editor-bg-{1280,1600}.{avif,webp}` |

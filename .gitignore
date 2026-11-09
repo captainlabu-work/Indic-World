@@ -38,3 +38,6 @@ dist-ssr
 *service-account*.json
 *serviceAccount*.json
 *-firebase-adminsdk-*.json
+
+# Full-size original images: kept outside git (backed up separately), see assets-src/README.md
+assets-src/originals/

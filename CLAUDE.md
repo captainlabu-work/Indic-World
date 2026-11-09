@@ -72,8 +72,9 @@ npm run test:rules     # Firestore + Storage rules tests on the emulator (needs 
 - Plain CSS, one file per page/component; no CSS framework. Keep the existing editorial look
   (Crimson Text, monochrome palette).
 - Fonts load **only** from the `<link>` in `index.html`. Don't add `@import` for fonts in CSS.
-- **Images:** originals go in `assets-src/originals/` (not served). Serve AVIF/WebP copies under
-  ~300 KB from `public/images/` with `srcset`/`image-set`. Lazy-load below-the-fold images; keep
+- **Images:** originals go in `assets-src/originals/`, which is git-ignored (the owner keeps them
+  backed up separately). Serve AVIF/WebP copies under ~300 KB from `public/images/` with
+  `srcset`/`image-set`. Lazy-load below-the-fold images; keep
   hero/cover images eager with `fetchPriority="high"`.
 - Pages are lazy-loaded in `src/App.jsx`.
 
