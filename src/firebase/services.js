@@ -25,15 +25,7 @@ import {
   writeBatch,
   serverTimestamp
 } from "firebase/firestore";
-import {
-  ref,
-  uploadBytes,
-  uploadBytesResumable,
-  uploadString,
-  getDownloadURL,
-  deleteObject
-} from "firebase/storage";
-import { auth, db, storage } from "./config";
+import { auth, db } from "./config";
 
 // ==================== Authentication Services ====================
 
@@ -67,11 +59,6 @@ export const authService = {
   // Reset password
   async resetPassword(email) {
     return await sendPasswordResetEmail(auth, email);
-  },
-
-  // Get current user
-  getCurrentUser() {
-    return auth.currentUser;
   }
 };
 
@@ -541,187 +528,8 @@ export const searchService = {
 };
 
 // ==================== Storage Services ====================
-// NOTE: Uploads have been migrated to Cloudflare R2. The active `storageService`
-// export is now r2Service (see firebase/r2Service.js). The Firebase Storage
-// implementation below is kept as `firebaseStorageService` for the migration
-// script and read-only fallbacks. Do not use it for new uploads.
+// Story images and videos upload to Cloudflare R2 through the upload Worker
+// (see firebase/r2Service.js and worker/). Files uploaded before the move stay
+// in Firebase Storage and keep working through their existing URLs.
 
 export { r2Service as storageService } from './r2Service';
-
-export const firebaseStorageService = {
-  // Upload image
-  async uploadImage(file, path) {
-    try {
-      // Clean the path - remove any duplicate timestamp/filename
-      const cleanPath = path.includes('/') ? path : `articles/${path}`;
-      const storageRef = ref(storage, cleanPath);
-      const snapshot = await uploadBytes(storageRef, file);
-      const downloadURL = await getDownloadURL(snapshot.ref);
-      return downloadURL;
-    } catch (error) {
-      console.error('Storage upload error:', error);
-      throw new Error(`Failed to upload image: ${error.message}`);
-    }
-  },
-
-  // Upload file with progress tracking (returns promise, calls onProgress with 0-100)
-  uploadWithProgress(file, path, onProgress) {
-    return new Promise((resolve, reject) => {
-      const storageRef = ref(storage, path);
-      const uploadTask = uploadBytesResumable(storageRef, file);
-      uploadTask.on('state_changed',
-        (snapshot) => {
-          const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
-          if (onProgress) onProgress(progress);
-        },
-        (error) => reject(new Error(`Upload failed: ${error.message}`)),
-        async () => {
-          try {
-            const url = await getDownloadURL(uploadTask.snapshot.ref);
-            resolve(url);
-          } catch (e) {
-            reject(e);
-          }
-        }
-      );
-    });
-  },
-
-  // Delete image
-  async deleteImage(imageUrl) {
-    const imageRef = ref(storage, imageUrl);
-    return await deleteObject(imageRef);
-  },
-
-  // Upload article image
-  async uploadArticleImage(file, authorId) {
-    return await this.uploadImage(file, `articles/${authorId}`);
-  },
-
-  // Upload user avatar
-  async uploadAvatar(file, userId) {
-    return await this.uploadImage(file, `avatars/${userId}`);
-  },
-
-  // Upload a base64 data URL to Storage, returns download URL
-  async uploadDataUrl(dataUrl, path) {
-    try {
-      const storageRef = ref(storage, path);
-      const snapshot = await uploadString(storageRef, dataUrl, 'data_url');
-      return await getDownloadURL(snapshot.ref);
-    } catch (error) {
-      console.error('Data URL upload error:', error);
-      throw new Error(`Failed to upload image: ${error.message}`);
-    }
-  },
-
-  // Deep-walk any object/array, find all string values starting with "data:image/"
-  // Returns array of { obj, key } refs that can be mutated in place
-  _collectBase64Refs(value, results = []) {
-    if (!value || typeof value !== 'object') return results;
-
-    if (Array.isArray(value)) {
-      for (let i = 0; i < value.length; i++) {
-        if (typeof value[i] === 'string' && value[i].startsWith('data:image/')) {
-          results.push({ obj: value, key: i });
-        } else if (typeof value[i] === 'object') {
-          this._collectBase64Refs(value[i], results);
-        }
-      }
-    } else {
-      for (const k of Object.keys(value)) {
-        if (typeof value[k] === 'string' && value[k].startsWith('data:image/')) {
-          results.push({ obj: value, key: k });
-        } else if (typeof value[k] === 'object') {
-          this._collectBase64Refs(value[k], results);
-        }
-      }
-    }
-
-    return results;
-  },
-
-  // Upload all base64 images in editor content to Storage, return cleaned content
-  async uploadContentImages(htmlContent, contentJSON) {
-    // Parse JSON if needed
-    let jsonObj = contentJSON;
-    if (typeof contentJSON === 'string') {
-      try { jsonObj = JSON.parse(contentJSON); } catch { jsonObj = null; }
-    }
-
-    // Deep-walk the entire JSON tree to find every base64 data URL string
-    const base64Refs = jsonObj ? this._collectBase64Refs(jsonObj) : [];
-
-    console.log(`[uploadContentImages] Found ${base64Refs.length} base64 image(s) in content JSON`);
-
-    if (base64Refs.length === 0) {
-      return { html: htmlContent, json: contentJSON };
-    }
-
-    // Deduplicate: same data URL may appear in multiple places
-    const uniqueUrls = [...new Set(base64Refs.map(r => r.obj[r.key]))];
-    const urlMap = new Map();
-    const ts = Date.now();
-
-    console.log(`[uploadContentImages] Uploading ${uniqueUrls.length} unique image(s) to Storage...`);
-
-    // Upload all unique base64 images in parallel
-    const uploads = uniqueUrls.map(async (dataUrl, i) => {
-      const ext = dataUrl.startsWith('data:image/png') ? 'png' : 'jpg';
-      const path = `articles/content/${ts}_${i}.${ext}`;
-      try {
-        const downloadUrl = await this.uploadDataUrl(dataUrl, path);
-        urlMap.set(dataUrl, downloadUrl);
-        console.log(`[uploadContentImages] Uploaded image ${i + 1}/${uniqueUrls.length}`);
-      } catch (err) {
-        console.error(`[uploadContentImages] Failed to upload image ${i}:`, err.message);
-        throw new Error(`Image upload failed (image ${i + 1}): ${err.message}`);
-      }
-    });
-
-    await Promise.all(uploads);
-
-    // Replace base64 refs in JSON tree (mutates in place)
-    let replaced = 0;
-    for (const { obj, key } of base64Refs) {
-      const replacement = urlMap.get(obj[key]);
-      if (replacement) {
-        obj[key] = replacement;
-        replaced++;
-      }
-    }
-    console.log(`[uploadContentImages] Replaced ${replaced}/${base64Refs.length} refs in JSON`);
-
-    // Replace base64 in HTML: both inline img src and data-images attributes
-    let cleanedHtml = htmlContent;
-    for (const [dataUrl, storageUrl] of urlMap) {
-      cleanedHtml = cleanedHtml.split(dataUrl).join(storageUrl);
-    }
-
-    // Rebuild data-images attributes from cleaned JSON for imageGrid nodes
-    if (jsonObj?.content) {
-      for (const node of jsonObj.content) {
-        if (node.type === 'imageGrid' && Array.isArray(node.attrs?.images)) {
-          const cleanImagesJson = JSON.stringify(node.attrs.images);
-          // Find existing data-images="..." in HTML and replace with cleaned version
-          cleanedHtml = cleanedHtml.replace(
-            /(<div[^>]*data-type="image-grid"[^>]*data-images=")([^"]*?)(")/g,
-            (_match, pre, _oldVal, post) => pre + cleanImagesJson.replace(/"/g, '&quot;') + post
-          );
-        }
-      }
-    }
-
-    // Validate: ensure no base64 remains in JSON
-    const jsonStr = JSON.stringify(jsonObj);
-    if (jsonStr.includes('data:image/')) {
-      const remaining = (jsonStr.match(/data:image\//g) || []).length;
-      console.error(`[uploadContentImages] WARNING: ${remaining} base64 image(s) still in JSON after upload`);
-    }
-
-    // Return JSON in same format as received
-    const cleanedJson = typeof contentJSON === 'string' ? JSON.stringify(jsonObj) : jsonObj;
-
-    return { html: cleanedHtml, json: cleanedJson };
-  }
-};

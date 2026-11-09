@@ -336,7 +336,7 @@
   color: #666;
 }
 
-/* Editor mode - no padding when using StoryEditor */
+/* Editor mode - no padding when using TiptapEditor */
 .create-story-editor-mode {
   padding: 0;
   max-width: 100%;
